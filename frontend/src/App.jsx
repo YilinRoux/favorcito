@@ -36,6 +36,7 @@ import DetalleValidacion from "./pages/admin/DetalleValidacion";
 import UsuariosSospechosos from "./pages/admin/UsuariosSospechosos";
 import GestionReportes from "./pages/admin/GestionReportes";
 import Estadisticas from "./pages/admin/Estadisticas";
+import Apelaciones from "./pages/admin/Apelaciones";
 
 /* CHAT */
 import ChatPedido from "./pages/chat/ChatPedido";
@@ -91,6 +92,7 @@ function App() {
         <Route path="/admin/sospechosos" element={<LayoutAdmin><UsuariosSospechosos /></LayoutAdmin>} />
         <Route path="/admin/reportes" element={<LayoutAdmin><GestionReportes /></LayoutAdmin>} />
         <Route path="/admin/estadisticas" element={<LayoutAdmin><Estadisticas /></LayoutAdmin>} />
+        <Route path="/admin/apelaciones" element={<LayoutAdmin><Apelaciones /></LayoutAdmin>} />
 
         {/* CHAT */}
         <Route path="/chat/:pedidoId" element={<ChatPedido />} />

@@ -8,6 +8,10 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
+  const [mostrarApelacion, setMostrarApelacion] = useState(false);
+  const [apelacion, setApelacion] = useState({ nombre: "", email: "", motivo: "" });
+  const [enviandoApelacion, setEnviandoApelacion] = useState(false);
+  const [apelacionEnviada, setApelacionEnviada] = useState(false);
 
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -47,6 +51,22 @@ export default function Login() {
     }
   };
 
+  const handleApelar = async () => {
+    if (!apelacion.nombre || !apelacion.email || !apelacion.motivo) {
+      alert("Completa todos los campos");
+      return;
+    }
+    setEnviandoApelacion(true);
+    try {
+      await api.post("/apelaciones", apelacion);
+      setApelacionEnviada(true);
+    } catch (err) {
+      alert(err.response?.data?.mensaje || "Error al enviar apelación");
+    } finally {
+      setEnviandoApelacion(false);
+    }
+  };
+
   return (
     <div className="p-10 flex justify-center">
       <div className="w-full max-w-md bg-white shadow-md rounded p-6">
@@ -63,12 +83,16 @@ export default function Login() {
                 <p style={{ color: "#dc2626", fontWeight: "700", fontSize: "14px", margin: "0 0 6px 0" }}>
                   🚫 Cuenta suspendida
                 </p>
-                <p style={{ color: "#dc2626", fontSize: "13px", margin: "0 0 4px 0" }}>
+                <p style={{ color: "#dc2626", fontSize: "13px", margin: "0 0 10px 0" }}>
                   Tu cuenta ha sido suspendida por el administrador.
                 </p>
-                <p style={{ color: "#dc2626", fontSize: "13px", margin: 0 }}>
-                  Para apelar contacta a: <strong>admin@uttehuacan.edu.mx</strong>
-                </p>
+                <button
+                  type="button"
+                  onClick={() => setMostrarApelacion(true)}
+                  style={{ padding: "6px 14px", background: "#dc2626", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "13px", fontWeight: "600" }}
+                >
+                  📝 Enviar apelación
+                </button>
               </div>
             ) : (
               <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -115,6 +139,69 @@ export default function Login() {
           </p>
         </form>
       </div>
+
+      {/* Modal apelación */}
+      {mostrarApelacion && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, padding: "16px" }}>
+          <div style={{ background: "white", borderRadius: "16px", padding: "24px", width: "100%", maxWidth: "400px" }}>
+            {apelacionEnviada ? (
+              <>
+                <p style={{ fontWeight: "700", fontSize: "16px", margin: "0 0 10px 0" }}>✅ Apelación enviada</p>
+                <p style={{ color: "#6b7280", fontSize: "13px", margin: "0 0 16px 0" }}>
+                  El administrador revisará tu caso y te contactará por correo.
+                </p>
+                <button
+                  onClick={() => { setMostrarApelacion(false); setApelacionEnviada(false); }}
+                  style={{ width: "100%", padding: "10px", background: "#3b82f6", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "600" }}
+                >
+                  Cerrar
+                </button>
+              </>
+            ) : (
+              <>
+                <p style={{ fontWeight: "700", fontSize: "16px", margin: "0 0 16px 0" }}>📝 Formulario de apelación</p>
+
+                <input
+                  type="text"
+                  placeholder="Tu nombre completo"
+                  value={apelacion.nombre}
+                  onChange={(e) => setApelacion({ ...apelacion, nombre: e.target.value })}
+                  style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: "8px", padding: "8px 12px", fontSize: "13px", marginBottom: "10px", outline: "none", boxSizing: "border-box" }}
+                />
+                <input
+                  type="email"
+                  placeholder="Tu correo"
+                  value={apelacion.email}
+                  onChange={(e) => setApelacion({ ...apelacion, email: e.target.value })}
+                  style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: "8px", padding: "8px 12px", fontSize: "13px", marginBottom: "10px", outline: "none", boxSizing: "border-box" }}
+                />
+                <textarea
+                  placeholder="¿Por qué crees que tu cuenta debería reactivarse?"
+                  value={apelacion.motivo}
+                  onChange={(e) => setApelacion({ ...apelacion, motivo: e.target.value })}
+                  rows={4}
+                  style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: "8px", padding: "8px 12px", fontSize: "13px", marginBottom: "16px", outline: "none", resize: "none", boxSizing: "border-box" }}
+                />
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button
+                    onClick={handleApelar}
+                    disabled={enviandoApelacion}
+                    style={{ flex: 1, padding: "10px", background: enviandoApelacion ? "#d1d5db" : "#3b82f6", color: "white", border: "none", borderRadius: "8px", cursor: enviandoApelacion ? "not-allowed" : "pointer", fontWeight: "600", fontSize: "13px" }}
+                  >
+                    {enviandoApelacion ? "Enviando..." : "Enviar"}
+                  </button>
+                  <button
+                    onClick={() => setMostrarApelacion(false)}
+                    style={{ flex: 1, padding: "10px", background: "#f3f4f6", color: "#374151", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "600", fontSize: "13px" }}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

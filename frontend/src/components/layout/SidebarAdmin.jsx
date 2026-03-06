@@ -8,12 +8,13 @@ function SidebarAdmin() {
   const location = useLocation();
 
   const links = [
-    { to: "/admin/dashboard", label: "🏠 Dashboard" },
-    { to: "/admin/validar", label: "🏪 Validar Locales" },
-    { to: "/admin/sospechosos", label: "🚨 Sospechosos" },
-    { to: "/admin/reportes", label: "📢 Reportes" },
-    { to: "/admin/estadisticas", label: "📊 Estadísticas" },
-  ];
+  { to: "/admin/dashboard", label: "🏠 Dashboard" },
+  { to: "/admin/validar", label: "🏪 Validar Locales" },
+  { to: "/admin/sospechosos", label: "🚨 Sospechosos" },
+  { to: "/admin/reportes", label: "📢 Reportes" },
+  { to: "/admin/apelaciones", label: "📝 Apelaciones" },
+  { to: "/admin/estadisticas", label: "📊 Estadísticas" },
+];
 
   const handleLogout = () => {
     logout();

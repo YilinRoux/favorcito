@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import api from "../../services/api";
+import { AuthContext } from "../../context/AuthContext";
 
 function ConfirmarPedido() {
   const { state } = useLocation();
   const navigate = useNavigate();
+  const { usuario } = useContext(AuthContext);
 
   const carrito = state?.carrito || [];
   const local = state?.local || null;
@@ -12,19 +14,53 @@ function ConfirmarPedido() {
   const [tipoEntrega, setTipoEntrega] = useState("recoger");
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
+  const [aceptoTerminos, setAceptoTerminos] = useState(false);
 
-  const total = carrito.reduce((acc, p) => acc + p.precio * p.cantidad, 0);
+  const subtotal = carrito.reduce((acc, p) => acc + p.precio * p.cantidad, 0);
+  const costoEnvio = tipoEntrega === "favorcito" ? 15 : 0;
+  const total = subtotal + costoEnvio;
+
   const envioGratis =
     local?.promocionActiva &&
     tipoEntrega === "favorcito" &&
-    total >= local?.montoMinimoPromocion;
+    subtotal >= local?.montoMinimoPromocion;
 
   if (!carrito.length || !local) {
     navigate("/menu");
     return null;
   }
 
+  // Bloquear si es sospechoso
+  if (usuario?.sospechoso) {
+    return (
+      <div style={{ maxWidth: "600px", margin: "0 auto", padding: "24px 16px" }}>
+        <div style={{ background: "#fef2f2", border: "1px solid #fca5a5", borderRadius: "12px", padding: "24px", textAlign: "center" }}>
+          <p style={{ fontSize: "40px", margin: "0 0 12px 0" }}>🚨</p>
+          <p style={{ fontWeight: "700", fontSize: "18px", color: "#dc2626", margin: "0 0 10px 0" }}>
+            Tu cuenta está restringida
+          </p>
+          <p style={{ color: "#dc2626", fontSize: "14px", margin: "0 0 8px 0" }}>
+            Has acumulado demasiadas cancelaciones. No puedes realizar pedidos hasta que se resuelva tu caso.
+          </p>
+          <p style={{ color: "#dc2626", fontSize: "13px", margin: "0 0 16px 0" }}>
+            Un administrador revisará tu situación. Es posible que tu cuenta sea suspendida si el comportamiento continúa.
+          </p>
+          <button
+            onClick={() => navigate("/mis-pedidos")}
+            style={{ padding: "10px 20px", background: "#dc2626", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "600", fontSize: "14px" }}
+          >
+            Ver mis pedidos
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const handleConfirmar = async () => {
+    if (!aceptoTerminos) {
+      setError("Debes aceptar los términos antes de continuar.");
+      return;
+    }
     setError("");
     setCargando(true);
 
@@ -46,139 +82,130 @@ function ConfirmarPedido() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-4">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">
+    <div style={{ maxWidth: "600px", margin: "0 auto", padding: "16px" }}>
+      <h2 style={{ fontSize: "22px", fontWeight: "700", marginBottom: "20px" }}>
         🛒 Confirmar Pedido
       </h2>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
+        <div style={{ background: "#fef2f2", border: "1px solid #fca5a5", borderRadius: "8px", padding: "12px", marginBottom: "16px", color: "#dc2626", fontSize: "13px" }}>
           {error}
         </div>
       )}
 
       {/* Info del local */}
-      <div className="bg-white rounded-2xl shadow p-5 mb-4">
-        <p className="text-gray-500 text-sm">Local</p>
-        <p className="font-bold text-gray-800 text-lg">{local.nombre}</p>
-        <p className="text-gray-400 text-sm">📍 {local.direccion}</p>
+      <div style={{ border: "1px solid #e5e7eb", borderRadius: "12px", padding: "16px", marginBottom: "12px" }}>
+        <p style={{ color: "#9ca3af", fontSize: "12px", margin: "0 0 4px 0" }}>Local</p>
+        <p style={{ fontWeight: "700", fontSize: "16px", margin: "0 0 2px 0" }}>{local.nombre}</p>
+        <p style={{ color: "#9ca3af", fontSize: "13px", margin: 0 }}>📍 {local.direccion}</p>
       </div>
 
       {/* Productos */}
-      <div className="bg-white rounded-2xl shadow p-5 mb-4">
-        <h3 className="font-bold text-gray-700 mb-3">Productos</h3>
-        <div className="space-y-2">
-          {carrito.map((item, i) => (
-            <div key={i} className="flex justify-between items-center">
-              <div>
-                <p className="text-gray-800">{item.nombre}</p>
-                <p className="text-gray-400 text-sm">x{item.cantidad}</p>
-              </div>
-              <p className="font-semibold text-gray-800">
-                ${item.precio * item.cantidad}
-              </p>
+      <div style={{ border: "1px solid #e5e7eb", borderRadius: "12px", padding: "16px", marginBottom: "12px" }}>
+        <p style={{ fontWeight: "700", fontSize: "14px", margin: "0 0 12px 0" }}>Productos</p>
+        {carrito.map((item, i) => (
+          <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", color: "#374151", padding: "3px 0" }}>
+            <span>{item.nombre} x{item.cantidad}</span>
+            <span>${item.precio * item.cantidad}</span>
+          </div>
+        ))}
+        <div style={{ borderTop: "1px solid #f3f4f6", marginTop: "10px", paddingTop: "10px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", color: "#6b7280", padding: "2px 0" }}>
+            <span>Subtotal</span>
+            <span>${subtotal}</span>
+          </div>
+          {tipoEntrega === "favorcito" && !envioGratis && (
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", color: "#6b7280", padding: "2px 0" }}>
+              <span>Envío</span>
+              <span>${costoEnvio}</span>
             </div>
-          ))}
-        </div>
-        <div className="border-t mt-3 pt-3 flex justify-between">
-          <p className="font-bold text-gray-800">Total</p>
-          <p className="font-bold text-blue-600 text-lg">${total}</p>
+          )}
+          {envioGratis && (
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", color: "#16a34a", padding: "2px 0" }}>
+              <span>Envío</span>
+              <span>🎉 Gratis</span>
+            </div>
+          )}
+          <div style={{ display: "flex", justifyContent: "space-between", fontWeight: "700", fontSize: "15px", padding: "6px 0 0 0", borderTop: "1px solid #f3f4f6", marginTop: "6px" }}>
+            <span>Total</span>
+            <span style={{ color: "#3b82f6" }}>${envioGratis ? subtotal : total}</span>
+          </div>
         </div>
       </div>
 
       {/* Tipo de entrega */}
-      <div className="bg-white rounded-2xl shadow p-5 mb-4">
-        <h3 className="font-bold text-gray-700 mb-3">Tipo de entrega</h3>
-        <div className="space-y-3">
-          <button
-            onClick={() => setTipoEntrega("recoger")}
-            className={`w-full p-4 rounded-xl border-2 text-left transition ${
-              tipoEntrega === "recoger"
-                ? "border-blue-500 bg-blue-50"
-                : "border-gray-200 hover:border-gray-300"
-            }`}
-          >
-            <p className="font-semibold text-gray-800">
-              🏃 Recoger en local
-            </p>
-            <p className="text-gray-500 text-sm">
-              Recoge tu pedido directamente en el local
-            </p>
-          </button>
+      <div style={{ border: "1px solid #e5e7eb", borderRadius: "12px", padding: "16px", marginBottom: "12px" }}>
+        <p style={{ fontWeight: "700", fontSize: "14px", margin: "0 0 12px 0" }}>Tipo de entrega</p>
 
-          <button
-            onClick={() => setTipoEntrega("favorcito")}
-            className={`w-full p-4 rounded-xl border-2 text-left transition ${
-              tipoEntrega === "favorcito"
-                ? "border-blue-500 bg-blue-50"
-                : "border-gray-200 hover:border-gray-300"
-            }`}
-          >
-            <p className="font-semibold text-gray-800">🛵 Favorcito</p>
-            <p className="text-gray-500 text-sm">
-              Un estudiante te lo lleva
+        <button
+          onClick={() => setTipoEntrega("recoger")}
+          style={{ width: "100%", padding: "14px", borderRadius: "10px", border: tipoEntrega === "recoger" ? "2px solid #3b82f6" : "2px solid #e5e7eb", background: tipoEntrega === "recoger" ? "#eff6ff" : "white", textAlign: "left", cursor: "pointer", marginBottom: "10px" }}
+        >
+          <p style={{ fontWeight: "600", fontSize: "14px", margin: "0 0 2px 0" }}>🏃 Recoger en local</p>
+          <p style={{ color: "#6b7280", fontSize: "12px", margin: 0 }}>Recoge tu pedido directamente en el local</p>
+        </button>
+
+        <button
+          onClick={() => setTipoEntrega("favorcito")}
+          style={{ width: "100%", padding: "14px", borderRadius: "10px", border: tipoEntrega === "favorcito" ? "2px solid #3b82f6" : "2px solid #e5e7eb", background: tipoEntrega === "favorcito" ? "#eff6ff" : "white", textAlign: "left", cursor: "pointer" }}
+        >
+          <p style={{ fontWeight: "600", fontSize: "14px", margin: "0 0 2px 0" }}>🛵 Favorcito</p>
+          <p style={{ color: "#6b7280", fontSize: "12px", margin: "0 0 4px 0" }}>Un estudiante te lo lleva — costo de envío: <strong>$15</strong></p>
+          {local.promocionActiva && (
+            <p style={{ color: "#16a34a", fontSize: "12px", margin: 0 }}>
+              {subtotal >= local.montoMinimoPromocion
+                ? "🎉 ¡Envío gratis activado!"
+                : `Agrega $${local.montoMinimoPromocion - subtotal} más para envío gratis`}
             </p>
-
-            {local.promocionActiva && (
-              <p className="text-green-600 text-xs mt-1">
-                {total >= local.montoMinimoPromocion
-                  ? "🎉 ¡Envío gratis activado!"
-                  : `Agrega $${
-                      local.montoMinimoPromocion - total
-                    } más para envío gratis`}
-              </p>
-            )}
-          </button>
-
-          {/* 🔥 AVISO DE COSTO DE ENVÍO */}
-          {tipoEntrega === "favorcito" && (
-            <div
-              style={{
-                background: "#eff6ff",
-                border: "1px solid #bfdbfe",
-                borderRadius: "8px",
-                padding: "10px 12px",
-                marginTop: "8px",
-              }}
-            >
-              <p
-                style={{
-                  color: "#1d4ed8",
-                  fontSize: "13px",
-                  fontWeight: "600",
-                  margin: "0 0 2px 0",
-                }}
-              >
-                🛵 Costo de envío: <strong>$15</strong>
-              </p>
-              <p
-                style={{
-                  color: "#1d4ed8",
-                  fontSize: "12px",
-                  margin: 0,
-                }}
-              >
-                El repartidor cobra en efectivo al entregar. El envío se suma
-                al total de tu pedido.
-              </p>
-            </div>
           )}
-        </div>
+        </button>
+
+        {tipoEntrega === "favorcito" && (
+          <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "8px", padding: "10px 12px", marginTop: "10px" }}>
+            <p style={{ color: "#1d4ed8", fontSize: "13px", fontWeight: "600", margin: "0 0 2px 0" }}>
+              💵 El repartidor cobra en efectivo al entregar
+            </p>
+            <p style={{ color: "#1d4ed8", fontSize: "12px", margin: 0 }}>
+              Ten listo el dinero exacto al momento de recibir tu pedido.
+            </p>
+          </div>
+        )}
       </div>
 
-      {/* Resumen final */}
-      {envioGratis && (
-        <div className="bg-green-50 border border-green-200 px-4 py-3 rounded-xl mb-4">
-          <p className="text-green-700 font-medium">
-            🎉 ¡Promoción aplicada! Envío gratis
-          </p>
-        </div>
-      )}
+      {/* Aviso de pago y fraude */}
+      <div style={{ background: "#fefce8", border: "1px solid #fde68a", borderRadius: "12px", padding: "16px", marginBottom: "12px" }}>
+        <p style={{ fontWeight: "700", fontSize: "13px", color: "#92400e", margin: "0 0 8px 0" }}>
+          ⚠️ Aviso importante
+        </p>
+        <p style={{ color: "#92400e", fontSize: "13px", margin: "0 0 6px 0" }}>
+          • Todos los pagos se realizan <strong>en efectivo</strong> al momento de recibir tu pedido.
+        </p>
+        <p style={{ color: "#92400e", fontSize: "13px", margin: "0 0 6px 0" }}>
+          • Las cancelaciones injustificadas afectan tu reputación en la plataforma.
+        </p>
+        <p style={{ color: "#92400e", fontSize: "13px", margin: 0 }}>
+          • Cualquier intento de fraude, abuso o comportamiento deshonesto será reportado a las autoridades universitarias correspondientes.
+        </p>
+      </div>
+
+      {/* Checkbox de aceptación */}
+      <div style={{ display: "flex", alignItems: "flex-start", gap: "10px", marginBottom: "16px" }}>
+        <input
+          type="checkbox"
+          id="terminos"
+          checked={aceptoTerminos}
+          onChange={(e) => setAceptoTerminos(e.target.checked)}
+          style={{ marginTop: "2px", cursor: "pointer", width: "16px", height: "16px" }}
+        />
+        <label htmlFor="terminos" style={{ fontSize: "13px", color: "#374151", cursor: "pointer" }}>
+          Entiendo que el pago es en efectivo y acepto las condiciones de uso de la plataforma.
+        </label>
+      </div>
 
       <button
         onClick={handleConfirmar}
-        disabled={cargando}
-        className="w-full bg-blue-500 text-white py-4 rounded-xl font-bold text-lg hover:bg-blue-600 disabled:bg-gray-400 transition"
+        disabled={cargando || !aceptoTerminos}
+        style={{ width: "100%", padding: "14px", background: cargando || !aceptoTerminos ? "#d1d5db" : "#3b82f6", color: "white", border: "none", borderRadius: "10px", cursor: cargando || !aceptoTerminos ? "not-allowed" : "pointer", fontWeight: "700", fontSize: "16px" }}
       >
         {cargando ? "Procesando..." : "Confirmar Pedido"}
       </button>

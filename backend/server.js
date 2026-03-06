@@ -19,6 +19,7 @@ import { fileURLToPath } from "url";
 import Usuario from "./models/Usuario.js";
 import Pedido from "./models/Pedido.js";
 import Local from "./models/Local.js";
+import apelacionRoutes from "./routes/apelacionRoutes.js";
 
 
 dotenv.config();
@@ -110,6 +111,7 @@ app.use("/api/pedidos", pedidoRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/reportes", reporteRoutes);
+app.use("/api/apelaciones", apelacionRoutes);
 
 app.get("/api/protegido", protegerRuta, (req, res) => {
   res.json({ mensaje: "Ruta protegida accesible", usuario: req.usuario });
