@@ -2,6 +2,7 @@ import { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../../services/api";
 import { AuthContext } from "../../context/AuthContext";
+import "../../styles/auth/Login.css";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -68,134 +69,152 @@ export default function Login() {
   };
 
   return (
-    <div className="p-10 flex justify-center">
-      <div className="w-full max-w-md bg-white shadow-md rounded p-6">
-        <h2 className="text-2xl font-bold mb-6 text-center">
-          Iniciar Sesión
-        </h2>
+    <div className="auth-wrapper">
 
-        <form onSubmit={handleSubmit}>
+      {/* Partículas flotantes decorativas */}
+      <div className="auth-particles">
+        {[...Array(8)].map((_, i) => (
+          <div key={i} className="auth-particle" />
+        ))}
+      </div>
+
+      <div className="auth-card">
+
+        {/* Logo */}
+        <div className="auth-logo">
+          <div className="auth-logo-icon">🛵</div>
+          <span className="auth-logo-text">Favorcito</span>
+        </div>
+
+        <h2 className="auth-title">Bienvenido de vuelta</h2>
+        <p className="auth-subtitle">Ingresa a tu cuenta para continuar</p>
+
+        <form className="auth-form" onSubmit={handleSubmit}>
 
           {/* Bloque de error */}
           {error && (
             error === "SUSPENDIDO" ? (
-              <div style={{ background: "#fef2f2", border: "1px solid #fca5a5", borderRadius: "8px", padding: "14px", marginBottom: "16px" }}>
-                <p style={{ color: "#dc2626", fontWeight: "700", fontSize: "14px", margin: "0 0 6px 0" }}>
-                  🚫 Cuenta suspendida
-                </p>
-                <p style={{ color: "#dc2626", fontSize: "13px", margin: "0 0 10px 0" }}>
+              <div className="auth-suspended-box">
+                <p className="auth-suspended-title">🚫 Cuenta suspendida</p>
+                <p className="auth-suspended-text">
                   Tu cuenta ha sido suspendida por el administrador.
                 </p>
                 <button
                   type="button"
                   onClick={() => setMostrarApelacion(true)}
-                  style={{ padding: "6px 14px", background: "#dc2626", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "13px", fontWeight: "600" }}
+                  className="auth-suspended-btn"
                 >
                   📝 Enviar apelación
                 </button>
               </div>
             ) : (
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+              <div className="auth-error">
+                <span>⚠️</span>
                 {error}
               </div>
             )
           )}
 
-          <div className="mb-4">
-            <label className="block mb-2">Email</label>
+          {/* Email */}
+          <div className="auth-field">
+            <label className="auth-label">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="auth-input"
               placeholder="tu@email.com"
             />
           </div>
 
-          <div className="mb-6">
-            <label className="block mb-2">Contraseña</label>
+          {/* Contraseña */}
+          <div className="auth-field">
+            <label className="auth-label">Contraseña</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="auth-input"
               placeholder="Tu contraseña"
             />
           </div>
 
+          {/* Submit */}
           <button
             type="submit"
             disabled={cargando}
-            className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition disabled:bg-gray-400"
+            className="auth-btn-submit"
           >
             {cargando ? "Ingresando..." : "Iniciar Sesión"}
           </button>
 
-          <p className="mt-4 text-center">
-            ¿No tienes cuenta?{" "}
-            <Link to="/registro" className="text-blue-500 hover:underline">
-              Regístrate aquí
-            </Link>
+          {/* Redirect */}
+          <p className="auth-footer">
+            ¿No tienes cuenta?
+            <Link to="/registro" className="auth-link"> Regístrate aquí</Link>
           </p>
+
         </form>
       </div>
 
       {/* Modal apelación */}
       {mostrarApelacion && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, padding: "16px" }}>
-          <div style={{ background: "white", borderRadius: "16px", padding: "24px", width: "100%", maxWidth: "400px" }}>
+        <div className="auth-modal-overlay">
+          <div className="auth-modal">
             {apelacionEnviada ? (
-              <>
-                <p style={{ fontWeight: "700", fontSize: "16px", margin: "0 0 10px 0" }}>✅ Apelación enviada</p>
-                <p style={{ color: "#6b7280", fontSize: "13px", margin: "0 0 16px 0" }}>
+              <div className="auth-success-banner">
+                <div className="auth-success-icon">✅</div>
+                <p className="auth-success-title">Apelación enviada</p>
+                <p className="auth-success-text">
                   El administrador revisará tu caso y te contactará por correo.
                 </p>
                 <button
+                  className="auth-btn-submit"
                   onClick={() => { setMostrarApelacion(false); setApelacionEnviada(false); }}
-                  style={{ width: "100%", padding: "10px", background: "#3b82f6", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "600" }}
                 >
                   Cerrar
                 </button>
-              </>
+              </div>
             ) : (
               <>
-                <p style={{ fontWeight: "700", fontSize: "16px", margin: "0 0 16px 0" }}>📝 Formulario de apelación</p>
-
-                <input
-                  type="text"
-                  placeholder="Tu nombre completo"
-                  value={apelacion.nombre}
-                  onChange={(e) => setApelacion({ ...apelacion, nombre: e.target.value })}
-                  style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: "8px", padding: "8px 12px", fontSize: "13px", marginBottom: "10px", outline: "none", boxSizing: "border-box" }}
-                />
-                <input
-                  type="email"
-                  placeholder="Tu correo"
-                  value={apelacion.email}
-                  onChange={(e) => setApelacion({ ...apelacion, email: e.target.value })}
-                  style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: "8px", padding: "8px 12px", fontSize: "13px", marginBottom: "10px", outline: "none", boxSizing: "border-box" }}
-                />
-                <textarea
-                  placeholder="¿Por qué crees que tu cuenta debería reactivarse?"
-                  value={apelacion.motivo}
-                  onChange={(e) => setApelacion({ ...apelacion, motivo: e.target.value })}
-                  rows={4}
-                  style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: "8px", padding: "8px 12px", fontSize: "13px", marginBottom: "16px", outline: "none", resize: "none", boxSizing: "border-box" }}
-                />
-                <div style={{ display: "flex", gap: "8px" }}>
-                  <button
-                    onClick={handleApelar}
-                    disabled={enviandoApelacion}
-                    style={{ flex: 1, padding: "10px", background: enviandoApelacion ? "#d1d5db" : "#3b82f6", color: "white", border: "none", borderRadius: "8px", cursor: enviandoApelacion ? "not-allowed" : "pointer", fontWeight: "600", fontSize: "13px" }}
-                  >
-                    {enviandoApelacion ? "Enviando..." : "Enviar"}
-                  </button>
-                  <button
-                    onClick={() => setMostrarApelacion(false)}
-                    style={{ flex: 1, padding: "10px", background: "#f3f4f6", color: "#374151", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "600", fontSize: "13px" }}
-                  >
-                    Cancelar
-                  </button>
+                <p className="auth-modal-title">📝 Formulario de apelación</p>
+                <div className="auth-form">
+                  <input
+                    type="text"
+                    placeholder="Tu nombre completo"
+                    value={apelacion.nombre}
+                    onChange={(e) => setApelacion({ ...apelacion, nombre: e.target.value })}
+                    className="auth-input"
+                  />
+                  <input
+                    type="email"
+                    placeholder="Tu correo"
+                    value={apelacion.email}
+                    onChange={(e) => setApelacion({ ...apelacion, email: e.target.value })}
+                    className="auth-input"
+                  />
+                  <textarea
+                    placeholder="¿Por qué crees que tu cuenta debería reactivarse?"
+                    value={apelacion.motivo}
+                    onChange={(e) => setApelacion({ ...apelacion, motivo: e.target.value })}
+                    rows={4}
+                    className="auth-textarea"
+                  />
+                  <div className="auth-modal-actions">
+                    <button
+                      onClick={handleApelar}
+                      disabled={enviandoApelacion}
+                      className="auth-btn-submit"
+                    >
+                      {enviandoApelacion ? "Enviando..." : "Enviar"}
+                    </button>
+                    <button
+                      onClick={() => setMostrarApelacion(false)}
+                      className="auth-btn-cancel"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
                 </div>
               </>
             )}

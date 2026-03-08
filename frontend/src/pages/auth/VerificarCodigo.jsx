@@ -1,64 +1,104 @@
 /* eslint-disable no-unused-vars */
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import api from "../../services/api";
+import "../../styles/auth/Login.css";
+import "../../styles/auth/VerificarCodigo.css";
 
 function VerificarCodigo() {
-  const [codigo, setCodigo] = useState("");
+  const [digits, setDigits] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
   const [mensaje, setMensaje] = useState("");
-  
+  const [verificado, setVerificado] = useState(false);
+  const [timer, setTimer] = useState(60);
+  const [puedeReenviar, setPuedeReenviar] = useState(false);
+
+  const inputRefs = useRef([]);
   const navigate = useNavigate();
   const location = useLocation();
-  
   const email = location.state?.email || "";
 
+  // Countdown timer para reenvío
+  useEffect(() => {
+    if (timer === 0) { setPuedeReenviar(true); return; }
+    const t = setTimeout(() => setTimer((p) => p - 1), 1000);
+    return () => clearTimeout(t);
+  }, [timer]);
+
+  // Foco al primer input al montar
+  useEffect(() => {
+    inputRefs.current[0]?.focus();
+  }, []);
+
+  const codigo = digits.join("");
+
+  /* ── Manejo de inputs OTP ── */
+  const handleDigit = (index, value) => {
+    const v = value.replace(/\D/g, "").slice(-1);
+    const next = [...digits];
+    next[index] = v;
+    setDigits(next);
+    if (v && index < 5) inputRefs.current[index + 1]?.focus();
+  };
+
+  const handleKeyDown = (index, e) => {
+    if (e.key === "Backspace" && !digits[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+    if (e.key === "ArrowLeft" && index > 0) inputRefs.current[index - 1]?.focus();
+    if (e.key === "ArrowRight" && index < 5) inputRefs.current[index + 1]?.focus();
+  };
+
+  const handlePaste = (e) => {
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (pasted.length === 6) {
+      setDigits(pasted.split(""));
+      inputRefs.current[5]?.focus();
+    }
+    e.preventDefault();
+  };
+
+  /* ── Verificar ── */
   const handleVerificar = async (e) => {
     e.preventDefault();
     setError("");
     setMensaje("");
     setCargando(true);
 
-    if (!codigo.trim()) {
-      setError("Debes ingresar el código de verificación");
-      setCargando(false);
-      return;
-    }
-
     if (codigo.length !== 6) {
-      setError("El código debe tener 6 dígitos");
+      setError("Debes ingresar los 6 dígitos del código");
       setCargando(false);
       return;
     }
 
     try {
-      await api.post("/auth/verificar-codigo", {
-        email,
-        codigo
-      });
-
+      await api.post("/auth/verificar-codigo", { email, codigo });
+      setVerificado(true);
       setMensaje("¡Cuenta verificada exitosamente!");
-      
-      setTimeout(() => {
-        navigate("/login");
-      }, 2000);
-
+      setTimeout(() => navigate("/login"), 2500);
     } catch (err) {
       setError(err.response?.data?.mensaje || "Código inválido o expirado");
+      // Sacude los inputs al error
+      setDigits(["", "", "", "", "", ""]);
+      setTimeout(() => inputRefs.current[0]?.focus(), 50);
     } finally {
       setCargando(false);
     }
   };
 
+  /* ── Reenviar ── */
   const reenviarCodigo = async () => {
     setError("");
     setMensaje("");
     setCargando(true);
-
     try {
       await api.post("/auth/reenviar-codigo", { email });
-      setMensaje("Código reenviado a tu correo");
+      setMensaje("Código reenviado a tu correo ✉️");
+      setPuedeReenviar(false);
+      setTimer(60);
+      setDigits(["", "", "", "", "", ""]);
+      setTimeout(() => inputRefs.current[0]?.focus(), 50);
     } catch (err) {
       setError("Error al reenviar el código");
     } finally {
@@ -66,80 +106,132 @@ function VerificarCodigo() {
     }
   };
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
+  /* ── Pantalla de éxito ── */
+  if (verificado) {
+    return (
+      <div className="auth-wrapper">
+        <div className="auth-particles">
+          {[...Array(8)].map((_, i) => <div key={i} className="auth-particle" />)}
+        </div>
+        <div className="auth-card ver-success-card">
+          <div className="ver-success-ring">
+            <div className="ver-success-icon-wrap">✅</div>
           </div>
-          <h2 className="text-2xl font-bold text-gray-800">Verificar Código</h2>
-          <p className="text-gray-600 mt-2">
-            Hemos enviado un código de verificación a:
+          <h2 className="auth-title" style={{ textAlign: "center", marginTop: "20px" }}>
+            ¡Cuenta verificada!
+          </h2>
+          <p className="auth-subtitle" style={{ textAlign: "center" }}>
+            Redirigiendo al login...
           </p>
-          <p className="font-semibold text-blue-600 mt-1">{email}</p>
+          <div className="ver-loading-bar">
+            <div className="ver-loading-bar-fill" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="auth-wrapper">
+      <div className="auth-particles">
+        {[...Array(8)].map((_, i) => <div key={i} className="auth-particle" />)}
+      </div>
+
+      <div className="auth-card">
+
+        {/* Ícono de sobre animado */}
+        <div className="ver-envelope-wrap">
+          <div className="ver-envelope">✉️</div>
+          <div className="ver-envelope-ring" />
+          <div className="ver-envelope-ring ver-envelope-ring--2" />
         </div>
 
-        <form onSubmit={handleVerificar}>
+        <h2 className="auth-title" style={{ textAlign: "center" }}>
+          Verifica tu cuenta
+        </h2>
+        <p className="auth-subtitle" style={{ textAlign: "center" }}>
+          Enviamos un código de 6 dígitos a:
+        </p>
+        <p className="ver-email-chip">{email || "tu correo"}</p>
+
+        <form className="auth-form" onSubmit={handleVerificar}>
+
+          {/* Error */}
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 flex items-start">
-              <svg className="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-              <span>{error}</span>
+            <div className="auth-error ver-shake">
+              <span>⚠️</span> {error}
             </div>
           )}
 
-          {mensaje && (
-            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4 flex items-start">
-              <svg className="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              <span>{mensaje}</span>
+          {/* Mensaje éxito inline */}
+          {mensaje && !verificado && (
+            <div className="ver-success-msg">
+              <span>✅</span> {mensaje}
             </div>
           )}
 
-          <div className="mb-6">
-            <label className="block text-gray-700 font-medium mb-2">
-              Código de verificación
-            </label>
-            <input
-              type="text"
-              value={codigo}
-              onChange={(e) => setCodigo(e.target.value.replace(/\D/g, ''))}
-              maxLength={6}
-              className="w-full border-2 border-gray-300 px-4 py-3 rounded-lg text-center text-3xl tracking-[0.5em] font-bold focus:border-blue-500 focus:outline-none transition"
-              placeholder="000000"
-            />
-            <p className="text-sm text-gray-500 mt-2 text-center">
-              ⏱️ El código expira en 10 minutos
-            </p>
+          {/* OTP Inputs */}
+          <div className="ver-otp-group" onPaste={handlePaste}>
+            {digits.map((d, i) => (
+              <input
+                key={i}
+                ref={(el) => (inputRefs.current[i] = el)}
+                type="text"
+                inputMode="numeric"
+                maxLength={1}
+                value={d}
+                onChange={(e) => handleDigit(i, e.target.value)}
+                onKeyDown={(e) => handleKeyDown(i, e)}
+                className={`ver-otp-input ${d ? "ver-otp-input--filled" : ""} ${error ? "ver-otp-input--error" : ""}`}
+              />
+            ))}
           </div>
 
+          {/* Progress dots */}
+          <div className="ver-otp-dots">
+            {digits.map((d, i) => (
+              <div
+                key={i}
+                className={`ver-otp-dot ${d ? "ver-otp-dot--filled" : ""}`}
+              />
+            ))}
+          </div>
+
+          {/* Timer + reenvío */}
+          <div className="ver-resend-row">
+            {puedeReenviar ? (
+              <button
+                type="button"
+                onClick={reenviarCodigo}
+                disabled={cargando}
+                className="ver-resend-btn"
+              >
+                🔄 Reenviar código
+              </button>
+            ) : (
+              <span className="ver-timer-text">
+                Reenviar en <strong className="ver-timer-count">{timer}s</strong>
+              </span>
+            )}
+          </div>
+
+          {/* Hint expiración */}
+          <p className="ver-expire-hint">⏱️ El código expira en 10 minutos</p>
+
+          {/* Submit */}
           <button
             type="submit"
             disabled={cargando || codigo.length !== 6}
-            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition duration-200 shadow-lg"
+            className="auth-btn-submit"
           >
             {cargando ? "Verificando..." : "Verificar Cuenta"}
           </button>
 
-          <button
-            type="button"
-            onClick={reenviarCodigo}
-            disabled={cargando}
-            className="w-full mt-3 bg-white border-2 border-gray-300 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed transition duration-200"
-          >
-            {cargando ? "Reenviando..." : "Reenviar código"}
-          </button>
-
-          <p className="mt-6 text-center text-gray-600">
-            <Link to="/login" className="text-blue-600 hover:text-blue-700 font-medium">
-              ← Volver al login
-            </Link>
+          {/* Volver */}
+          <p className="auth-footer">
+            <Link to="/login" className="auth-link">← Volver al login</Link>
           </p>
+
         </form>
       </div>
     </div>

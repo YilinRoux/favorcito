@@ -1,58 +1,85 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useContext } from "react";
 import { AuthContext } from "../../context/AuthContext";
+import "../../styles/layout/SidebarAdmin.css";
 
 function SidebarAdmin() {
-  const { logout } = useContext(AuthContext);
+  const { logout, usuario } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
 
   const links = [
-  { to: "/admin/dashboard", label: "🏠 Dashboard" },
-  { to: "/admin/validar", label: "🏪 Validar Locales" },
-  { to: "/admin/sospechosos", label: "🚨 Sospechosos" },
-  { to: "/admin/reportes", label: "📢 Reportes" },
-  { to: "/admin/apelaciones", label: "📝 Apelaciones" },
-  { to: "/admin/estadisticas", label: "📊 Estadísticas" },
-];
+    { to: "/admin/dashboard",    label: "Dashboard",    icon: "🏠", tooltip: "Dashboard"       },
+    { to: "/admin/validar",      label: "Validar Locales", icon: "🏪", tooltip: "Validar Locales" },
+    { to: "/admin/sospechosos",  label: "Sospechosos",  icon: "🚨", tooltip: "Sospechosos"      },
+    { to: "/admin/reportes",     label: "Reportes",     icon: "📢", tooltip: "Reportes"         },
+    { to: "/admin/apelaciones",  label: "Apelaciones",  icon: "📝", tooltip: "Apelaciones"      },
+    { to: "/admin/estadisticas", label: "Estadísticas", icon: "📊", tooltip: "Estadísticas"     },
+  ];
 
   const handleLogout = () => {
     logout();
     navigate("/login");
   };
 
+  const isActive = (path) => location.pathname === path;
+
   return (
-    <div className="fixed top-0 left-0 h-full w-56 bg-gray-900 text-white flex flex-col z-50">
-      <div className="p-6 border-b border-gray-700">
-        <h2 className="text-lg font-bold">⚙️ Admin</h2>
-        <p className="text-gray-400 text-xs mt-1">Panel de control</p>
+    <aside className="sb-sidebar">
+
+      {/* Header */}
+      <div className="sb-header">
+        <div className="sb-logo">
+          <div className="sb-logo-icon">🛵</div>
+          <div className="sb-logo-info">
+            <span className="sb-logo-name">Favorcito</span>
+            <span className="sb-logo-role">Admin Panel</span>
+          </div>
+        </div>
       </div>
 
-      <nav className="flex-1 p-4 space-y-2">
-        {links.map((link) => (
+      {/* Badge admin */}
+      <div className="sb-admin-badge">
+        <span className="sb-admin-badge-icon">⚙️</span>
+        <span className="sb-admin-badge-text">Panel de Control</span>
+      </div>
+
+      {/* Nav links */}
+      <nav className="sb-nav">
+        <p className="sb-section-label">Navegación</p>
+        {links.map((link, i) => (
           <Link
             key={link.to}
             to={link.to}
-            className={`block px-4 py-3 rounded-lg transition text-sm font-medium ${
-              location.pathname === link.to
-                ? "bg-blue-600 text-white"
-                : "text-gray-300 hover:bg-gray-700"
-            }`}
+            data-tooltip={link.tooltip}
+            className={`sb-item ${isActive(link.to) ? "sb-item--active" : ""}`}
+            style={{ animationDelay: `${i * 0.05}s` }}
           >
-            {link.label}
+            <span className="sb-item-icon">{link.icon}</span>
+            <span className="sb-item-text">{link.label}</span>
+            {isActive(link.to) && <span className="sb-item-dot" />}
           </Link>
         ))}
       </nav>
 
-      <div className="p-4 border-t border-gray-700">
-        <button
-          onClick={handleLogout}
-          className="w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition text-sm"
-        >
-          Cerrar sesión
+      {/* Footer — usuario + logout */}
+      <div className="sb-footer">
+        <div className="sb-user">
+          <div className="sb-user-avatar">
+            {usuario?.nombre_completo?.[0]?.toUpperCase() || "A"}
+          </div>
+          <div className="sb-user-info">
+            <span className="sb-user-name">{usuario?.nombre_completo || "Administrador"}</span>
+            <span className="sb-user-role">Admin</span>
+          </div>
+        </div>
+        <button onClick={handleLogout} className="sb-logout">
+          <span className="sb-logout-icon">⎋</span>
+          <span className="sb-logout-text">Cerrar sesión</span>
         </button>
       </div>
-    </div>
+
+    </aside>
   );
 }
 
