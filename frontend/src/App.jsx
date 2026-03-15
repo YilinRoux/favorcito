@@ -7,6 +7,7 @@ import SidebarAdmin from "./components/layout/SidebarAdmin";
 import Login from "./pages/auth/Login";
 import Registro from "./pages/auth/Registro";
 import VerificarCodigo from "./pages/auth/VerificarCodigo";
+import RecuperarContrasena from "./pages/auth/RecuperarContrasena";
 
 /* ESTUDIANTE */
 import Perfil from "./pages/estudiante/Perfil";
@@ -63,6 +64,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Registro />} />
         <Route path="/verificar-codigo" element={<VerificarCodigo />} />
+        <Route path="/recuperar-contrasena" element={<RecuperarContrasena />} />
 
         {/* ESTUDIANTE */}
         <Route path="/menu" element={<MenuLocales />} />

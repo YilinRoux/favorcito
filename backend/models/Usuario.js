@@ -72,6 +72,8 @@ const usuarioSchema = new mongoose.Schema(
       type: Date,
       select: false,
     },
+    codigoRecuperacion: { type: String, default: null },
+    codigoRecuperacionExpira: { type: Date, default: null },
   },
   {
     timestamps: true,

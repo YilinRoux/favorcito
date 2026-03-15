@@ -37,26 +37,43 @@ function EstadoSolicitud() {
     </div>
   );
 
-  const estadoConfig = {
-    true: { texto: "Aprobado ✅", color: "text-green-600", bg: "bg-green-50 border-green-200" },
-    false: { texto: "Pendiente ⏳", color: "text-yellow-600", bg: "bg-yellow-50 border-yellow-200" },
-  };
-
-  const config = estadoConfig[local.aprobado] || estadoConfig[false];
+  // Determinar estado real
+  const estado = local.aprobado ? "aprobado" : local.rechazado ? "rechazado" : "pendiente";
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Estado de tu Solicitud</h2>
 
-        <div className={`border rounded-lg p-4 mb-6 ${config.bg}`}>
-          <p className={`text-lg font-bold ${config.color}`}>{config.texto}</p>
-          {!local.aprobado && (
-            <p className="text-gray-600 text-sm mt-1">Tu solicitud está siendo revisada por un administrador.</p>
-          )}
-        </div>
+        {/* Banner de estado — solo se muestra si NO está aprobado */}
+        {estado === "pendiente" && (
+          <div className="border border-yellow-200 bg-yellow-50 rounded-xl p-4 mb-6">
+            <p className="text-yellow-700 font-bold text-lg">⏳ Solicitud enviada</p>
+            <p className="text-yellow-600 text-sm mt-1">
+              Tu solicitud fue recibida correctamente. Un administrador la revisará pronto.
+              Te notificaremos por correo electrónico cuando haya una respuesta.
+            </p>
+          </div>
+        )}
 
-        <div className="space-y-3">
+        {estado === "rechazado" && (
+          <div className="border border-red-200 bg-red-50 rounded-xl p-4 mb-6">
+            <p className="text-red-700 font-bold text-lg">❌ Solicitud rechazada</p>
+            <p className="text-red-600 text-sm mt-1">
+              Tu solicitud no fue aprobada por el administrador. Puedes enviar una nueva
+              solicitud con información más completa o corregida.
+            </p>
+            <button
+              onClick={() => navigate("/vendedor/solicitar")}
+              className="mt-3 bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-600 transition"
+            >
+              Enviar nueva solicitud
+            </button>
+          </div>
+        )}
+
+        {/* Datos del local */}
+        <div className="space-y-3 mb-6">
           <div>
             <p className="text-gray-500 text-sm">Nombre</p>
             <p className="font-semibold text-gray-800">{local.nombre}</p>
@@ -71,12 +88,13 @@ function EstadoSolicitud() {
           </div>
         </div>
 
-        {local.aprobado && (
+        {/* Botón solo si está aprobado */}
+        {estado === "aprobado" && (
           <button
             onClick={() => navigate("/vendedor/dashboard")}
-            className="w-full mt-6 bg-green-500 text-white py-3 rounded-lg font-semibold hover:bg-green-600 transition"
+            className="w-full bg-green-500 text-white py-3 rounded-lg font-semibold hover:bg-green-600 transition"
           >
-            Ir a mi Dashboard
+            Ir a mi Dashboard ✅
           </button>
         )}
       </div>

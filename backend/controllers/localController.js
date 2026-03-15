@@ -1,4 +1,5 @@
 import Local from "../models/Local.js";
+import { enviarNotificacionLocal } from "../services/emailService.js";
 
 // Crear solicitud de local (solo vendedor)
 export const crearLocal = async (req, res) => {
@@ -103,30 +104,30 @@ export const aprobarLocal = async (req, res) => {
     const { id } = req.params;
     const { aprobado } = req.body;
 
-    const local = await Local.findById(id);
-
-    if (!local) {
-      return res.status(404).json({ mensaje: "Local no encontrado" });
-    }
+    const local = await Local.findById(id).populate("vendedor", "email nombre_completo");
+    if (!local) return res.status(404).json({ mensaje: "Local no encontrado" });
 
     local.aprobado = aprobado;
-
+    // Si se rechaza guardamos el estado explícitamente para distinguirlo de "pendiente"
+    local.rechazado = !aprobado && aprobado !== undefined ? true : false;
     await local.save();
 
+    // Enviar correo al vendedor
+    try {
+      await enviarNotificacionLocal(local.vendedor.email, local.nombre, aprobado);
+    } catch (emailErr) {
+      console.error("❌ Error enviando correo al vendedor:", emailErr.message);
+      // No detenemos el flujo si el correo falla
+    }
+
     res.json({
-      mensaje: aprobado
-        ? "Local aprobado correctamente"
-        : "Local rechazado",
+      mensaje: aprobado ? "Local aprobado correctamente" : "Local rechazado",
       local,
     });
   } catch (error) {
-    res.status(500).json({
-      mensaje: "Error al actualizar local",
-      error: error.message,
-    });
+    res.status(500).json({ mensaje: "Error al actualizar local", error: error.message });
   }
 };
-
 // Obtener locales aprobados (público)
 export const obtenerLocales = async (req, res) => {
   try {
