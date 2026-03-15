@@ -222,3 +222,69 @@ export const login = async (req, res) => {
     });
   }
 };
+
+// Paso 1 — solicitar código
+export const solicitarRecuperacion = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const usuario = await Usuario.findOne({ email });
+    if (!usuario) return res.status(404).json({ mensaje: "No existe una cuenta con ese correo" });
+
+    const codigo = Math.floor(100000 + Math.random() * 900000).toString();
+    const expira = new Date(Date.now() + 15 * 60 * 1000);
+
+    usuario.codigoRecuperacion = codigo;
+    usuario.codigoRecuperacionExpira = expira;
+    await usuario.save();
+
+    // Usa el mismo servicio que ya tienes
+    await enviarCodigoVerificacion(email, codigo);
+
+    res.json({ mensaje: "Código enviado al correo" });
+  } catch (err) {
+    console.error("❌ Error recuperacion:", err.message);
+    res.status(500).json({ mensaje: "Error al enviar el código" });
+  }
+};
+// Paso 2 — verificar código
+export const verificarCodigoRecuperacion = async (req, res) => {
+  try {
+    const { email, codigo } = req.body;
+    const usuario = await Usuario.findOne({ email });
+
+    if (!usuario) return res.status(404).json({ mensaje: "Correo no encontrado" });
+    if (usuario.codigoRecuperacion !== codigo)
+      return res.status(400).json({ mensaje: "Código incorrecto" });
+    if (new Date() > usuario.codigoRecuperacionExpira)
+      return res.status(400).json({ mensaje: "El código ha expirado" });
+
+    res.json({ mensaje: "Código válido" });
+  } catch (err) {
+    console.error("❌ Error verificar recuperacion:", err.message);
+    res.status(500).json({ mensaje: "Error al verificar el código" });
+  }
+};
+
+// Paso 3 — cambiar contraseña
+export const resetearContrasena = async (req, res) => {
+  try {
+    const { email, codigo, nuevaContrasena } = req.body;
+    const usuario = await Usuario.findOne({ email });
+
+    if (!usuario) return res.status(404).json({ mensaje: "Correo no encontrado" });
+    if (usuario.codigoRecuperacion !== codigo)
+      return res.status(400).json({ mensaje: "Código inválido" });
+    if (new Date() > usuario.codigoRecuperacionExpira)
+      return res.status(400).json({ mensaje: "El código ha expirado" });
+
+    usuario.password = await bcrypt.hash(nuevaContrasena, 10);
+    usuario.codigoRecuperacion = null;
+    usuario.codigoRecuperacionExpira = null;
+    await usuario.save();
+
+    res.json({ mensaje: "Contraseña actualizada correctamente" });
+  } catch (err) {
+    console.error("❌ Error resetear contrasena:", err.message);
+    res.status(500).json({ mensaje: "Error al resetear la contraseña" });
+  }
+};

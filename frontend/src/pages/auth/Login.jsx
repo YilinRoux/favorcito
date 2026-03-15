@@ -6,6 +6,7 @@ import { AuthContext } from "../../context/AuthContext";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [verContrasena, setVerContrasena] = useState(false);
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
   const [mostrarApelacion, setMostrarApelacion] = useState(false);
@@ -101,6 +102,7 @@ export default function Login() {
             )
           )}
 
+          {/* Email */}
           <div className="mb-4">
             <label className="block mb-2">Email</label>
             <input
@@ -112,15 +114,41 @@ export default function Login() {
             />
           </div>
 
-          <div className="mb-6">
+          {/* Contraseña con toggle */}
+          <div className="mb-2">
             <label className="block mb-2">Contraseña</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-              placeholder="Tu contraseña"
-            />
+            <div style={{ position: "relative" }}>
+              <input
+                type={verContrasena ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                placeholder="Tu contraseña"
+                style={{ paddingRight: "40px" }}
+              />
+              <button
+                type="button"
+                onClick={() => setVerContrasena(!verContrasena)}
+                style={{
+                  position: "absolute", right: "10px", top: "50%",
+                  transform: "translateY(-50%)", background: "none",
+                  border: "none", cursor: "pointer", fontSize: "18px",
+                  color: "#6b7280", padding: 0, lineHeight: 1
+                }}
+              >
+                {verContrasena ? "🙈" : "👁️"}
+              </button>
+            </div>
+          </div>
+
+          {/* Olvidaste tu contraseña */}
+          <div className="mb-6 text-right">
+            <Link
+              to="/recuperar-contrasena"
+              className="text-sm text-blue-500 hover:underline"
+            >
+              ¿Olvidaste tu contraseña?
+            </Link>
           </div>
 
           <button

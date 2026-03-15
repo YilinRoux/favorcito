@@ -20,13 +20,18 @@ const localSchema = new mongoose.Schema(
 
     fotos: [
       {
-        type: String, // guardaremos rutas de imagen
+        type: String,
       },
     ],
 
     aprobado: {
       type: Boolean,
-      default: false, // admin debe aprobar
+      default: false,
+    },
+
+    rechazado: {
+      type: Boolean,
+      default: false,
     },
 
     promocionActiva: {
@@ -61,12 +66,10 @@ const localSchema = new mongoose.Schema(
       },
     ],
 
-    // ⭐ NUEVOS CAMPOS
-
-   calificacionPromedio: {
-  type: Number,
-  default: 0,
-},
+    calificacionPromedio: {
+      type: Number,
+      default: 0,
+    },
 
     totalCalificaciones: {
       type: Number,
