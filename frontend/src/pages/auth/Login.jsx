@@ -2,6 +2,7 @@ import { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../../services/api";
 import { AuthContext } from "../../context/AuthContext";
+import "../../styles/auth/Login.css";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -21,32 +22,24 @@ export default function Login() {
     e.preventDefault();
     setError("");
     setCargando(true);
-
     if (!email.trim() || !password.trim()) {
       setError("Todos los campos son obligatorios");
       setCargando(false);
       return;
     }
-
     try {
       const res = await api.post("/auth/login", { email, password });
       login(res.data);
-
       const rol = res.data.usuario.rol;
       if (rol === "estudiante") navigate("/perfil");
       else if (rol === "vendedor") navigate("/vendedor/dashboard");
       else if (rol === "admin") navigate("/admin/dashboard");
       else navigate("/");
-
     } catch (err) {
       const status = err.response?.status;
       const mensaje = err.response?.data?.mensaje;
-
-      if (status === 403 && mensaje?.includes("suspendida")) {
-        setError("SUSPENDIDO");
-      } else {
-        setError(mensaje || "Credenciales inválidas");
-      }
+      if (status === 403 && mensaje?.includes("suspendida")) setError("SUSPENDIDO");
+      else setError(mensaje || "Credenciales inválidas");
     } finally {
       setCargando(false);
     }
@@ -69,161 +62,147 @@ export default function Login() {
   };
 
   return (
-    <div className="p-10 flex justify-center">
-      <div className="w-full max-w-md bg-white shadow-md rounded p-6">
-        <h2 className="text-2xl font-bold mb-6 text-center">
-          Iniciar Sesión
-        </h2>
+    <div className="lg-wrap">
+      <div className="lg-particles">
+        {[...Array(7)].map((_, i) => <div key={i} className="lg-p" />)}
+      </div>
+      <div className="lg-orb lg-orb-1" />
+      <div className="lg-orb lg-orb-2" />
 
-        <form onSubmit={handleSubmit}>
+      <div className="lg-card">
 
-          {/* Bloque de error */}
+        {/* Logo */}
+        <div className="lg-logo">
+          <div className="lg-logo-icon">
+            <svg className="lg-logo-icon-svg" viewBox="0 0 24 24">
+              <circle cx="5.5" cy="17.5" r="2.5"/>
+              <circle cx="18.5" cy="17.5" r="2.5"/>
+              <path d="M3 5h11l2 7H5L3 5z"/>
+              <path d="M15 12h4l2 5"/>
+            </svg>
+          </div>
+          <span className="lg-logo-text">Favorcito</span>
+        </div>
+
+        <h2 className="lg-title">Bienvenido de vuelta</h2>
+        <p className="lg-subtitle">Ingresa a tu cuenta para continuar</p>
+
+        <form className="lg-form" onSubmit={handleSubmit}>
+
+          {/* Error */}
           {error && (
             error === "SUSPENDIDO" ? (
-              <div style={{ background: "#fef2f2", border: "1px solid #fca5a5", borderRadius: "8px", padding: "14px", marginBottom: "16px" }}>
-                <p style={{ color: "#dc2626", fontWeight: "700", fontSize: "14px", margin: "0 0 6px 0" }}>
-                  🚫 Cuenta suspendida
+              <div className="lg-suspended">
+                <p className="lg-suspended-title">
+                  <svg className="lg-suspended-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                  Cuenta suspendida
                 </p>
-                <p style={{ color: "#dc2626", fontSize: "13px", margin: "0 0 10px 0" }}>
-                  Tu cuenta ha sido suspendida por el administrador.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setMostrarApelacion(true)}
-                  style={{ padding: "6px 14px", background: "#dc2626", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "13px", fontWeight: "600" }}
-                >
-                  📝 Enviar apelación
+                <span className="lg-suspended-text">Tu cuenta ha sido suspendida por el administrador.</span>
+                <button type="button" onClick={() => setMostrarApelacion(true)} className="lg-suspended-btn">
+                  <svg className="lg-suspended-btn-svg" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  Enviar apelación
                 </button>
               </div>
             ) : (
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+              <div className="lg-error">
+                <svg className="lg-error-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                 {error}
               </div>
             )
           )}
 
           {/* Email */}
-          <div className="mb-4">
-            <label className="block mb-2">Email</label>
+          <div className="lg-field">
+            <label className="lg-label">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="lg-input"
               placeholder="tu@email.com"
             />
           </div>
 
           {/* Contraseña con toggle */}
-          <div className="mb-2">
-            <label className="block mb-2">Contraseña</label>
-            <div style={{ position: "relative" }}>
+          <div className="lg-field">
+            <label className="lg-label">Contraseña</label>
+            <div className="lg-input-wrap">
               <input
                 type={verContrasena ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="lg-input lg-input--pr"
                 placeholder="Tu contraseña"
-                style={{ paddingRight: "40px" }}
               />
-              <button
-                type="button"
-                onClick={() => setVerContrasena(!verContrasena)}
-                style={{
-                  position: "absolute", right: "10px", top: "50%",
-                  transform: "translateY(-50%)", background: "none",
-                  border: "none", cursor: "pointer", fontSize: "18px",
-                  color: "#6b7280", padding: 0, lineHeight: 1
-                }}
-              >
-                {verContrasena ? "🙈" : "👁️"}
+              <button type="button" onClick={() => setVerContrasena(!verContrasena)} className="lg-pw-toggle">
+                {verContrasena ? (
+                  <svg className="lg-pw-toggle-svg" viewBox="0 0 24 24">
+                    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
+                    <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>
+                    <line x1="1" y1="1" x2="23" y2="23"/>
+                  </svg>
+                ) : (
+                  <svg className="lg-pw-toggle-svg" viewBox="0 0 24 24">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                )}
               </button>
             </div>
           </div>
 
-          {/* Olvidaste tu contraseña */}
-          <div className="mb-6 text-right">
-            <Link
-              to="/recuperar-contrasena"
-              className="text-sm text-blue-500 hover:underline"
-            >
-              ¿Olvidaste tu contraseña?
-            </Link>
+          {/* ¿Olvidaste tu contraseña? */}
+          <div className="lg-forgot-row">
+            <Link to="/recuperar-contrasena" className="lg-forgot">¿Olvidaste tu contraseña?</Link>
           </div>
 
-          <button
-            type="submit"
-            disabled={cargando}
-            className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition disabled:bg-gray-400"
-          >
+          {/* Submit */}
+          <button type="submit" disabled={cargando} className="lg-btn">
             {cargando ? "Ingresando..." : "Iniciar Sesión"}
           </button>
 
-          <p className="mt-4 text-center">
-            ¿No tienes cuenta?{" "}
-            <Link to="/registro" className="text-blue-500 hover:underline">
-              Regístrate aquí
-            </Link>
+          <p className="lg-footer">
+            ¿No tienes cuenta?
+            <Link to="/registro" className="lg-link"> Regístrate aquí</Link>
           </p>
         </form>
       </div>
 
       {/* Modal apelación */}
       {mostrarApelacion && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, padding: "16px" }}>
-          <div style={{ background: "white", borderRadius: "16px", padding: "24px", width: "100%", maxWidth: "400px" }}>
+        <div className="lg-overlay">
+          <div className="lg-modal">
             {apelacionEnviada ? (
-              <>
-                <p style={{ fontWeight: "700", fontSize: "16px", margin: "0 0 10px 0" }}>✅ Apelación enviada</p>
-                <p style={{ color: "#6b7280", fontSize: "13px", margin: "0 0 16px 0" }}>
-                  El administrador revisará tu caso y te contactará por correo.
-                </p>
-                <button
-                  onClick={() => { setMostrarApelacion(false); setApelacionEnviada(false); }}
-                  style={{ width: "100%", padding: "10px", background: "#3b82f6", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "600" }}
-                >
+              <div className="lg-success">
+                <div className="lg-success-ring">
+                  <div className="lg-success-icon">
+                    <svg className="lg-success-svg" viewBox="0 0 24 24">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                  </div>
+                </div>
+                <p className="lg-success-title">Apelación enviada</p>
+                <p className="lg-success-text">El administrador revisará tu caso y te contactará por correo.</p>
+                <button className="lg-btn" onClick={() => { setMostrarApelacion(false); setApelacionEnviada(false); }}>
                   Cerrar
                 </button>
-              </>
+              </div>
             ) : (
               <>
-                <p style={{ fontWeight: "700", fontSize: "16px", margin: "0 0 16px 0" }}>📝 Formulario de apelación</p>
-
-                <input
-                  type="text"
-                  placeholder="Tu nombre completo"
-                  value={apelacion.nombre}
-                  onChange={(e) => setApelacion({ ...apelacion, nombre: e.target.value })}
-                  style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: "8px", padding: "8px 12px", fontSize: "13px", marginBottom: "10px", outline: "none", boxSizing: "border-box" }}
-                />
-                <input
-                  type="email"
-                  placeholder="Tu correo"
-                  value={apelacion.email}
-                  onChange={(e) => setApelacion({ ...apelacion, email: e.target.value })}
-                  style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: "8px", padding: "8px 12px", fontSize: "13px", marginBottom: "10px", outline: "none", boxSizing: "border-box" }}
-                />
-                <textarea
-                  placeholder="¿Por qué crees que tu cuenta debería reactivarse?"
-                  value={apelacion.motivo}
-                  onChange={(e) => setApelacion({ ...apelacion, motivo: e.target.value })}
-                  rows={4}
-                  style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: "8px", padding: "8px 12px", fontSize: "13px", marginBottom: "16px", outline: "none", resize: "none", boxSizing: "border-box" }}
-                />
-                <div style={{ display: "flex", gap: "8px" }}>
-                  <button
-                    onClick={handleApelar}
-                    disabled={enviandoApelacion}
-                    style={{ flex: 1, padding: "10px", background: enviandoApelacion ? "#d1d5db" : "#3b82f6", color: "white", border: "none", borderRadius: "8px", cursor: enviandoApelacion ? "not-allowed" : "pointer", fontWeight: "600", fontSize: "13px" }}
-                  >
-                    {enviandoApelacion ? "Enviando..." : "Enviar"}
-                  </button>
-                  <button
-                    onClick={() => setMostrarApelacion(false)}
-                    style={{ flex: 1, padding: "10px", background: "#f3f4f6", color: "#374151", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "600", fontSize: "13px" }}
-                  >
-                    Cancelar
-                  </button>
+                <p className="lg-modal-title">
+                  <svg className="lg-modal-title-svg" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  Formulario de apelación
+                </p>
+                <div className="lg-form">
+                  <input type="text" placeholder="Tu nombre completo" value={apelacion.nombre} onChange={(e) => setApelacion({ ...apelacion, nombre: e.target.value })} className="lg-input" />
+                  <input type="email" placeholder="Tu correo" value={apelacion.email} onChange={(e) => setApelacion({ ...apelacion, email: e.target.value })} className="lg-input" />
+                  <textarea placeholder="¿Por qué crees que tu cuenta debería reactivarse?" value={apelacion.motivo} onChange={(e) => setApelacion({ ...apelacion, motivo: e.target.value })} rows={4} className="lg-textarea" />
+                  <div className="lg-modal-actions">
+                    <button onClick={handleApelar} disabled={enviandoApelacion} className="lg-btn">
+                      {enviandoApelacion ? "Enviando..." : "Enviar apelación"}
+                    </button>
+                    <button onClick={() => setMostrarApelacion(false)} className="lg-btn-cancel">Cancelar</button>
+                  </div>
                 </div>
               </>
             )}

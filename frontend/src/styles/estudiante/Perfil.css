@@ -1,0 +1,493 @@
+/* ============================================================
+   Perfil.css — prefijo: pf-
+   Favorcito · Módulo Estudiante
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+
+/* ── Variables ─────────────────────────────────────────────── */
+:root {
+  --orange:        #FF5C0A;
+  --orange-bright: #FF7A30;
+  --orange-hover:  #e04e00;
+  --orange-glow:   rgba(255, 92, 10, 0.18);
+  --green:         #22C55E;
+  --green-glow:    rgba(34, 197, 94, 0.15);
+  --bg:            #080808;
+  --bg-card:       #111111;
+  --bg-card-inner: #181818;
+  --bg-input:      #0E0E0E;
+  --text:          #FFFFFF;
+  --text-muted:    #666666;
+  --text-label:    #BBBBBB;
+  --border:        rgba(255, 255, 255, 0.07);
+  --border-input:  rgba(255, 255, 255, 0.08);
+  --radius-card:   24px;
+  --radius-input:  10px;
+  --radius-btn:    10px;
+  --radius-chip:   100px;
+  --shadow-card:   0 40px 100px rgba(0,0,0,0.65);
+  --shadow-btn:    0 6px 24px rgba(255,92,10,0.3);
+}
+
+/* ── Reset anti-Tailwind ───────────────────────────────────── */
+.pf-wrap input,
+.pf-wrap textarea,
+.pf-wrap button,
+.pf-wrap select {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  box-sizing: border-box !important;
+}
+
+/* ── Wrapper ───────────────────────────────────────────────── */
+.pf-wrap {
+  position: relative;
+  min-height: 100vh;
+  background-color: var(--bg) !important;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 48px 16px 80px;
+  overflow: hidden;
+}
+
+.pf-wrap::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.055) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none; z-index: 0;
+  animation: pf-gf 6s ease-in-out infinite;
+}
+
+@keyframes pf-gf {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.75; }
+}
+
+/* ── Orbes ─────────────────────────────────────────────────── */
+.pf-orb-1, .pf-orb-2 {
+  position: absolute; border-radius: 50%;
+  pointer-events: none; z-index: 0;
+}
+
+.pf-orb-1 {
+  width: 600px; height: 600px;
+  top: -220px; left: 50%;
+  transform: translateX(-50%);
+  background: radial-gradient(circle, rgba(255,92,10,0.2) 0%, transparent 65%);
+  filter: blur(72px);
+  animation: pf-o1 7s ease-in-out infinite;
+}
+
+@keyframes pf-o1 {
+  0%, 100% { transform: translateX(-50%) scale(1); opacity: 1; }
+  50%       { transform: translateX(-50%) scale(1.08); opacity: 0.85; }
+}
+
+.pf-orb-2 {
+  width: 300px; height: 300px;
+  bottom: -80px; right: -60px;
+  background: radial-gradient(circle, rgba(255,92,10,0.08) 0%, transparent 65%);
+  filter: blur(60px);
+}
+
+/* ── Partículas ────────────────────────────────────────────── */
+.pf-particles {
+  position: absolute; inset: 0;
+  pointer-events: none; z-index: 0;
+}
+
+.pf-p {
+  position: absolute; border-radius: 50%;
+  background: #FF5C0A; opacity: 0;
+  animation: pf-fp var(--dur, 7s) var(--delay, 0s) ease-in-out infinite;
+}
+
+@keyframes pf-fp {
+  0%   { bottom: -10px; opacity: 0; transform: translateX(0) scale(0.4); }
+  10%  { opacity: 0.6; }
+  50%  { transform: translateX(20px) scale(1); }
+  90%  { opacity: 0.2; }
+  100% { bottom: 108%; opacity: 0; transform: translateX(-20px) scale(0.3); }
+}
+
+/* ── Inner ─────────────────────────────────────────────────── */
+.pf-inner {
+  position: relative; z-index: 1;
+  width: 100%; max-width: 460px;
+  display: flex; flex-direction: column; gap: 14px;
+  animation: pf-rise 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes pf-rise {
+  from { opacity: 0; transform: translateY(50px) scale(0.94); filter: blur(4px); }
+  to   { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+
+/* ── Header ────────────────────────────────────────────────── */
+.pf-header {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 6px;
+}
+
+.pf-logo-icon {
+  width: 50px; height: 50px;
+  background: var(--orange) !important;
+  border-radius: 15px !important;
+  border-top-left-radius: 15px !important;
+  border-top-right-radius: 15px !important;
+  border-bottom-left-radius: 15px !important;
+  border-bottom-right-radius: 15px !important;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden; flex-shrink: 0;
+}
+
+.pf-logo-icon::before {
+  content: '';
+  position: absolute; inset: -2px; border-radius: 16px;
+  background: conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0.3) 25%, transparent 50%);
+  animation: pf-halo 2.5s linear infinite;
+}
+
+@keyframes pf-halo {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.pf-title {
+  font-size: 1.6rem; font-weight: 800;
+  color: var(--text) !important;
+  margin: 0; line-height: 1.1;
+}
+
+.pf-subtitle {
+  font-size: 0.82rem;
+  color: var(--text-muted) !important;
+  margin: 4px 0 0;
+}
+
+/* ── Cards ─────────────────────────────────────────────────── */
+.pf-card {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card) !important;
+  border-top-left-radius: var(--radius-card) !important;
+  border-top-right-radius: var(--radius-card) !important;
+  border-bottom-left-radius: var(--radius-card) !important;
+  border-bottom-right-radius: var(--radius-card) !important;
+  box-shadow: var(--shadow-card);
+  position: relative; overflow: hidden;
+}
+
+/* Borde naranja animado en todas las cards */
+.pf-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent 0%, #FF5C0A 30%, #FF7A30 50%, #FF5C0A 70%, transparent 100%);
+  background-size: 200%;
+  animation: pf-bf 3s linear infinite;
+}
+
+@keyframes pf-bf {
+  0%   { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+
+/* ── Card usuario ──────────────────────────────────────────── */
+.pf-card--usuario {
+  padding: 28px 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+/* Avatar */
+.pf-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.pf-avatar {
+  width: 72px; height: 72px;
+  background: var(--orange-glow) !important;
+  border: 2px solid rgba(255,92,10,0.3);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--orange);
+  position: relative; z-index: 1;
+}
+
+.pf-avatar-glow {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,92,10,0.15) 0%, transparent 70%);
+  animation: pf-avatar-pulse 3s ease-in-out infinite;
+}
+
+@keyframes pf-avatar-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.7; }
+  50%       { transform: scale(1.1); opacity: 1; }
+}
+
+/* Info usuario */
+.pf-user-info { flex: 1; min-width: 0; }
+
+.pf-user-nombre {
+  font-size: 1.1rem; font-weight: 800;
+  color: var(--text) !important;
+  margin: 0 0 3px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.pf-user-email {
+  font-size: 0.82rem;
+  color: var(--text-muted) !important;
+  margin: 0 0 8px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* Chips de rol */
+.pf-rol-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: var(--radius-chip) !important;
+  border-top-left-radius: var(--radius-chip) !important;
+  border-top-right-radius: var(--radius-chip) !important;
+  border-bottom-left-radius: var(--radius-chip) !important;
+  border-bottom-right-radius: var(--radius-chip) !important;
+  font-size: 0.7rem; font-weight: 700;
+  padding: 3px 10px;
+  text-transform: capitalize;
+}
+
+.pf-rol-chip--estudiante {
+  background: var(--orange-glow) !important;
+  border: 1px solid rgba(255,92,10,0.25);
+  color: var(--orange) !important;
+}
+
+.pf-rol-chip--vendedor {
+  background: var(--green-glow) !important;
+  border: 1px solid rgba(34,197,94,0.25);
+  color: var(--green) !important;
+}
+
+.pf-rol-chip--admin {
+  background: rgba(168,85,247,0.1) !important;
+  border: 1px solid rgba(168,85,247,0.22);
+  color: #c084fc !important;
+}
+
+/* ── Card opciones ─────────────────────────────────────────── */
+.pf-card--opciones {
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pf-opcion {
+  width: 100% !important;
+  display: flex !important;
+  align-items: center;
+  gap: 14px;
+  background: none !important;
+  border: none !important;
+  border-radius: 18px !important;
+  border-top-left-radius: 18px !important;
+  border-top-right-radius: 18px !important;
+  border-bottom-left-radius: 18px !important;
+  border-bottom-right-radius: 18px !important;
+  padding: 14px 16px !important;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.18s, transform 0.15s;
+  animation: pf-opcion-in 0.35s ease both;
+}
+
+@keyframes pf-opcion-in {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.pf-opcion:hover {
+  background: var(--bg-card-inner) !important;
+  transform: translateX(4px);
+}
+
+.pf-opcion-icono {
+  width: 40px; height: 40px;
+  background: var(--bg-card-inner) !important;
+  border: 1px solid var(--border);
+  border-radius: 12px !important;
+  border-top-left-radius: 12px !important;
+  border-top-right-radius: 12px !important;
+  border-bottom-left-radius: 12px !important;
+  border-bottom-right-radius: 12px !important;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-label);
+  flex-shrink: 0;
+  transition: background 0.18s, color 0.18s, border-color 0.18s;
+}
+
+.pf-opcion:hover .pf-opcion-icono {
+  background: var(--orange-glow) !important;
+  border-color: rgba(255,92,10,0.25) !important;
+  color: var(--orange);
+}
+
+.pf-opcion-texto { flex: 1; }
+
+.pf-opcion-label {
+  font-size: 0.9rem; font-weight: 700;
+  color: var(--text) !important;
+  margin: 0 0 2px;
+}
+
+.pf-opcion-desc {
+  font-size: 0.78rem;
+  color: var(--text-muted) !important;
+  margin: 0;
+}
+
+.pf-opcion-arrow {
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: color 0.18s, transform 0.18s;
+}
+
+.pf-opcion:hover .pf-opcion-arrow {
+  color: var(--orange);
+  transform: translateX(3px);
+}
+
+/* ── Botón cerrar sesión ───────────────────────────────────── */
+.pf-btn-logout {
+  width: 100% !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(239,68,68,0.07) !important;
+  border: 1px solid rgba(239,68,68,0.18) !important;
+  border-radius: var(--radius-card) !important;
+  border-top-left-radius: var(--radius-card) !important;
+  border-top-right-radius: var(--radius-card) !important;
+  border-bottom-left-radius: var(--radius-card) !important;
+  border-bottom-right-radius: var(--radius-card) !important;
+  color: #f87171 !important;
+  font-size: 0.9rem; font-weight: 700;
+  padding: 16px !important;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+}
+
+.pf-btn-logout:hover {
+  background: rgba(239,68,68,0.13) !important;
+  border-color: rgba(239,68,68,0.3) !important;
+  transform: translateY(-2px);
+}
+
+/* ── Card confirmación logout ──────────────────────────────── */
+.pf-card--confirmar {
+  padding: 28px 24px;
+  text-align: center;
+  border-color: rgba(239,68,68,0.15) !important;
+  animation: pf-rise 0.3s ease both;
+}
+
+.pf-card--confirmar::before {
+  background: linear-gradient(90deg, transparent 0%, #ef4444 30%, #f97316 50%, #ef4444 70%, transparent 100%);
+  background-size: 200%;
+  animation: pf-bf 3s linear infinite;
+}
+
+.pf-confirmar-icon {
+  width: 56px; height: 56px;
+  background: rgba(239,68,68,0.08) !important;
+  border: 1px solid rgba(239,68,68,0.18);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #f87171;
+  margin: 0 auto 14px;
+}
+
+.pf-confirmar-txt {
+  font-size: 0.95rem; font-weight: 700;
+  color: var(--text) !important;
+  margin: 0 0 20px;
+}
+
+.pf-confirmar-acciones {
+  display: flex; gap: 10px;
+}
+
+/* ── Botones genéricos ─────────────────────────────────────── */
+.pf-btn {
+  flex: 1;
+  display: inline-flex !important;
+  align-items: center; justify-content: center;
+  border: none !important;
+  border-radius: var(--radius-btn) !important;
+  border-top-left-radius: var(--radius-btn) !important;
+  border-top-right-radius: var(--radius-btn) !important;
+  border-bottom-left-radius: var(--radius-btn) !important;
+  border-bottom-right-radius: var(--radius-btn) !important;
+  font-size: 0.88rem; font-weight: 700;
+  padding: 12px 20px !important;
+  cursor: pointer;
+  position: relative; overflow: hidden;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+}
+
+.pf-btn--salir {
+  background: #ef4444 !important;
+  color: #fff !important;
+  box-shadow: 0 6px 20px rgba(239,68,68,0.3);
+}
+
+.pf-btn--salir::before {
+  content: '';
+  position: absolute; top: 0; left: -100%; width: 55%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+  transform: skewX(-20deg);
+  animation: pf-sh 2.5s ease-in-out infinite;
+}
+
+@keyframes pf-sh {
+  0%   { left: -100%; }
+  60%  { left: 140%; }
+  100% { left: 140%; }
+}
+
+.pf-btn--salir:hover {
+  background: #dc2626 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 10px 28px rgba(239,68,68,0.4) !important;
+}
+
+.pf-btn--cancelar {
+  background: var(--bg-card-inner) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-label) !important;
+}
+
+.pf-btn--cancelar:hover {
+  background: rgba(255,255,255,0.07) !important;
+  border-color: rgba(255,255,255,0.12) !important;
+  transform: translateY(-2px);
+}
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .pf-wrap { padding: 32px 12px 60px; }
+  .pf-title { font-size: 1.35rem; }
+  .pf-card--usuario { flex-direction: column; align-items: flex-start; gap: 14px; }
+  .pf-avatar { width: 60px; height: 60px; }
+}

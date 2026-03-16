@@ -1,0 +1,606 @@
+/* ============================================================
+   RastreoPedido.css — prefijo: rp-
+   Favorcito · Módulo Estudiante
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+
+/* ── Variables ─────────────────────────────────────────────── */
+:root {
+  --orange:        #FF5C0A;
+  --orange-bright: #FF7A30;
+  --orange-hover:  #e04e00;
+  --orange-glow:   rgba(255, 92, 10, 0.18);
+  --green:         #22C55E;
+  --green-glow:    rgba(34, 197, 94, 0.15);
+  --bg:            #080808;
+  --bg-card:       #111111;
+  --bg-card-inner: #181818;
+  --bg-input:      #0E0E0E;
+  --text:          #FFFFFF;
+  --text-muted:    #666666;
+  --text-label:    #BBBBBB;
+  --border:        rgba(255, 255, 255, 0.07);
+  --border-input:  rgba(255, 255, 255, 0.08);
+  --radius-card:   24px;
+  --radius-input:  10px;
+  --radius-btn:    10px;
+  --radius-chip:   100px;
+  --shadow-card:   0 40px 100px rgba(0,0,0,0.65);
+  --shadow-btn:    0 6px 24px rgba(255,92,10,0.3);
+}
+
+/* ── Reset anti-Tailwind ───────────────────────────────────── */
+.rp-wrap input,
+.rp-wrap textarea,
+.rp-wrap button,
+.rp-wrap select {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  box-sizing: border-box !important;
+}
+
+/* ── Wrapper ───────────────────────────────────────────────── */
+.rp-wrap {
+  position: relative;
+  min-height: 100vh;
+  background-color: var(--bg) !important;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 32px 16px 80px;
+  overflow: hidden;
+}
+
+.rp-wrap::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.055) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none; z-index: 0;
+  animation: rp-gf 6s ease-in-out infinite;
+}
+
+@keyframes rp-gf {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.75; }
+}
+
+/* ── Orbes ─────────────────────────────────────────────────── */
+.rp-orb-1, .rp-orb-2 {
+  position: absolute; border-radius: 50%;
+  pointer-events: none; z-index: 0;
+}
+
+.rp-orb-1 {
+  width: 600px; height: 600px;
+  top: -220px; left: 50%;
+  transform: translateX(-50%);
+  background: radial-gradient(circle, rgba(255,92,10,0.2) 0%, transparent 65%);
+  filter: blur(72px);
+  animation: rp-o1 7s ease-in-out infinite;
+}
+
+@keyframes rp-o1 {
+  0%, 100% { transform: translateX(-50%) scale(1); opacity: 1; }
+  50%       { transform: translateX(-50%) scale(1.08); opacity: 0.85; }
+}
+
+.rp-orb-2 {
+  width: 300px; height: 300px;
+  bottom: -80px; right: -60px;
+  background: radial-gradient(circle, rgba(255,92,10,0.08) 0%, transparent 65%);
+  filter: blur(60px);
+}
+
+/* ── Partículas ────────────────────────────────────────────── */
+.rp-particles {
+  position: absolute; inset: 0;
+  pointer-events: none; z-index: 0;
+}
+
+.rp-p {
+  position: absolute; border-radius: 50%;
+  background: #FF5C0A; opacity: 0;
+  animation: rp-fp var(--dur, 7s) var(--delay, 0s) ease-in-out infinite;
+}
+
+@keyframes rp-fp {
+  0%   { bottom: -10px; opacity: 0; transform: translateX(0) scale(0.4); }
+  10%  { opacity: 0.6; }
+  50%  { transform: translateX(20px) scale(1); }
+  90%  { opacity: 0.2; }
+  100% { bottom: 108%; opacity: 0; transform: translateX(-20px) scale(0.3); }
+}
+
+/* ── Inner ─────────────────────────────────────────────────── */
+.rp-inner {
+  position: relative; z-index: 1;
+  width: 100%; max-width: 580px;
+  display: flex; flex-direction: column; gap: 14px;
+  animation: rp-rise 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes rp-rise {
+  from { opacity: 0; transform: translateY(50px) scale(0.94); filter: blur(4px); }
+  to   { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+
+/* ── Topbar ────────────────────────────────────────────────── */
+.rp-topbar {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.rp-back-btn {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  background: none !important;
+  border: none !important;
+  color: var(--orange) !important;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0 !important;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.15s;
+}
+
+.rp-back-btn:hover {
+  opacity: 0.75;
+  transform: translateX(-3px);
+}
+
+/* ── Header ────────────────────────────────────────────────── */
+.rp-header {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 2px;
+}
+
+.rp-logo-icon {
+  width: 50px; height: 50px;
+  background: var(--orange) !important;
+  border-radius: 15px !important;
+  border-top-left-radius: 15px !important;
+  border-top-right-radius: 15px !important;
+  border-bottom-left-radius: 15px !important;
+  border-bottom-right-radius: 15px !important;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden; flex-shrink: 0;
+}
+
+.rp-logo-icon::before {
+  content: '';
+  position: absolute; inset: -2px; border-radius: 16px;
+  background: conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0.3) 25%, transparent 50%);
+  animation: rp-halo 2.5s linear infinite;
+}
+
+@keyframes rp-halo {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.rp-title {
+  font-size: 1.5rem; font-weight: 800;
+  color: var(--text) !important;
+  margin: 0; line-height: 1.1; flex: 1;
+}
+
+.rp-subtitle {
+  font-size: 0.8rem;
+  color: var(--text-muted) !important;
+  margin: 4px 0 0;
+}
+
+/* Indicador Live */
+.rp-live {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(34,197,94,0.08) !important;
+  border: 1px solid rgba(34,197,94,0.2);
+  border-radius: var(--radius-chip) !important;
+  border-top-left-radius: var(--radius-chip) !important;
+  border-top-right-radius: var(--radius-chip) !important;
+  border-bottom-left-radius: var(--radius-chip) !important;
+  border-bottom-right-radius: var(--radius-chip) !important;
+  color: var(--green) !important;
+  font-size: 0.7rem; font-weight: 700;
+  padding: 5px 10px;
+  flex-shrink: 0;
+}
+
+.rp-live-dot {
+  display: block;
+  width: 7px; height: 7px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: rp-live-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes rp-live-pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34,197,94,0.6); }
+  50%       { transform: scale(1.15); box-shadow: 0 0 0 5px rgba(34,197,94,0); }
+}
+
+/* ── Cards ─────────────────────────────────────────────────── */
+.rp-card {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card) !important;
+  border-top-left-radius: var(--radius-card) !important;
+  border-top-right-radius: var(--radius-card) !important;
+  border-bottom-left-radius: var(--radius-card) !important;
+  border-bottom-right-radius: var(--radius-card) !important;
+  padding: 22px 24px;
+  box-shadow: var(--shadow-card);
+  position: relative; overflow: hidden;
+}
+
+/* Borde naranja animado */
+.rp-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent 0%, #FF5C0A 30%, #FF7A30 50%, #FF5C0A 70%, transparent 100%);
+  background-size: 200%;
+  animation: rp-bf 3s linear infinite;
+}
+
+@keyframes rp-bf {
+  0%   { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+
+/* ── Card info pedido ──────────────────────────────────────── */
+.rp-local-nombre {
+  font-size: 1.1rem; font-weight: 800;
+  color: var(--text) !important;
+  margin: 0 0 6px;
+}
+
+.rp-entrega-tipo {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.82rem; font-weight: 500;
+  color: var(--text-muted) !important;
+  margin-bottom: 10px;
+}
+
+.rp-total {
+  font-size: 1.3rem; font-weight: 800;
+  color: var(--orange) !important;
+  margin: 0 0 6px;
+}
+
+.rp-promo-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--green-glow) !important;
+  border: 1px solid rgba(34,197,94,0.2);
+  border-radius: var(--radius-chip) !important;
+  border-top-left-radius: var(--radius-chip) !important;
+  border-top-right-radius: var(--radius-chip) !important;
+  border-bottom-left-radius: var(--radius-chip) !important;
+  border-bottom-right-radius: var(--radius-chip) !important;
+  color: var(--green) !important;
+  font-size: 0.72rem; font-weight: 700;
+  padding: 3px 10px;
+}
+
+/* ── Card cancelado ────────────────────────────────────────── */
+.rp-card--cancelado {
+  border-color: rgba(239,68,68,0.2) !important;
+  text-align: center;
+  padding: 32px 24px;
+}
+
+.rp-card--cancelado::before {
+  background: linear-gradient(90deg, transparent 0%, #ef4444 30%, #f97316 50%, #ef4444 70%, transparent 100%);
+  background-size: 200%;
+  animation: rp-bf 3s linear infinite;
+}
+
+.rp-cancelado-icon {
+  width: 64px; height: 64px;
+  background: rgba(239,68,68,0.08) !important;
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #f87171;
+  margin: 0 auto 12px;
+}
+
+.rp-cancelado-txt {
+  font-size: 1rem; font-weight: 700;
+  color: #f87171 !important;
+  margin: 0;
+}
+
+/* ── Card progreso ─────────────────────────────────────────── */
+.rp-card--progreso {
+  padding: 22px 24px 26px;
+}
+
+.rp-progreso-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.rp-progreso-titulo {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.88rem; font-weight: 700;
+  color: var(--text) !important;
+  margin: 0;
+}
+
+.rp-progreso-pct {
+  font-size: 0.8rem; font-weight: 800;
+  color: var(--orange) !important;
+}
+
+/* Barra de progreso lineal */
+.rp-progress-bar-wrap {
+  height: 4px;
+  background: var(--bg-card-inner) !important;
+  border-radius: var(--radius-chip) !important;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.rp-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--orange), var(--orange-bright));
+  border-radius: var(--radius-chip) !important;
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: 0 0 8px rgba(255,92,10,0.5);
+}
+
+/* ── Timeline ──────────────────────────────────────────────── */
+.rp-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.rp-paso {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  position: relative;
+}
+
+/* Línea vertical entre pasos */
+.rp-paso-linea {
+  position: absolute;
+  left: 15px;
+  top: 32px;
+  width: 2px;
+  height: calc(100% + 4px);
+  background: var(--border);
+  border-radius: 2px;
+}
+
+.rp-paso-linea--done {
+  background: rgba(34,197,94,0.4);
+}
+
+/* Círculo de estado */
+.rp-paso-circulo {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.rp-paso-circulo--done {
+  background: rgba(34,197,94,0.15) !important;
+  border: 2px solid var(--green);
+  color: var(--green);
+}
+
+.rp-paso-circulo--activo {
+  background: var(--orange-glow) !important;
+  border: 2px solid var(--orange);
+  color: var(--orange);
+}
+
+.rp-paso-circulo--pendiente {
+  background: var(--bg-card-inner) !important;
+  border: 2px solid var(--border);
+  color: var(--text-muted);
+}
+
+/* Ping animado en el paso activo */
+.rp-paso-ping {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid var(--orange);
+  opacity: 0;
+  animation: rp-ping 1.6s ease-out infinite;
+}
+
+@keyframes rp-ping {
+  0%   { transform: scale(0.8); opacity: 0.8; }
+  100% { transform: scale(1.7); opacity: 0; }
+}
+
+/* Info del paso */
+.rp-paso-info {
+  flex: 1;
+  padding: 6px 0 18px;
+}
+
+.rp-paso-label {
+  font-size: 0.88rem; font-weight: 600;
+  margin: 0 0 2px;
+}
+
+.rp-paso-label--activo   { color: var(--orange) !important; font-weight: 700; }
+.rp-paso-label--done     { color: var(--green) !important; }
+.rp-paso-label--pendiente{ color: var(--text-muted) !important; font-weight: 400; }
+
+.rp-paso-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted) !important;
+  margin: 0;
+}
+
+/* ── Card productos ────────────────────────────────────────── */
+.rp-section-title {
+  font-size: 0.82rem; font-weight: 700;
+  color: var(--text) !important;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  margin: 0 0 12px;
+}
+
+.rp-productos {
+  display: flex; flex-direction: column; gap: 5px;
+  margin-bottom: 14px;
+}
+
+.rp-producto-row {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--bg-card-inner) !important;
+  border-radius: 10px !important;
+  border-top-left-radius: 10px !important;
+  border-top-right-radius: 10px !important;
+  border-bottom-left-radius: 10px !important;
+  border-bottom-right-radius: 10px !important;
+  padding: 8px 12px;
+  animation: rp-row-in 0.35s ease both;
+}
+
+@keyframes rp-row-in {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.rp-producto-qty {
+  color: var(--orange) !important;
+  font-weight: 700; font-size: 0.82rem;
+  min-width: 22px;
+}
+
+.rp-producto-nombre {
+  flex: 1;
+  font-size: 0.84rem;
+  color: var(--text-label) !important;
+}
+
+.rp-producto-precio {
+  font-size: 0.82rem;
+  color: var(--text-muted) !important;
+}
+
+.rp-total-row {
+  display: flex; justify-content: space-between; align-items: center;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+  font-size: 0.92rem; font-weight: 700;
+  color: var(--text) !important;
+}
+
+.rp-total-monto {
+  font-size: 1.1rem; font-weight: 800;
+  color: var(--orange) !important;
+}
+
+/* ── Acciones ──────────────────────────────────────────────── */
+.rp-acciones {
+  display: flex; gap: 10px;
+}
+
+.rp-btn {
+  flex: 1;
+  display: inline-flex !important;
+  align-items: center; justify-content: center; gap: 7px;
+  border-radius: var(--radius-btn) !important;
+  border-top-left-radius: var(--radius-btn) !important;
+  border-top-right-radius: var(--radius-btn) !important;
+  border-bottom-left-radius: var(--radius-btn) !important;
+  border-bottom-right-radius: var(--radius-btn) !important;
+  font-size: 0.88rem; font-weight: 700;
+  padding: 13px 18px !important;
+  cursor: pointer;
+  position: relative; overflow: hidden;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+}
+
+.rp-btn--chat {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-label) !important;
+}
+
+.rp-btn--chat:hover {
+  background: var(--bg-card-inner) !important;
+  border-color: rgba(255,255,255,0.12) !important;
+  transform: translateY(-2px);
+}
+
+.rp-btn--calificar {
+  background: var(--orange) !important;
+  border: none !important;
+  color: #fff !important;
+  box-shadow: var(--shadow-btn);
+}
+
+.rp-btn--calificar::before {
+  content: '';
+  position: absolute; top: 0; left: -100%; width: 55%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+  transform: skewX(-20deg);
+  animation: rp-sh 2.5s ease-in-out infinite;
+}
+
+@keyframes rp-sh {
+  0%   { left: -100%; }
+  60%  { left: 140%; }
+  100% { left: 140%; }
+}
+
+.rp-btn--calificar:hover {
+  background: var(--orange-hover) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 10px 28px rgba(255,92,10,0.4) !important;
+}
+
+/* ── Loading ───────────────────────────────────────────────── */
+.rp-loading {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 14px; min-height: 100vh;
+  color: var(--text-muted) !important;
+  font-size: 0.9rem; font-weight: 500;
+}
+
+.rp-loading-spinner {
+  width: 36px; height: 36px;
+  border: 3px solid rgba(255,92,10,0.15);
+  border-top-color: var(--orange);
+  border-radius: 50%;
+  animation: rp-spin 0.8s linear infinite;
+}
+
+@keyframes rp-spin { to { transform: rotate(360deg); } }
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .rp-wrap { padding: 24px 10px 60px; }
+  .rp-title { font-size: 1.25rem; }
+  .rp-card { padding: 16px; }
+  .rp-acciones { flex-direction: column; }
+}

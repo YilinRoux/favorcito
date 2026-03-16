@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
+import "../../styles/estudiante/MenuLocales.css";
 
 function MenuLocales() {
   const [locales, setLocales] = useState([]);
@@ -26,12 +27,10 @@ function MenuLocales() {
 
   useEffect(() => {
     cargar();
-    // Refrescar cada 30 segundos para capturar cambios de promoción
     const interval = setInterval(cargar, 30000);
     return () => clearInterval(interval);
   }, []);
 
-  // Solo imágenes de locales con promoción activa
   const imagenesPromo = locales
     .filter((l) => l.promocionActiva && l.imagenesAnuncios?.length > 0)
     .flatMap((local) =>
@@ -52,106 +51,186 @@ function MenuLocales() {
     return () => clearInterval(interval);
   }, [imagenesPromo.length]);
 
-  if (cargando) return <div style={{ padding: "40px" }}>Cargando...</div>;
+  if (cargando) return (
+    <div className="ml-wrap">
+      <div className="ml-orb-1" /><div className="ml-orb-2" />
+      <div className="ml-loading">
+        <div className="ml-loading-spinner" />
+        <span>Cargando locales...</span>
+      </div>
+    </div>
+  );
 
   return (
-    <div style={{ maxWidth: "700px", margin: "0 auto", padding: "16px" }}>
+    <div className="ml-wrap">
+      <div className="ml-orb-1" />
+      <div className="ml-orb-2" />
+      <div className="ml-particles" aria-hidden="true">
+        {[...Array(8)].map((_, i) => (
+          <div key={i} className="ml-p" style={{ '--dur': `${6 + i}s`, '--delay': `${i * 0.85}s`, left: `${6 + i * 12}%`, width: `${4 + (i % 3) * 2}px`, height: `${4 + (i % 3) * 2}px` }} />
+        ))}
+      </div>
 
-      <h2 style={{ fontSize: "20px", fontWeight: "700", marginBottom: "16px" }}>🏪 Locales disponibles</h2>
+      <div className="ml-inner">
 
-      {/* Carrusel solo de locales con promoción */}
-      {imagenesPromo.length > 0 && (
-        <div style={{ marginBottom: "20px", border: "1px solid #e5e7eb", borderRadius: "12px", overflow: "hidden", position: "relative" }}>
-          <img
-            src={`http://localhost:5000${imagenesPromo[imagenActiva].imagen}`}
-            alt="Promoción"
-            style={{ width: "100%", height: "180px", objectFit: "cover" }}
-          />
-          <div style={{ padding: "10px 14px", background: "#f0fdf4", borderTop: "1px solid #bbf7d0" }}>
-            <p style={{ fontWeight: "700", fontSize: "14px", margin: 0 }}>
-              🎉 {imagenesPromo[imagenActiva].localNombre} — Envío gratis en pedidos +${imagenesPromo[imagenActiva].monto}
-            </p>
-            {imagenesPromo[imagenActiva].anuncio && (
-              <p style={{ color: "#6b7280", fontSize: "13px", margin: "4px 0 0 0" }}>
-                📢 {imagenesPromo[imagenActiva].anuncio}
-              </p>
-            )}
+        {/* ── Header ── */}
+        <div className="ml-header">
+          <div className="ml-logo-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
           </div>
-
-          {/* Puntos navegación */}
-          {imagenesPromo.length > 1 && (
-            <div style={{ position: "absolute", top: "8px", right: "8px", display: "flex", gap: "4px" }}>
-              {imagenesPromo.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setImagenActiva(i)}
-                  style={{ width: "8px", height: "8px", borderRadius: "50%", border: "none", cursor: "pointer", background: i === imagenActiva ? "white" : "rgba(255,255,255,0.5)" }}
-                />
-              ))}
-            </div>
-          )}
+          <div>
+            <h2 className="ml-title">Locales disponibles</h2>
+            <p className="ml-subtitle">{locales.length} local{locales.length !== 1 ? "es" : ""} en tu campus</p>
+          </div>
         </div>
-      )}
 
-      {/* Lista de locales */}
-      {locales.length === 0 ? (
-        <p style={{ color: "#9ca3af", textAlign: "center", padding: "40px 0" }}>No hay locales disponibles.</p>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-          {locales.map((local) => (
-            <div
-              key={local._id}
-              onClick={() => navigate(`/local/${local._id}`)}
-              style={{ border: "1px solid #e5e7eb", borderRadius: "12px", padding: "14px", cursor: "pointer", position: "relative" }}
-            >
-              {/* Badge promoción */}
-              {local.promocionActiva && (
-                <div style={{ position: "absolute", top: "10px", right: "10px", background: "#22c55e", color: "white", fontSize: "11px", padding: "3px 10px", borderRadius: "20px", fontWeight: "600" }}>
-                  🎉 Envío gratis +${local.montoMinimoPromocion}
+        {/* ── Carrusel promociones ── */}
+        {imagenesPromo.length > 0 && (
+          <div className="ml-carrusel">
+            <div className="ml-carrusel-img-wrap">
+              <img
+                src={`http://localhost:5000${imagenesPromo[imagenActiva].imagen}`}
+                alt="Promoción"
+                className="ml-carrusel-img"
+              />
+              <div className="ml-carrusel-overlay" />
+              {/* Puntos de navegación */}
+              {imagenesPromo.length > 1 && (
+                <div className="ml-carrusel-dots">
+                  {imagenesPromo.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setImagenActiva(i)}
+                      className={`ml-dot${i === imagenActiva ? " ml-dot--active" : ""}`}
+                      aria-label={`Ir a promoción ${i + 1}`}
+                    />
+                  ))}
                 </div>
               )}
+            </div>
+            <div className="ml-carrusel-info">
+              <div className="ml-carrusel-badge">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                Envío gratis
+              </div>
+              <p className="ml-carrusel-nombre">
+                {imagenesPromo[imagenActiva].localNombre}
+                <span className="ml-carrusel-monto">en pedidos +${imagenesPromo[imagenActiva].monto}</span>
+              </p>
+              {imagenesPromo[imagenActiva].anuncio && (
+                <p className="ml-carrusel-anuncio">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/>
+                  </svg>
+                  {imagenesPromo[imagenActiva].anuncio}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
 
-              <div style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
-                {/* Imagen */}
-                {local.fotos?.[0] ? (
-                  <img
-                    src={`http://localhost:5000${local.fotos[0]}`}
-                    alt={local.nombre}
-                    style={{ width: "70px", height: "70px", objectFit: "cover", borderRadius: "10px", border: "1px solid #e5e7eb", flexShrink: 0 }}
-                  />
-                ) : (
-                  <div style={{ width: "70px", height: "70px", background: "#f3f4f6", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "28px", flexShrink: 0 }}>
-                    🏪
+        {/* ── Lista de locales ── */}
+        {locales.length === 0 ? (
+          <div className="ml-empty">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+            <p>No hay locales disponibles por ahora.</p>
+          </div>
+        ) : (
+          <div className="ml-locales-lista">
+            {locales.map((local, i) => (
+              <div
+                key={local._id}
+                onClick={() => navigate(`/local/${local._id}`)}
+                className={`ml-local-card${local.promocionActiva ? " ml-local-card--promo" : ""}`}
+                style={{ animationDelay: `${i * 0.07}s` }}
+              >
+                {/* Badge promoción */}
+                {local.promocionActiva && (
+                  <div className="ml-promo-badge">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    Envío gratis +${local.montoMinimoPromocion}
                   </div>
                 )}
 
-                <div style={{ flex: 1 }}>
-                  <p style={{ fontWeight: "700", fontSize: "15px", margin: 0 }}>{local.nombre}</p>
-                  <p style={{ color: "#6b7280", fontSize: "13px", margin: "3px 0" }}>{local.descripcion}</p>
-                  <p style={{ color: "#9ca3af", fontSize: "12px", margin: 0 }}>📍 {local.direccion}</p>
+                <div className="ml-local-row">
+                  {/* Imagen */}
+                  {local.fotos?.[0] ? (
+                    <img
+                      src={`http://localhost:5000${local.fotos[0]}`}
+                      alt={local.nombre}
+                      className="ml-local-img"
+                    />
+                  ) : (
+                    <div className="ml-local-img-placeholder">
+                      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                        <polyline points="9 22 9 12 15 12 15 22"/>
+                      </svg>
+                    </div>
+                  )}
 
-                  <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "6px" }}>
-                    <span style={{ fontSize: "13px" }}>
-                      {"⭐".repeat(Math.round(local.calificacionPromedio || 0)) || "Sin calificaciones"}
-                    </span>
-                    {local.totalCalificaciones > 0 && (
-                      <span style={{ color: "#9ca3af", fontSize: "12px" }}>
-                        ({local.totalCalificaciones} reseñas)
-                      </span>
+                  {/* Info */}
+                  <div className="ml-local-info">
+                    <p className="ml-local-nombre">{local.nombre}</p>
+                    <p className="ml-local-desc">{local.descripcion}</p>
+                    <div className="ml-local-dir">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                      </svg>
+                      {local.direccion}
+                    </div>
+
+                    <div className="ml-local-rating">
+                      <div className="ml-stars-mini">
+                        {[1,2,3,4,5].map(n => (
+                          <svg key={n} width="11" height="11" viewBox="0 0 24 24"
+                            fill={n <= Math.round(local.calificacionPromedio || 0) ? "#FF5C0A" : "none"}
+                            stroke={n <= Math.round(local.calificacionPromedio || 0) ? "#FF5C0A" : "rgba(255,255,255,0.18)"}
+                            strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                          </svg>
+                        ))}
+                      </div>
+                      {local.totalCalificaciones > 0 ? (
+                        <span className="ml-rating-txt">({local.totalCalificaciones} reseñas)</span>
+                      ) : (
+                        <span className="ml-rating-txt ml-rating-txt--empty">Sin calificaciones</span>
+                      )}
+                    </div>
+
+                    {local.anuncio && (
+                      <div className="ml-anuncio-chip">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/>
+                        </svg>
+                        {local.anuncio}
+                      </div>
                     )}
                   </div>
 
-                  {local.anuncio && (
-                    <div style={{ marginTop: "6px", background: "#fefce8", border: "1px solid #fde68a", borderRadius: "8px", padding: "5px 10px" }}>
-                      <p style={{ color: "#92400e", fontSize: "12px", margin: 0 }}>📢 {local.anuncio}</p>
-                    </div>
-                  )}
+                  {/* Flecha */}
+                  <div className="ml-local-arrow">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                    </svg>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+
+      </div>
     </div>
   );
 }
