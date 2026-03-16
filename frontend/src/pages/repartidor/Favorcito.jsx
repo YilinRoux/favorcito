@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import socket from "../../services/socket";
+import "../../styles/repartidor/Favorcito.css";
 
 function Favorcito() {
   const [pedidos, setPedidos] = useState([]);
   const [cargando, setCargando] = useState(true);
+  const [actualizando, setActualizando] = useState(false);
   const navigate = useNavigate();
 
   const cargar = async () => {
@@ -17,6 +19,12 @@ function Favorcito() {
     } finally {
       setCargando(false);
     }
+  };
+
+  const cargarManual = async () => {
+    setActualizando(true);
+    await cargar();
+    setTimeout(() => setActualizando(false), 600);
   };
 
   useEffect(() => {
@@ -41,74 +49,148 @@ function Favorcito() {
     }
   };
 
-  if (cargando) return <div style={{ padding: "40px" }}>Cargando...</div>;
+  if (cargando) return (
+    <div className="fav-wrap">
+      <div className="fav-orb-1" /><div className="fav-orb-2" />
+      <div className="fav-loading">
+        <div className="fav-loading-spinner" />
+        <span>Buscando favorcitos...</span>
+      </div>
+    </div>
+  );
 
   return (
-    <div style={{ maxWidth: "700px", margin: "0 auto", padding: "16px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: "700", margin: 0 }}>🛵 Favorcitos disponibles</h2>
-        <button
-          onClick={cargar}
-          style={{ padding: "6px 12px", border: "1px solid #e5e7eb", borderRadius: "8px", cursor: "pointer", fontSize: "13px" }}
-        >
-          🔄 Actualizar
-        </button>
+    <div className="fav-wrap">
+      <div className="fav-orb-1" />
+      <div className="fav-orb-2" />
+      <div className="fav-particles" aria-hidden="true">
+        {[...Array(8)].map((_, i) => (
+          <div key={i} className="fav-p" style={{ '--dur': `${6 + i}s`, '--delay': `${i * 0.85}s`, left: `${6 + i * 12}%`, width: `${4 + (i % 3) * 2}px`, height: `${4 + (i % 3) * 2}px` }} />
+        ))}
       </div>
 
-      {pedidos.length === 0 ? (
-        <div style={{ border: "1px solid #e5e7eb", borderRadius: "12px", padding: "40px", textAlign: "center", color: "#9ca3af" }}>
-          No hay favorcitos disponibles por ahora.
-        </div>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-          {pedidos.map((pedido) => (
-            <div key={pedido._id} style={{ border: "1px solid #e5e7eb", borderRadius: "12px", padding: "16px" }}>
+      <div className="fav-inner">
 
-              {/* Cabecera */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "10px" }}>
-                <div>
-                  <p style={{ fontWeight: "700", fontSize: "15px", margin: 0 }}>{pedido.local?.nombre}</p>
-                  <p style={{ color: "#6b7280", fontSize: "13px", margin: "4px 0 0 0" }}>📍 {pedido.local?.direccion}</p>
-                </div>
-                <p style={{ fontWeight: "700", color: "#3b82f6", fontSize: "15px", margin: 0 }}>${pedido.total}</p>
-              </div>
-
-              {/* Productos */}
-              <div style={{ borderTop: "1px solid #f3f4f6", borderBottom: "1px solid #f3f4f6", padding: "8px 0", marginBottom: "10px" }}>
-                {pedido.productos?.map((item, i) => (
-                  <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", color: "#374151", padding: "2px 0" }}>
-                    <span>{item.cantidad}x {item.nombre}</span>
-                    <span>${item.precio * item.cantidad}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Aviso efectivo */}
-              <div style={{ background: "#fefce8", border: "1px solid #fde68a", borderRadius: "8px", padding: "8px 12px", marginBottom: "10px" }}>
-                <p style={{ color: "#92400e", fontSize: "13px", fontWeight: "600", margin: "0 0 2px 0" }}>
-                  💵 Pago en efectivo — cobras al entregar
-                </p>
-                <p style={{ color: "#92400e", fontSize: "13px", margin: 0 }}>
-                  Comida: <strong>${pedido.total - (pedido.costoEnvio || 0)}</strong> + Envío: <strong>${pedido.costoEnvio || 15}</strong> = Total: <strong>${pedido.total}</strong>
-                </p>
-              </div>
-
-              {pedido.promocionAplicada && (
-                <p style={{ color: "#16a34a", fontSize: "12px", margin: "0 0 10px 0" }}>
-                  🎉 Envío gratis — el local cubre el costo
-                </p>
-              )}
-
-              <button
-                onClick={() => aceptar(pedido._id)}
-                style={{ width: "100%", padding: "10px", background: "#3b82f6", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "700", fontSize: "14px" }}
-              >
-                🛵 Aceptar favorcito
-              </button>
+        {/* ── Header ── */}
+        <div className="fav-header">
+          <div className="fav-header-left">
+            <div className="fav-logo-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="1" y="3" width="15" height="13"/>
+                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+                <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+              </svg>
             </div>
-          ))}
+            <div>
+              <h2 className="fav-title">Favorcitos disponibles</h2>
+              <p className="fav-subtitle">
+                {pedidos.length > 0
+                  ? `${pedidos.length} pedido${pedidos.length !== 1 ? "s" : ""} esperando repartidor`
+                  : "Actualización automática cada 10s"}
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={cargarManual}
+            className={`fav-btn-refresh${actualizando ? " fav-btn-refresh--spin" : ""}`}
+            aria-label="Actualizar"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="23 4 23 10 17 10"/>
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+            </svg>
+            Actualizar
+          </button>
         </div>
-      )}
+
+        {/* ── Vacío ── */}
+        {pedidos.length === 0 ? (
+          <div className="fav-empty">
+            <div className="fav-empty-icon">
+              <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="1" y="3" width="15" height="13"/>
+                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+                <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+              </svg>
+            </div>
+            <p className="fav-empty-title">No hay favorcitos por ahora</p>
+            <p className="fav-empty-sub">Cuando un local marque un pedido como listo, aparecerá aquí.</p>
+          </div>
+        ) : (
+          <div className="fav-lista">
+            {pedidos.map((pedido, i) => (
+              <div key={pedido._id} className="fav-card" style={{ animationDelay: `${i * 0.07}s` }}>
+
+                {/* ── Cabecera de la card ── */}
+                <div className="fav-card-top">
+                  <div className="fav-card-local">
+                    <p className="fav-local-nombre">{pedido.local?.nombre}</p>
+                    <div className="fav-local-dir">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                      </svg>
+                      {pedido.local?.direccion}
+                    </div>
+                  </div>
+                  <div className="fav-card-total">
+                    <p className="fav-total-monto">${pedido.total}</p>
+                    <p className="fav-total-label">a cobrar</p>
+                  </div>
+                </div>
+
+                {/* ── Productos ── */}
+                <div className="fav-productos">
+                  {pedido.productos?.map((item, j) => (
+                    <div key={j} className="fav-producto-row">
+                      <span className="fav-producto-qty">{item.cantidad}×</span>
+                      <span className="fav-producto-nombre">{item.nombre}</span>
+                      <span className="fav-producto-precio">${item.precio * item.cantidad}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* ── Desglose efectivo ── */}
+                <div className="fav-aviso-efectivo">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>
+                  </svg>
+                  <div>
+                    <p className="fav-aviso-title">Pago en efectivo — cobras al entregar</p>
+                    <p className="fav-aviso-detalle">
+                      Comida: <strong>${pedido.total - (pedido.costoEnvio || 0)}</strong>
+                      {" + "}Envío: <strong>${pedido.costoEnvio || 15}</strong>
+                      {" = "}Total: <strong>${pedido.total}</strong>
+                    </p>
+                  </div>
+                </div>
+
+                {/* Promo */}
+                {pedido.promocionAplicada && (
+                  <div className="fav-promo-note">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    Envío gratis — el local cubre el costo
+                  </div>
+                )}
+
+                {/* ── Botón aceptar ── */}
+                <button onClick={() => aceptar(pedido._id)} className="fav-btn-aceptar">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="1" y="3" width="15" height="13"/>
+                    <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+                    <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+                  </svg>
+                  Aceptar favorcito
+                </button>
+
+              </div>
+            ))}
+          </div>
+        )}
+
+      </div>
     </div>
   );
 }

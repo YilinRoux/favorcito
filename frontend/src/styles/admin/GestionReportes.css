@@ -1,0 +1,490 @@
+/* ============================================================
+   GestionReportes.css — prefijo: gr-
+   Favorcito · Módulo Admin
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+
+/* ── Variables ─────────────────────────────────────────────── */
+:root {
+  --orange:        #FF5C0A;
+  --orange-bright: #FF7A30;
+  --orange-hover:  #e04e00;
+  --orange-glow:   rgba(255, 92, 10, 0.18);
+  --green:         #22C55E;
+  --green-glow:    rgba(34, 197, 94, 0.15);
+  --bg:            #080808;
+  --bg-card:       #111111;
+  --bg-card-inner: #181818;
+  --bg-input:      #0E0E0E;
+  --text:          #FFFFFF;
+  --text-muted:    #666666;
+  --text-label:    #BBBBBB;
+  --border:        rgba(255, 255, 255, 0.07);
+  --border-input:  rgba(255, 255, 255, 0.08);
+  --radius-card:   24px;
+  --radius-input:  10px;
+  --radius-btn:    10px;
+  --radius-chip:   100px;
+  --shadow-card:   0 40px 100px rgba(0,0,0,0.65);
+  --shadow-btn:    0 6px 24px rgba(255,92,10,0.3);
+}
+
+/* ── Reset anti-Tailwind ───────────────────────────────────── */
+.gr-wrap input,
+.gr-wrap textarea,
+.gr-wrap button,
+.gr-wrap select {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  box-sizing: border-box !important;
+}
+
+/* ── Wrapper ───────────────────────────────────────────────── */
+.gr-wrap {
+  position: relative;
+  min-height: 100vh;
+  background-color: var(--bg) !important;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 16px 80px;
+  overflow: hidden;
+}
+
+.gr-wrap::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.055) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none; z-index: 0;
+  animation: gr-gf 6s ease-in-out infinite;
+}
+
+@keyframes gr-gf {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.75; }
+}
+
+/* ── Orbes ─────────────────────────────────────────────────── */
+.gr-orb-1, .gr-orb-2 {
+  position: absolute; border-radius: 50%;
+  pointer-events: none; z-index: 0;
+}
+
+.gr-orb-1 {
+  width: 600px; height: 600px;
+  top: -220px; left: 50%;
+  transform: translateX(-50%);
+  background: radial-gradient(circle, rgba(255,92,10,0.2) 0%, transparent 65%);
+  filter: blur(72px);
+  animation: gr-o1 7s ease-in-out infinite;
+}
+
+@keyframes gr-o1 {
+  0%, 100% { transform: translateX(-50%) scale(1); opacity: 1; }
+  50%       { transform: translateX(-50%) scale(1.08); opacity: 0.85; }
+}
+
+.gr-orb-2 {
+  width: 300px; height: 300px;
+  bottom: -80px; right: -60px;
+  background: radial-gradient(circle, rgba(255,92,10,0.08) 0%, transparent 65%);
+  filter: blur(60px);
+}
+
+/* ── Partículas ────────────────────────────────────────────── */
+.gr-particles {
+  position: absolute; inset: 0;
+  pointer-events: none; z-index: 0;
+}
+
+.gr-p {
+  position: absolute; border-radius: 50%;
+  background: #FF5C0A; opacity: 0;
+  animation: gr-fp var(--dur, 7s) var(--delay, 0s) ease-in-out infinite;
+}
+
+@keyframes gr-fp {
+  0%   { bottom: -10px; opacity: 0; transform: translateX(0) scale(0.4); }
+  10%  { opacity: 0.6; }
+  50%  { transform: translateX(20px) scale(1); }
+  90%  { opacity: 0.2; }
+  100% { bottom: 108%; opacity: 0; transform: translateX(-20px) scale(0.3); }
+}
+
+/* ── Inner ─────────────────────────────────────────────────── */
+.gr-inner {
+  position: relative; z-index: 1;
+  width: 100%; max-width: 760px;
+  display: flex; flex-direction: column; gap: 18px;
+  animation: gr-rise 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes gr-rise {
+  from { opacity: 0; transform: translateY(50px) scale(0.94); filter: blur(4px); }
+  to   { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+
+/* ── Header ────────────────────────────────────────────────── */
+.gr-header {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 4px;
+}
+
+.gr-logo-icon {
+  width: 50px; height: 50px;
+  background: var(--orange) !important;
+  border-radius: 15px !important;
+  border-top-left-radius: 15px !important;
+  border-top-right-radius: 15px !important;
+  border-bottom-left-radius: 15px !important;
+  border-bottom-right-radius: 15px !important;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden; flex-shrink: 0;
+}
+
+.gr-logo-icon::before {
+  content: '';
+  position: absolute; inset: -2px; border-radius: 16px;
+  background: conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0.3) 25%, transparent 50%);
+  animation: gr-halo 2.5s linear infinite;
+}
+
+@keyframes gr-halo {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.gr-title {
+  font-size: 1.6rem; font-weight: 800;
+  color: var(--text) !important;
+  margin: 0; line-height: 1.1;
+}
+
+.gr-subtitle {
+  font-size: 0.8rem;
+  color: var(--text-muted) !important;
+  margin: 4px 0 0;
+}
+
+/* ── Filtros ───────────────────────────────────────────────── */
+.gr-filtros {
+  display: flex;
+  gap: 8px;
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border);
+  border-radius: 14px !important;
+  border-top-left-radius: 14px !important;
+  border-top-right-radius: 14px !important;
+  border-bottom-left-radius: 14px !important;
+  border-bottom-right-radius: 14px !important;
+  padding: 5px;
+}
+
+.gr-filtro-btn {
+  flex: 1;
+  display: inline-flex !important;
+  align-items: center; justify-content: center; gap: 6px;
+  background: none !important;
+  border: none !important;
+  border-radius: 10px !important;
+  border-top-left-radius: 10px !important;
+  border-top-right-radius: 10px !important;
+  border-bottom-left-radius: 10px !important;
+  border-bottom-right-radius: 10px !important;
+  color: var(--text-muted) !important;
+  font-size: 0.85rem; font-weight: 600;
+  padding: 10px 14px !important;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.gr-filtro-btn:hover:not(.gr-filtro-btn--active) {
+  background: var(--bg-card-inner) !important;
+  color: var(--text-label) !important;
+}
+
+.gr-filtro-btn--active { color: #fff !important; }
+
+.gr-filtro-btn--pendiente.gr-filtro-btn--active {
+  background: rgba(234,179,8,0.18) !important;
+  color: #eab308 !important;
+}
+
+.gr-filtro-btn--resuelto.gr-filtro-btn--active {
+  background: var(--green-glow) !important;
+  color: var(--green) !important;
+}
+
+.gr-filtro-count {
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  background: var(--bg-card-inner) !important;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-chip) !important;
+  border-top-left-radius: var(--radius-chip) !important;
+  border-top-right-radius: var(--radius-chip) !important;
+  border-bottom-left-radius: var(--radius-chip) !important;
+  border-bottom-right-radius: var(--radius-chip) !important;
+  font-size: 0.7rem; font-weight: 700;
+  color: var(--text-muted) !important;
+  min-width: 20px; padding: 1px 6px;
+}
+
+.gr-filtro-btn--pendiente.gr-filtro-btn--active .gr-filtro-count {
+  background: rgba(234,179,8,0.15) !important;
+  border-color: rgba(234,179,8,0.25) !important;
+  color: #eab308 !important;
+}
+
+.gr-filtro-btn--resuelto.gr-filtro-btn--active .gr-filtro-count {
+  background: rgba(34,197,94,0.12) !important;
+  border-color: rgba(34,197,94,0.22) !important;
+  color: var(--green) !important;
+}
+
+/* ── Empty state ───────────────────────────────────────────── */
+.gr-empty {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card) !important;
+  border-top-left-radius: var(--radius-card) !important;
+  border-top-right-radius: var(--radius-card) !important;
+  border-bottom-left-radius: var(--radius-card) !important;
+  border-bottom-right-radius: var(--radius-card) !important;
+  padding: 56px 32px;
+  text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  box-shadow: var(--shadow-card);
+  position: relative; overflow: hidden;
+}
+
+.gr-empty::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent 0%, #FF5C0A 30%, #FF7A30 50%, #FF5C0A 70%, transparent 100%);
+  background-size: 200%;
+  animation: gr-bf 3s linear infinite;
+}
+
+@keyframes gr-bf {
+  0%   { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+
+.gr-empty-icon {
+  width: 68px; height: 68px;
+  background: var(--bg-card-inner) !important;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-muted);
+}
+
+.gr-empty p {
+  font-size: 0.9rem;
+  color: var(--text-muted) !important;
+  margin: 0;
+}
+
+/* ── Lista de reportes ─────────────────────────────────────── */
+.gr-lista {
+  display: flex; flex-direction: column; gap: 12px;
+}
+
+/* ── Card de reporte ───────────────────────────────────────── */
+.gr-card {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card) !important;
+  border-top-left-radius: var(--radius-card) !important;
+  border-top-right-radius: var(--radius-card) !important;
+  border-bottom-left-radius: var(--radius-card) !important;
+  border-bottom-right-radius: var(--radius-card) !important;
+  padding: 20px 22px;
+  box-shadow: var(--shadow-card);
+  position: relative; overflow: hidden;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  animation: gr-card-in 0.4s ease both;
+  transition: border-color 0.2s, transform 0.18s;
+}
+
+.gr-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255,255,255,0.1) !important;
+}
+
+@keyframes gr-card-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.gr-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent 0%, #FF5C0A 30%, #FF7A30 50%, #FF5C0A 70%, transparent 100%);
+  background-size: 200%;
+  animation: gr-bf 3s linear infinite;
+}
+
+/* Acento izquierdo por estado */
+.gr-card--pendiente { border-left: 3px solid rgba(234,179,8,0.5) !important; }
+.gr-card--resuelto  { border-left: 3px solid rgba(34,197,94,0.4) !important; }
+
+/* ── Cuerpo del reporte ────────────────────────────────────── */
+.gr-card-body { flex: 1; min-width: 0; }
+
+/* Chips */
+.gr-chips {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-bottom: 12px;
+}
+
+.gr-chip {
+  display: inline-flex;
+  align-items: center; gap: 4px;
+  border-radius: var(--radius-chip) !important;
+  border-top-left-radius: var(--radius-chip) !important;
+  border-top-right-radius: var(--radius-chip) !important;
+  border-bottom-left-radius: var(--radius-chip) !important;
+  border-bottom-right-radius: var(--radius-chip) !important;
+  font-size: 0.72rem; font-weight: 700;
+  padding: 3px 10px;
+}
+
+.gr-chip--tipo-local {
+  background: rgba(59,130,246,0.1) !important;
+  border: 1px solid rgba(59,130,246,0.22);
+  color: #60a5fa !important;
+}
+
+.gr-chip--tipo-estudiante {
+  background: rgba(239,68,68,0.08) !important;
+  border: 1px solid rgba(239,68,68,0.18);
+  color: #f87171 !important;
+}
+
+.gr-chip--motivo {
+  background: var(--bg-card-inner) !important;
+  border: 1px solid var(--border);
+  color: var(--text-label) !important;
+}
+
+/* Detalle */
+.gr-detalle {
+  display: flex; flex-direction: column; gap: 6px;
+}
+
+.gr-reportante {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.88rem; font-weight: 700;
+  color: var(--text) !important;
+  margin: 0;
+}
+
+.gr-reportante-rol {
+  font-size: 0.75rem; font-weight: 400;
+  color: var(--text-muted) !important;
+}
+
+.gr-reportado {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.82rem;
+  color: var(--text-label) !important;
+  margin: 0;
+}
+
+.gr-reportado strong { color: var(--text) !important; }
+
+.gr-descripcion {
+  background: var(--bg-card-inner) !important;
+  border-left: 3px solid rgba(255,92,10,0.3);
+  border-radius: 0 10px 10px 0 !important;
+  padding: 10px 14px;
+  margin: 4px 0 0;
+  font-size: 0.82rem;
+  font-style: italic;
+  color: var(--text-label) !important;
+  line-height: 1.5;
+}
+
+.gr-fecha {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 0.72rem;
+  color: var(--text-muted) !important;
+  margin: 0;
+}
+
+/* ── Acción ────────────────────────────────────────────────── */
+.gr-card-action {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  padding-top: 2px;
+}
+
+.gr-btn-resolver {
+  display: inline-flex !important;
+  align-items: center; gap: 6px;
+  background: var(--green-glow) !important;
+  border: 1px solid rgba(34,197,94,0.25) !important;
+  border-radius: var(--radius-btn) !important;
+  border-top-left-radius: var(--radius-btn) !important;
+  border-top-right-radius: var(--radius-btn) !important;
+  border-bottom-left-radius: var(--radius-btn) !important;
+  border-bottom-right-radius: var(--radius-btn) !important;
+  color: var(--green) !important;
+  font-size: 0.82rem; font-weight: 700;
+  padding: 9px 16px !important;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+}
+
+.gr-btn-resolver:hover {
+  background: rgba(34,197,94,0.2) !important;
+  border-color: rgba(34,197,94,0.4) !important;
+  transform: translateY(-2px);
+}
+
+.gr-resuelto-badge {
+  display: inline-flex;
+  align-items: center; gap: 5px;
+  color: var(--green) !important;
+  font-size: 0.82rem; font-weight: 700;
+  white-space: nowrap;
+  padding: 9px 0;
+}
+
+/* ── Loading ───────────────────────────────────────────────── */
+.gr-loading {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 14px; min-height: 100vh;
+  color: var(--text-muted) !important;
+  font-size: 0.9rem; font-weight: 500;
+}
+
+.gr-loading-spinner {
+  width: 36px; height: 36px;
+  border: 3px solid rgba(255,92,10,0.15);
+  border-top-color: var(--orange);
+  border-radius: 50%;
+  animation: gr-spin 0.8s linear infinite;
+}
+
+@keyframes gr-spin { to { transform: rotate(360deg); } }
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .gr-wrap  { padding: 28px 10px 60px; }
+  .gr-title { font-size: 1.3rem; }
+  .gr-card  { flex-direction: column; gap: 12px; padding: 16px; }
+  .gr-card-action { width: 100%; }
+  .gr-btn-resolver { width: 100%; justify-content: center; }
+}

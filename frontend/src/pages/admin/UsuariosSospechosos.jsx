@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
+import "../../styles/admin/UsuariosSospechosos.css";
 
 function UsuariosSospechosos() {
   const [usuarios, setUsuarios] = useState([]);
@@ -49,127 +50,229 @@ function UsuariosSospechosos() {
   };
 
   const usuariosFiltrados = todos.filter((u) => {
-    const coincide = u.nombre_completo?.toLowerCase().includes(busqueda.toLowerCase()) ||
-      u.email?.toLowerCase().includes(busqueda.toLowerCase());
-    return coincide;
+    const q = busqueda.toLowerCase();
+    return (
+      u.nombre_completo?.toLowerCase().includes(q) ||
+      u.email?.toLowerCase().includes(q)
+    );
   });
 
-  if (cargando) return <div style={{ padding: "40px" }}>Cargando...</div>;
+  const countSuspendidos = todos.filter((u) => !u.activo).length;
+
+  if (cargando) return (
+    <div className="us-wrap">
+      <div className="us-orb-1" /><div className="us-orb-2" />
+      <div className="us-loading">
+        <div className="us-loading-spinner" />
+        <span>Cargando usuarios...</span>
+      </div>
+    </div>
+  );
 
   const CardUsuario = ({ usuario }) => (
-    <div style={{ border: "1px solid #e5e7eb", borderRadius: "12px", padding: "16px", marginBottom: "10px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
-            <p style={{ fontWeight: "700", fontSize: "15px", margin: 0 }}>{usuario.nombre_completo}</p>
-            {!usuario.activo && (
-              <span style={{ background: "#fee2e2", color: "#dc2626", fontSize: "11px", padding: "2px 8px", borderRadius: "20px", fontWeight: "600" }}>
-                Suspendido
-              </span>
-            )}
-            {usuario.sospechoso && (
-              <span style={{ background: "#fef3c7", color: "#d97706", fontSize: "11px", padding: "2px 8px", borderRadius: "20px", fontWeight: "600" }}>
-                ⚠️ Sospechoso
-              </span>
+    <div className={`us-card${!usuario.activo ? " us-card--suspendido" : usuario.sospechoso ? " us-card--sospechoso" : ""}`}>
+      <div className="us-card-body">
+
+        {/* Nombre + chips */}
+        <div className="us-card-top">
+          <div className="us-avatar">
+            {(usuario.nombre_completo || "U")[0].toUpperCase()}
+          </div>
+          <div className="us-card-info">
+            <div className="us-nombre-row">
+              <p className="us-nombre">{usuario.nombre_completo}</p>
+              {!usuario.activo && (
+                <span className="us-badge us-badge--suspendido">
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                  Suspendido
+                </span>
+              )}
+              {usuario.sospechoso && (
+                <span className="us-badge us-badge--sospechoso">
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                  </svg>
+                  Sospechoso
+                </span>
+              )}
+            </div>
+            <p className="us-email">{usuario.email}</p>
+            <p className="us-rol">
+              Rol: <strong>{usuario.rol}</strong>
+            </p>
+            {usuario.cancelaciones > 0 && (
+              <div className="us-cancelaciones">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+                </svg>
+                {usuario.cancelaciones} cancelación{usuario.cancelaciones !== 1 ? "es" : ""}
+              </div>
             )}
           </div>
-          <p style={{ color: "#6b7280", fontSize: "13px", margin: "2px 0" }}>{usuario.email}</p>
-          <p style={{ color: "#6b7280", fontSize: "13px", margin: "2px 0" }}>
-            Rol: <strong>{usuario.rol}</strong>
-          </p>
-          {usuario.cancelaciones > 0 && (
-            <p style={{ color: "#dc2626", fontSize: "13px", margin: "4px 0 0 0", fontWeight: "600" }}>
-              Cancelaciones: {usuario.cancelaciones}
-            </p>
-          )}
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-          {usuario.activo ? (
-            <button
-              onClick={() => suspender(usuario._id)}
-              style={{ padding: "6px 14px", background: "#ef4444", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "13px", fontWeight: "600" }}
-            >
-              Suspender
-            </button>
-          ) : (
-            <button
-              onClick={() => reactivar(usuario._id)}
-              style={{ padding: "6px 14px", background: "#22c55e", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "13px", fontWeight: "600" }}
-            >
-              Reactivar
-            </button>
-          )}
-        </div>
+      </div>
+
+      {/* Acción */}
+      <div className="us-card-action">
+        {usuario.activo ? (
+          <button onClick={() => suspender(usuario._id)} className="us-btn us-btn--suspender">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+            Suspender
+          </button>
+        ) : (
+          <button onClick={() => reactivar(usuario._id)} className="us-btn us-btn--reactivar">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="23 4 23 10 17 10"/>
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+            </svg>
+            Reactivar
+          </button>
+        )}
       </div>
     </div>
   );
 
   return (
-    <div style={{ maxWidth: "800px", margin: "0 auto", padding: "24px 16px" }}>
-      <h2 style={{ fontSize: "20px", fontWeight: "700", marginBottom: "20px" }}>👥 Gestión de Usuarios</h2>
-
-      {/* Tabs */}
-      <div style={{ display: "flex", borderBottom: "2px solid #e5e7eb", marginBottom: "20px" }}>
-        <button
-          onClick={() => setTab("sospechosos")}
-          style={{ padding: "10px 16px", fontSize: "14px", fontWeight: "600", cursor: "pointer", border: "none", background: "none", borderBottom: tab === "sospechosos" ? "2px solid #f59e0b" : "2px solid transparent", color: tab === "sospechosos" ? "#f59e0b" : "#6b7280", marginBottom: "-2px" }}
-        >
-          ⚠️ Sospechosos {usuarios.length > 0 && (
-            <span style={{ background: "#f59e0b", color: "white", borderRadius: "50%", padding: "1px 6px", fontSize: "11px", marginLeft: "4px" }}>
-              {usuarios.length}
-            </span>
-          )}
-        </button>
-        <button
-          onClick={() => setTab("todos")}
-          style={{ padding: "10px 16px", fontSize: "14px", fontWeight: "600", cursor: "pointer", border: "none", background: "none", borderBottom: tab === "todos" ? "2px solid #3b82f6" : "2px solid transparent", color: tab === "todos" ? "#3b82f6" : "#6b7280", marginBottom: "-2px" }}
-        >
-          👥 Todos ({todos.length})
-        </button>
-        <button
-          onClick={() => setTab("suspendidos")}
-          style={{ padding: "10px 16px", fontSize: "14px", fontWeight: "600", cursor: "pointer", border: "none", background: "none", borderBottom: tab === "suspendidos" ? "2px solid #ef4444" : "2px solid transparent", color: tab === "suspendidos" ? "#ef4444" : "#6b7280", marginBottom: "-2px" }}
-        >
-          🚫 Suspendidos ({todos.filter(u => !u.activo).length})
-        </button>
+    <div className="us-wrap">
+      <div className="us-orb-1" />
+      <div className="us-orb-2" />
+      <div className="us-particles" aria-hidden="true">
+        {[...Array(7)].map((_, i) => (
+          <div key={i} className="us-p" style={{ '--dur': `${6 + i}s`, '--delay': `${i * 0.9}s`, left: `${8 + i * 13}%`, width: `${4 + (i % 3) * 2}px`, height: `${4 + (i % 3) * 2}px` }} />
+        ))}
       </div>
 
-      {/* Tab sospechosos */}
-      {tab === "sospechosos" && (
-        usuarios.length === 0 ? (
-          <p style={{ color: "#9ca3af", textAlign: "center", padding: "40px 0" }}>No hay usuarios sospechosos.</p>
-        ) : (
-          usuarios.map((u) => <CardUsuario key={u._id} usuario={u} />)
-        )
-      )}
+      <div className="us-inner">
 
-      {/* Tab todos */}
-      {tab === "todos" && (
-        <>
-          <input
-            type="text"
-            placeholder="Buscar por nombre o correo..."
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: "8px", padding: "8px 12px", fontSize: "13px", marginBottom: "16px", outline: "none", boxSizing: "border-box" }}
-          />
-          {usuariosFiltrados.length === 0 ? (
-            <p style={{ color: "#9ca3af", textAlign: "center" }}>No se encontraron usuarios.</p>
+        {/* ── Header ── */}
+        <div className="us-header">
+          <div className="us-logo-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+          <div>
+            <h2 className="us-title">Gestión de Usuarios</h2>
+            <p className="us-subtitle">
+              {todos.length} usuario{todos.length !== 1 ? "s" : ""} · {usuarios.length} sospechoso{usuarios.length !== 1 ? "s" : ""} · {countSuspendidos} suspendido{countSuspendidos !== 1 ? "s" : ""}
+            </p>
+          </div>
+        </div>
+
+        {/* ── Tabs ── */}
+        <div className="us-tabs">
+          <button onClick={() => setTab("sospechosos")} className={`us-tab-btn${tab === "sospechosos" ? " us-tab-btn--active us-tab-btn--sospechosos" : ""}`}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            Sospechosos
+            {usuarios.length > 0 && <span className="us-tab-count us-tab-count--warn">{usuarios.length}</span>}
+          </button>
+          <button onClick={() => setTab("todos")} className={`us-tab-btn${tab === "todos" ? " us-tab-btn--active us-tab-btn--todos" : ""}`}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            Todos
+            <span className="us-tab-count">{todos.length}</span>
+          </button>
+          <button onClick={() => setTab("suspendidos")} className={`us-tab-btn${tab === "suspendidos" ? " us-tab-btn--active us-tab-btn--suspendidos" : ""}`}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+            Suspendidos
+            <span className="us-tab-count">{countSuspendidos}</span>
+          </button>
+        </div>
+
+        {/* ── Tab: Sospechosos ── */}
+        {tab === "sospechosos" && (
+          usuarios.length === 0 ? (
+            <div className="us-empty">
+              <div className="us-empty-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+              </div>
+              <p>No hay usuarios sospechosos.</p>
+            </div>
           ) : (
-            usuariosFiltrados.map((u) => <CardUsuario key={u._id} usuario={u} />)
-          )}
-        </>
-      )}
+            <div className="us-lista">
+              {usuarios.map((u) => <CardUsuario key={u._id} usuario={u} />)}
+            </div>
+          )
+        )}
 
-      {/* Tab suspendidos */}
-      {tab === "suspendidos" && (
-        todos.filter(u => !u.activo).length === 0 ? (
-          <p style={{ color: "#9ca3af", textAlign: "center", padding: "40px 0" }}>No hay usuarios suspendidos.</p>
-        ) : (
-          todos.filter(u => !u.activo).map((u) => <CardUsuario key={u._id} usuario={u} />)
-        )
-      )}
+        {/* ── Tab: Todos ── */}
+        {tab === "todos" && (
+          <>
+            <div className="us-search-wrap">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input
+                type="text"
+                placeholder="Buscar por nombre o correo..."
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                className="us-search-input"
+              />
+              {busqueda && (
+                <button className="us-search-clear" onClick={() => setBusqueda("")} aria-label="Limpiar búsqueda">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              )}
+            </div>
+            {usuariosFiltrados.length === 0 ? (
+              <div className="us-empty">
+                <div className="us-empty-icon">
+                  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  </svg>
+                </div>
+                <p>No se encontraron usuarios.</p>
+              </div>
+            ) : (
+              <div className="us-lista">
+                {usuariosFiltrados.map((u) => <CardUsuario key={u._id} usuario={u} />)}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ── Tab: Suspendidos ── */}
+        {tab === "suspendidos" && (
+          countSuspendidos === 0 ? (
+            <div className="us-empty">
+              <div className="us-empty-icon">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </div>
+              <p>No hay usuarios suspendidos.</p>
+            </div>
+          ) : (
+            <div className="us-lista">
+              {todos.filter((u) => !u.activo).map((u) => <CardUsuario key={u._id} usuario={u} />)}
+            </div>
+          )
+        )}
+
+      </div>
     </div>
   );
 }

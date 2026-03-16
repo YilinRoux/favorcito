@@ -1,6 +1,29 @@
 import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
+import "../../styles/estudiante/Perfil.css";
+
+// Icono SVG por rol
+const RolIcon = ({ rol }) => {
+  if (rol === "estudiante") return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+      <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+    </svg>
+  );
+  if (rol === "vendedor") return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      <polyline points="9 22 9 12 15 12 15 22"/>
+    </svg>
+  );
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+    </svg>
+  );
+};
 
 function Perfil() {
   const { usuario, logout } = useContext(AuthContext);
@@ -17,84 +40,157 @@ function Perfil() {
     return null;
   }
 
-  return (
-    <div className="max-w-md mx-auto p-4">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">👤 Mi Perfil</h2>
+  const opciones = [
+    {
+      label: "Mis pedidos",
+      desc: "Ver historial de pedidos",
+      path: "/mis-pedidos",
+      mostrar: true,
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M5 8h14M5 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4m14 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8"/>
+        </svg>
+      ),
+    },
+    {
+      label: "Favorcito",
+      desc: "Ver pedidos disponibles para entregar",
+      path: "/favorcito",
+      mostrar: usuario.rol === "estudiante",
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="1" y="3" width="15" height="13"/>
+          <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+          <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+        </svg>
+      ),
+    },
+    {
+      label: "Mis entregas",
+      desc: "Ver entregas que has realizado",
+      path: "/mis-entregas",
+      mostrar: usuario.rol === "estudiante",
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5 19.79 19.79 0 0 1 1.61 4.9 2 2 0 0 1 3.6 2.69h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+        </svg>
+      ),
+    },
+  ].filter((o) => o.mostrar);
 
-      {/* Info del usuario */}
-      <div className="bg-white rounded-2xl shadow p-6 mb-4">
-        <div className="flex items-center gap-4 mb-4">
-          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-3xl">
-            {usuario.rol === "estudiante" ? "🧑‍🎓" : usuario.rol === "vendedor" ? "🏪" : "⚙️"}
+  return (
+    <div className="pf-wrap">
+      <div className="pf-orb-1" />
+      <div className="pf-orb-2" />
+      <div className="pf-particles" aria-hidden="true">
+        {[...Array(7)].map((_, i) => (
+          <div key={i} className="pf-p" style={{ '--dur': `${6 + i}s`, '--delay': `${i * 0.9}s`, left: `${8 + i * 13}%`, width: `${4 + (i % 3) * 2}px`, height: `${4 + (i % 3) * 2}px` }} />
+        ))}
+      </div>
+
+      <div className="pf-inner">
+
+        {/* ── Header ── */}
+        <div className="pf-header">
+          <div className="pf-logo-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
           </div>
           <div>
-            <p className="font-bold text-gray-800 text-lg">{usuario.nombre}</p>
-            <p className="text-gray-500 text-sm">{usuario.email}</p>
-            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full capitalize">
+            <h2 className="pf-title">Mi Perfil</h2>
+            <p className="pf-subtitle">Gestiona tu cuenta</p>
+          </div>
+        </div>
+
+        {/* ── Card de usuario ── */}
+        <div className="pf-card pf-card--usuario">
+          <div className="pf-avatar-wrap">
+            <div className="pf-avatar">
+              <RolIcon rol={usuario.rol} />
+            </div>
+            <div className="pf-avatar-glow" />
+          </div>
+          <div className="pf-user-info">
+            <p className="pf-user-nombre">{usuario.nombre}</p>
+            <p className="pf-user-email">{usuario.email}</p>
+            <span className={`pf-rol-chip pf-rol-chip--${usuario.rol}`}>
+              {usuario.rol === "estudiante" && (
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                </svg>
+              )}
+              {usuario.rol === "vendedor" && (
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                </svg>
+              )}
+              {usuario.rol === "admin" && (
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              )}
               {usuario.rol}
             </span>
           </div>
         </div>
-      </div>
 
-      {/* Opciones */}
-      <div className="bg-white rounded-2xl shadow mb-4">
-        <button
-          onClick={() => navigate("/mis-pedidos")}
-          className="w-full text-left px-6 py-4 hover:bg-gray-50 transition border-b rounded-t-2xl"
-        >
-          <p className="font-medium text-gray-800">📦 Mis pedidos</p>
-          <p className="text-gray-400 text-sm">Ver historial de pedidos</p>
-        </button>
-
-        {usuario.rol === "estudiante" && (
-          <button
-            onClick={() => navigate("/favorcito")}
-            className="w-full text-left px-6 py-4 hover:bg-gray-50 transition border-b"
-          >
-            <p className="font-medium text-gray-800">🛵 Favorcito</p>
-            <p className="text-gray-400 text-sm">Ver pedidos disponibles para entregar</p>
-          </button>
-        )}
-
-        {usuario.rol === "estudiante" && (
-          <button
-            onClick={() => navigate("/mis-entregas")}
-            className="w-full text-left px-6 py-4 hover:bg-gray-50 transition rounded-b-2xl"
-          >
-            <p className="font-medium text-gray-800">📬 Mis entregas</p>
-            <p className="text-gray-400 text-sm">Ver entregas que has realizado</p>
-          </button>
-        )}
-      </div>
-
-      {/* Cerrar sesión */}
-      {!confirmarLogout ? (
-        <button
-          onClick={() => setConfirmarLogout(true)}
-          className="w-full bg-red-50 text-red-600 py-3 rounded-xl font-medium hover:bg-red-100 transition"
-        >
-          Cerrar sesión
-        </button>
-      ) : (
-        <div className="bg-white rounded-2xl shadow p-4">
-          <p className="text-gray-700 font-medium mb-3 text-center">¿Seguro que quieres salir?</p>
-          <div className="flex gap-3">
+        {/* ── Opciones de navegación ── */}
+        <div className="pf-card pf-card--opciones">
+          {opciones.map((op, i) => (
             <button
-              onClick={handleLogout}
-              className="flex-1 bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition"
+              key={op.path}
+              onClick={() => navigate(op.path)}
+              className="pf-opcion"
+              style={{ animationDelay: `${i * 0.08}s` }}
             >
-              Sí, salir
+              <div className="pf-opcion-icono">{op.icon}</div>
+              <div className="pf-opcion-texto">
+                <p className="pf-opcion-label">{op.label}</p>
+                <p className="pf-opcion-desc">{op.desc}</p>
+              </div>
+              <div className="pf-opcion-arrow">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                </svg>
+              </div>
             </button>
-            <button
-              onClick={() => setConfirmarLogout(false)}
-              className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition"
-            >
-              Cancelar
-            </button>
-          </div>
+          ))}
         </div>
-      )}
+
+        {/* ── Cerrar sesión ── */}
+        {!confirmarLogout ? (
+          <button onClick={() => setConfirmarLogout(true)} className="pf-btn-logout">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+            Cerrar sesión
+          </button>
+        ) : (
+          <div className="pf-card pf-card--confirmar">
+            <div className="pf-confirmar-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                <polyline points="16 17 21 12 16 7"/>
+                <line x1="21" y1="12" x2="9" y2="12"/>
+              </svg>
+            </div>
+            <p className="pf-confirmar-txt">¿Seguro que quieres salir?</p>
+            <div className="pf-confirmar-acciones">
+              <button onClick={handleLogout} className="pf-btn pf-btn--salir">
+                Sí, salir
+              </button>
+              <button onClick={() => setConfirmarLogout(false)} className="pf-btn pf-btn--cancelar">
+                Cancelar
+              </button>
+            </div>
+          </div>
+        )}
+
+      </div>
     </div>
   );
 }

@@ -4,6 +4,17 @@ import socket from "../../services/socket";
 import api from "../../services/api";
 import { NotificationContext } from "../../context/NotificationContext";
 import { AuthContext } from "../../context/AuthContext";
+import "../../styles/chat/ChatPedido.css";
+
+const estadoLabel = {
+  enviado:        "Enviado",
+  aceptado:       "Aceptado",
+  en_preparacion: "En preparación",
+  listo:          "Listo",
+  en_camino:      "En camino",
+  entregado:      "Entregado",
+  cancelado:      "Cancelado",
+};
 
 export default function ChatPedido() {
   const { pedidoId } = useParams();
@@ -84,101 +95,96 @@ export default function ChatPedido() {
     socket.emit("escribiendo", { pedidoId, usuario: usuario?.nombre || "Alguien" });
   };
 
-  const estadoLabel = {
-    enviado: "Enviado",
-    aceptado: "Aceptado",
-    en_preparacion: "En preparación",
-    listo: "Listo",
-    en_camino: "En camino",
-    entregado: "Entregado",
-    cancelado: "Cancelado",
-  };
-
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", maxWidth: "700px", margin: "0 auto" }}>
+    <div className="chat-wrap">
 
-      {/* Header */}
-      <div style={{ padding: "12px 16px", borderBottom: "1px solid #e5e7eb", background: "white" }}>
-        <button onClick={() => navigate(-1)} style={{ marginRight: "12px", color: "#6b7280" }}>
-          ← Volver
+      {/* ── Header ── */}
+      <div className="chat-header">
+        <button onClick={() => navigate(-1)} className="chat-back-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+          </svg>
+          Volver
         </button>
-        <strong>Chat del Pedido</strong>
-        {pedido && (
-          <div style={{ fontSize: "13px", color: "#6b7280", marginTop: "4px" }}>
-            {pedido.local?.nombre} —
-            <span style={{ fontWeight: "600", marginLeft: "4px" }}>
-              Estado: {estadoLabel[pedido.estado]}
-            </span>
+
+        <div className="chat-header-info">
+          <div className="chat-header-top">
+            <div className="chat-header-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+            </div>
+            <span className="chat-header-titulo">Chat del Pedido</span>
+            {/* Indicador online */}
+            <span className="chat-online-dot" />
           </div>
-        )}
+          {pedido && (
+            <div className="chat-header-meta">
+              <span className="chat-local-nombre">{pedido.local?.nombre}</span>
+              <span className="chat-header-sep">·</span>
+              <span className={`chat-estado-chip chat-estado-chip--${pedido.estado}`}>
+                {estadoLabel[pedido.estado]}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Mensajes */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "16px", display: "flex", flexDirection: "column", gap: "8px" }}>
+      {/* ── Área de mensajes ── */}
+      <div className="chat-mensajes">
+        {mensajes.length === 0 && (
+          <div className="chat-empty">
+            <div className="chat-empty-icon">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+            </div>
+            <p>Sé el primero en escribir</p>
+          </div>
+        )}
+
         {mensajes.map((m, i) => {
           const esMio = m.emisor?._id === usuario?.id || m.emisor === usuario?.id;
           return (
-            <div
-              key={m._id || i}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: esMio ? "flex-end" : "flex-start",
-              }}
-            >
-              <span style={{ fontSize: "11px", color: "#9ca3af", marginBottom: "2px" }}>
+            <div key={m._id || i} className={`chat-msg-wrap${esMio ? " chat-msg-wrap--mio" : ""}`}>
+              <span className="chat-msg-autor">
                 {esMio ? "Tú" : (m.emisor?.nombre_completo || m.rol || "Usuario")}
               </span>
-              <div style={{
-                background: esMio ? "#3b82f6" : "#f3f4f6",
-                color: esMio ? "white" : "#111827",
-                padding: "8px 12px",
-                borderRadius: esMio ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
-                maxWidth: "70%",
-                fontSize: "14px",
-              }}>
+              <div className={`chat-burbuja${esMio ? " chat-burbuja--mia" : " chat-burbuja--otro"}`}>
                 {m.mensaje || m.contenido}
               </div>
             </div>
           );
         })}
+
         {escribiendo && (
-          <p style={{ fontSize: "12px", color: "#9ca3af" }}>{escribiendo} está escribiendo...</p>
+          <div className="chat-escribiendo">
+            <span className="chat-escribiendo-dots">
+              <span /><span /><span />
+            </span>
+            <span>{escribiendo} está escribiendo...</span>
+          </div>
         )}
+
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
-      <div style={{ padding: "12px 16px", borderTop: "1px solid #e5e7eb", background: "white", display: "flex", gap: "8px" }}>
+      {/* ── Input ── */}
+      <div className="chat-input-bar">
         <input
           value={mensaje}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           placeholder="Escribe un mensaje..."
-          style={{
-            flex: 1,
-            border: "1px solid #d1d5db",
-            borderRadius: "8px",
-            padding: "8px 12px",
-            fontSize: "14px",
-            outline: "none",
-          }}
+          className="chat-input"
         />
-        <button
-          onClick={enviarMensaje}
-          style={{
-            background: "#3b82f6",
-            color: "white",
-            border: "none",
-            borderRadius: "8px",
-            padding: "8px 16px",
-            cursor: "pointer",
-            fontWeight: "600",
-          }}
-        >
-          Enviar
+        <button onClick={enviarMensaje} className="chat-send-btn" aria-label="Enviar mensaje">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
         </button>
       </div>
+
     </div>
   );
 }

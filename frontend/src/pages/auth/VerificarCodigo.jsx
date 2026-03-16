@@ -1,145 +1,216 @@
 /* eslint-disable no-unused-vars */
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import api from "../../services/api";
+import "../../styles/auth/VerificarCodigo.css";
 
 function VerificarCodigo() {
-  const [codigo, setCodigo] = useState("");
+  const [digits, setDigits] = useState(["","","","","",""]);
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
   const [mensaje, setMensaje] = useState("");
-  
+  const [verificado, setVerificado] = useState(false);
+  const [timer, setTimer] = useState(60);
+  const [puedeReenviar, setPuedeReenviar] = useState(false);
+
+  const inputRefs = useRef([]);
   const navigate = useNavigate();
   const location = useLocation();
-  
   const email = location.state?.email || "";
+  const codigo = digits.join("");
+
+  useEffect(() => {
+    if (timer === 0) { setPuedeReenviar(true); return; }
+    const t = setTimeout(() => setTimer(p => p - 1), 1000);
+    return () => clearTimeout(t);
+  }, [timer]);
+
+  useEffect(() => { inputRefs.current[0]?.focus(); }, []);
+
+  const handleDigit = (index, value) => {
+    const v = value.replace(/\D/g,"").slice(-1);
+    const next = [...digits]; next[index] = v; setDigits(next);
+    if (v && index < 5) inputRefs.current[index+1]?.focus();
+  };
+  const handleKeyDown = (index, e) => {
+    if (e.key==="Backspace" && !digits[index] && index>0) inputRefs.current[index-1]?.focus();
+    if (e.key==="ArrowLeft"  && index>0) inputRefs.current[index-1]?.focus();
+    if (e.key==="ArrowRight" && index<5) inputRefs.current[index+1]?.focus();
+  };
+  const handlePaste = (e) => {
+    const pasted = e.clipboardData.getData("text").replace(/\D/g,"").slice(0,6);
+    if (pasted.length===6) { setDigits(pasted.split("")); inputRefs.current[5]?.focus(); }
+    e.preventDefault();
+  };
 
   const handleVerificar = async (e) => {
     e.preventDefault();
-    setError("");
-    setMensaje("");
-    setCargando(true);
-
-    if (!codigo.trim()) {
-      setError("Debes ingresar el código de verificación");
-      setCargando(false);
-      return;
-    }
-
+    setError(""); setMensaje(""); setCargando(true);
     if (codigo.length !== 6) {
-      setError("El código debe tener 6 dígitos");
-      setCargando(false);
-      return;
+      setError("Debes ingresar los 6 dígitos del código");
+      setCargando(false); return;
     }
-
     try {
-      await api.post("/auth/verificar-codigo", {
-        email,
-        codigo
-      });
-
+      await api.post("/auth/verificar-codigo", { email, codigo });
+      setVerificado(true);
       setMensaje("¡Cuenta verificada exitosamente!");
-      
-      setTimeout(() => {
-        navigate("/login");
-      }, 2000);
-
+      setTimeout(() => navigate("/login"), 2500);
     } catch (err) {
       setError(err.response?.data?.mensaje || "Código inválido o expirado");
-    } finally {
-      setCargando(false);
-    }
+      setDigits(["","","","","",""]);
+      setTimeout(() => inputRefs.current[0]?.focus(), 50);
+    } finally { setCargando(false); }
   };
 
   const reenviarCodigo = async () => {
-    setError("");
-    setMensaje("");
-    setCargando(true);
-
+    setError(""); setMensaje(""); setCargando(true);
     try {
       await api.post("/auth/reenviar-codigo", { email });
       setMensaje("Código reenviado a tu correo");
+      setPuedeReenviar(false); setTimer(60);
+      setDigits(["","","","","",""]);
+      setTimeout(() => inputRefs.current[0]?.focus(), 50);
     } catch (err) {
       setError("Error al reenviar el código");
-    } finally {
-      setCargando(false);
-    }
+    } finally { setCargando(false); }
   };
 
+  /* ── Pantalla de éxito ── */
+  if (verificado) {
+    return (
+      <div className="vc-wrap">
+        <div className="vc-orb vc-orb-1" />
+        <div className="vc-card vc-card--success">
+          <div className="vc-success-ring">
+            <div className="vc-success-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="30" height="30">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </div>
+          </div>
+          <h2 className="vc-title">¡Cuenta verificada!</h2>
+          <p className="vc-subtitle">Redirigiendo al login...</p>
+          <div className="vc-loading-bar"><div className="vc-loading-fill" /></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+    <div className="vc-wrap">
+      <div className="vc-particles">
+        {[...Array(7)].map((_,i) => <div key={i} className="vc-p" />)}
+      </div>
+      <div className="vc-orb vc-orb-1" />
+      <div className="vc-orb vc-orb-2" />
+
+      <div className="vc-card">
+
+        {/* Logo */}
+        <div className="vc-logo">
+          <div className="vc-logo-icon">
+            <svg className="vc-logo-svg" viewBox="0 0 24 24">
+              <circle cx="5.5" cy="17.5" r="2.5"/>
+              <circle cx="18.5" cy="17.5" r="2.5"/>
+              <path d="M3 5h11l2 7H5L3 5z"/>
+              <path d="M15 12h4l2 5"/>
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-800">Verificar Código</h2>
-          <p className="text-gray-600 mt-2">
-            Hemos enviado un código de verificación a:
-          </p>
-          <p className="font-semibold text-blue-600 mt-1">{email}</p>
+          <span className="vc-logo-text">Favorcito</span>
         </div>
 
-        <form onSubmit={handleVerificar}>
+        {/* Ícono sobre animado */}
+        <div className="vc-envelope-wrap">
+          <div className="vc-env-ring" />
+          <div className="vc-env-ring vc-env-ring-2" />
+          <div className="vc-envelope">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="36" height="36">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+          </div>
+        </div>
+
+        <h2 className="vc-title">Verifica tu cuenta</h2>
+        <p className="vc-subtitle">Enviamos un código de 6 dígitos a:</p>
+        <span className="vc-email-chip">{email || "tu correo"}</span>
+
+        <form className="vc-form" onSubmit={handleVerificar}>
+
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 flex items-start">
-              <svg className="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+            <div className="vc-msg-error">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#ff6b6b" strokeWidth="2" strokeLinecap="round" width="15" height="15">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
               </svg>
-              <span>{error}</span>
+              {error}
             </div>
           )}
 
-          {mensaje && (
-            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4 flex items-start">
-              <svg className="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+          {mensaje && !verificado && (
+            <div className="vc-msg-success">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="15" height="15">
+                <polyline points="20 6 9 17 4 12"/>
               </svg>
-              <span>{mensaje}</span>
+              {mensaje}
             </div>
           )}
 
-          <div className="mb-6">
-            <label className="block text-gray-700 font-medium mb-2">
-              Código de verificación
-            </label>
-            <input
-              type="text"
-              value={codigo}
-              onChange={(e) => setCodigo(e.target.value.replace(/\D/g, ''))}
-              maxLength={6}
-              className="w-full border-2 border-gray-300 px-4 py-3 rounded-lg text-center text-3xl tracking-[0.5em] font-bold focus:border-blue-500 focus:outline-none transition"
-              placeholder="000000"
-            />
-            <p className="text-sm text-gray-500 mt-2 text-center">
-              ⏱️ El código expira en 10 minutos
-            </p>
+          {/* OTP inputs */}
+          <div className="vc-otp-group" onPaste={handlePaste}>
+            {digits.map((d,i) => (
+              <input
+                key={i}
+                ref={el => inputRefs.current[i] = el}
+                type="text" inputMode="numeric" maxLength={1} value={d}
+                onChange={e => handleDigit(i, e.target.value)}
+                onKeyDown={e => handleKeyDown(i, e)}
+                className={`vc-otp-input ${d ? "vc-otp-filled" : ""} ${error ? "vc-otp-error" : ""}`}
+              />
+            ))}
           </div>
 
-          <button
-            type="submit"
-            disabled={cargando || codigo.length !== 6}
-            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition duration-200 shadow-lg"
-          >
+          {/* Progress dots */}
+          <div className="vc-dots">
+            {digits.map((d,i) => <div key={i} className={`vc-dot ${d ? "vc-dot-filled" : ""}`} />)}
+          </div>
+
+          {/* Timer / reenvío */}
+          <div className="vc-resend-row">
+            {puedeReenviar ? (
+              <button type="button" onClick={reenviarCodigo} disabled={cargando} className="vc-resend-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="13" height="13">
+                  <polyline points="1 4 1 10 7 10"/>
+                  <path d="M3.51 15a9 9 0 102.13-9.36L1 10"/>
+                </svg>
+                Reenviar código
+              </button>
+            ) : (
+              <span className="vc-timer-text">
+                Reenviar en <strong className="vc-timer-count">{timer}s</strong>
+              </span>
+            )}
+          </div>
+
+          <p className="vc-expire">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="12" height="12">
+              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+            El código expira en 10 minutos
+          </p>
+
+          <button type="submit" disabled={cargando || codigo.length !== 6} className="vc-btn">
             {cargando ? "Verificando..." : "Verificar Cuenta"}
           </button>
 
-          <button
-            type="button"
-            onClick={reenviarCodigo}
-            disabled={cargando}
-            className="w-full mt-3 bg-white border-2 border-gray-300 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed transition duration-200"
-          >
-            {cargando ? "Reenviando..." : "Reenviar código"}
-          </button>
-
-          <p className="mt-6 text-center text-gray-600">
-            <Link to="/login" className="text-blue-600 hover:text-blue-700 font-medium">
-              ← Volver al login
+          <p className="vc-footer">
+            <Link to="/login" className="vc-link">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="13" height="13">
+                <polyline points="15 18 9 12 15 6"/>
+              </svg>
+              Volver al login
             </Link>
           </p>
+
         </form>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
+import "../styles/pages/Inicio.css";
 
 export default function Inicio() {
   const { usuario } = useContext(AuthContext);
@@ -15,32 +16,88 @@ export default function Inicio() {
   }, [usuario, navigate]);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">🍽️ UT Tehuacán</h1>
-        <p className="text-gray-500 mb-8">Plataforma de pedidos universitaria</p>
+    <div className="in-wrap">
+      {/* Partículas */}
+      <div className="in-particles">
+        {[...Array(10)].map((_, i) => <div key={i} className="in-p" />)}
+      </div>
 
-        <div className="space-y-3 mb-6">
+      {/* Orbes */}
+      <div className="in-orb in-orb-1" />
+      <div className="in-orb in-orb-2" />
+      <div className="in-orb in-orb-3" />
+
+      <div className="in-card">
+
+        {/* Logo */}
+        <div className="in-logo-wrap">
+          <div className="in-logo-ring" />
+          <div className="in-logo-ring in-logo-ring-2" />
+          <div className="in-logo-icon">
+            <svg className="in-logo-svg" viewBox="0 0 24 24">
+              <circle cx="5.5" cy="17.5" r="2.5"/>
+              <circle cx="18.5" cy="17.5" r="2.5"/>
+              <path d="M3 5h11l2 7H5L3 5z"/>
+              <path d="M15 12h4l2 5"/>
+            </svg>
+          </div>
+        </div>
+
+        <h1 className="in-title">Favorcito</h1>
+        <p className="in-university">UTT Tehuacán</p>
+        <p className="in-subtitle">Plataforma de pedidos universitaria</p>
+
+        <div className="in-divider" />
+
+        {/* Botones de rol */}
+        <div className="in-btn-group">
           <button
             onClick={() => navigate("/registro?rol=estudiante")}
-            className="w-full bg-blue-500 text-white py-3 rounded-xl font-semibold hover:bg-blue-600 transition"
+            className="in-role-btn in-role-est"
           >
-            🧑‍🎓 Soy Estudiante
+            <div className="in-role-icon in-role-icon-est">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="22" height="22">
+                <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+              </svg>
+            </div>
+            <div className="in-role-content">
+              <span className="in-role-label">Soy Estudiante</span>
+              <span className="in-role-sub">Pide y recibe en el campus</span>
+            </div>
+            <svg className="in-role-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
           </button>
+
           <button
             onClick={() => navigate("/registro?rol=vendedor")}
-            className="w-full bg-green-500 text-white py-3 rounded-xl font-semibold hover:bg-green-600 transition"
+            className="in-role-btn in-role-vend"
           >
-            🏪 Soy Vendedor
+            <div className="in-role-icon in-role-icon-vend">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="22" height="22">
+                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+              </svg>
+            </div>
+            <div className="in-role-content">
+              <span className="in-role-label">Soy Vendedor</span>
+              <span className="in-role-sub">Publica tu local y vende</span>
+            </div>
+            <svg className="in-role-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
           </button>
         </div>
 
-        <button
-          onClick={() => navigate("/login")}
-          className="text-blue-500 hover:underline font-medium"
-        >
-          Ya tengo cuenta → Iniciar sesión
+        {/* Login link */}
+        <button onClick={() => navigate("/login")} className="in-login-link">
+          Ya tengo cuenta
+          <span className="in-login-arrow">
+            → Iniciar sesión
+          </span>
         </button>
+
       </div>
     </div>
   );
