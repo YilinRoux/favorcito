@@ -1,0 +1,226 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+/* ── Reset anti-Tailwind ── */
+.da-wrap input,
+.da-wrap button,
+.da-wrap select {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  box-sizing: border-box !important;
+}
+
+/* ── Keyframes ── */
+@keyframes da-fade-in {
+  from { opacity: 0; transform: translateY(50px) scale(0.94); filter: blur(6px); }
+  to   { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+@keyframes da-top-border {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+@keyframes da-orbe-float {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50%       { transform: translateY(-30px) scale(1.05); }
+}
+@keyframes da-shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+/* ── Wrap ── */
+.da-wrap {
+  min-height: 100vh !important;
+  background: #080808 !important;
+  padding: 80px 24px 48px 24px !important;
+  position: relative !important;
+  overflow: hidden !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+}
+.da-wrap::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  background-image: radial-gradient(circle, #ffffff08 1px, transparent 1px) !important;
+  background-size: 28px 28px !important;
+  pointer-events: none !important;
+}
+
+/* ── Orbes ── */
+.da-orbe {
+  position: absolute !important;
+  border-radius: 50% !important;
+  filter: blur(80px) !important;
+  pointer-events: none !important;
+  animation: da-orbe-float 8s ease-in-out infinite !important;
+}
+.da-orbe-1 {
+  width: 500px !important; height: 500px !important;
+  background: rgba(255, 92, 10, 0.1) !important;
+  top: -150px !important; right: -150px !important;
+}
+.da-orbe-2 {
+  width: 350px !important; height: 350px !important;
+  background: rgba(34, 197, 94, 0.06) !important;
+  bottom: -100px !important; left: -100px !important;
+  animation-delay: 3s !important;
+}
+
+/* ── Container ── */
+.da-container {
+  position: relative !important;
+  max-width: 900px !important;
+  margin: 0 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 24px !important;
+}
+
+/* ── Header ── */
+.da-header {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+}
+.da-title {
+  font-size: 28px !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+  margin: 0 0 4px 0 !important;
+  letter-spacing: -0.5px !important;
+}
+.da-subtitle {
+  font-size: 14px !important;
+  color: #666666 !important;
+  margin: 0 !important;
+}
+.da-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  background: rgba(255, 92, 10, 0.1) !important;
+  border: 1px solid rgba(255, 92, 10, 0.25) !important;
+  color: #FF5C0A !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  padding: 6px 12px !important;
+  border-radius: 999px 999px 999px 999px !important;
+}
+
+/* ── Grid de stats ── */
+.da-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 16px !important;
+}
+
+/* ── Card stat ── */
+.da-card {
+  position: relative !important;
+  background: #111111 !important;
+  border-radius: 20px 20px 20px 20px !important;
+  border: 1px solid #1f1f1f !important;
+  padding: 24px !important;
+  overflow: hidden !important;
+  animation: da-fade-in 0.6s cubic-bezier(0.16,1,0.3,1) both !important;
+  transition: transform 0.2s, border-color 0.2s !important;
+}
+.da-card:hover {
+  transform: translateY(-3px) !important;
+  border-color: #2a2a2a !important;
+}
+.da-card-top-border {
+  position: absolute !important;
+  top: 0 !important; left: 0 !important; right: 0 !important;
+  height: 2px !important;
+  background: linear-gradient(90deg, transparent, #FF5C0A, #FF7A30, #FF5C0A, transparent) !important;
+  background-size: 200% 100% !important;
+  animation: da-top-border 3s linear infinite !important;
+}
+.da-top-yellow {
+  background: linear-gradient(90deg, transparent, #f59e0b, #fbbf24, #f59e0b, transparent) !important;
+}
+.da-top-purple {
+  background: linear-gradient(90deg, transparent, #a855f7, #c084fc, #a855f7, transparent) !important;
+}
+.da-card-icon {
+  width: 44px !important;
+  height: 44px !important;
+  background: #1a1a1a !important;
+  border-radius: 12px 12px 12px 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-bottom: 16px !important;
+}
+.da-card-label {
+  font-size: 12px !important;
+  color: #666666 !important;
+  font-weight: 500 !important;
+  margin: 0 0 6px 0 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+.da-card-value {
+  font-size: 36px !important;
+  font-weight: 800 !important;
+  margin: 0 !important;
+  letter-spacing: -1px !important;
+}
+.da-value-blue   { color: #3b82f6 !important; }
+.da-value-green  { color: #22c55e !important; }
+.da-value-yellow { color: #f59e0b !important; }
+.da-value-purple { color: #a855f7 !important; }
+
+/* ── Sección título ── */
+.da-section-title {
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  margin: 0 !important;
+}
+
+/* ── Links grid ── */
+.da-links-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 14px !important;
+}
+.da-link-card {
+  position: relative !important;
+  background: #111111 !important;
+  border-radius: 16px 16px 16px 16px !important;
+  border: 1px solid #1f1f1f !important;
+  padding: 20px !important;
+  text-decoration: none !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  overflow: hidden !important;
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s !important;
+  animation: da-fade-in 0.6s cubic-bezier(0.16,1,0.3,1) both !important;
+}
+.da-link-card:hover {
+  transform: translateY(-3px) !important;
+  border-color: #FF5C0A !important;
+  box-shadow: 0 8px 30px rgba(255, 92, 10, 0.15) !important;
+}
+.da-link-label {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  margin: 0 !important;
+}
+.da-link-desc {
+  font-size: 12px !important;
+  color: #666666 !important;
+  margin: 0 !important;
+}
+
+/* ── Loading ── */
+.da-loading {
+  color: #666666 !important;
+  font-size: 15px !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  position: relative !important;
+}

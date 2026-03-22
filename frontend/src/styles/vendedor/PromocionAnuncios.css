@@ -1,0 +1,340 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+.pa-wrap input,
+.pa-wrap button,
+.pa-wrap select,
+.pa-wrap textarea {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  box-sizing: border-box !important;
+}
+
+@keyframes pa-fade-in {
+  from { opacity: 0; transform: translateY(50px) scale(0.94); filter: blur(6px); }
+  to   { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+@keyframes pa-top-border {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+@keyframes pa-shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+@keyframes pa-orbe-float {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50%       { transform: translateY(-30px) scale(1.05); }
+}
+@keyframes pa-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(5px); }
+}
+
+.pa-wrap {
+  min-height: 100vh !important;
+  background: #080808 !important;
+  padding: 80px 16px 48px 16px !important;
+  position: relative !important;
+  overflow: hidden !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+}
+
+.pa-wrap::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  background-image: radial-gradient(circle, #ffffff08 1px, transparent 1px) !important;
+  background-size: 28px 28px !important;
+  pointer-events: none !important;
+}
+
+.pa-orbe {
+  position: absolute !important;
+  border-radius: 50% !important;
+  filter: blur(80px) !important;
+  pointer-events: none !important;
+  animation: pa-orbe-float 8s ease-in-out infinite !important;
+}
+.pa-orbe-1 {
+  width: 400px !important; height: 400px !important;
+  background: rgba(255, 92, 10, 0.12) !important;
+  top: -100px !important; right: -100px !important;
+}
+.pa-orbe-2 {
+  width: 300px !important; height: 300px !important;
+  background: rgba(34, 197, 94, 0.07) !important;
+  bottom: -80px !important; left: -80px !important;
+  animation-delay: 3s !important;
+}
+
+.pa-container {
+  position: relative !important;
+  max-width: 600px !important;
+  margin: 0 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 20px !important;
+}
+
+.pa-page-title {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  font-size: 24px !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+  margin: 0 0 4px 0 !important;
+  letter-spacing: -0.5px !important;
+}
+
+.pa-error {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  background: rgba(239, 68, 68, 0.1) !important;
+  border: 1px solid rgba(239, 68, 68, 0.25) !important;
+  color: #f87171 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  padding: 10px 14px !important;
+  border-radius: 10px 10px 10px 10px !important;
+  animation: pa-shake 0.4s ease !important;
+}
+.pa-success {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  background: rgba(34, 197, 94, 0.1) !important;
+  border: 1px solid rgba(34, 197, 94, 0.25) !important;
+  color: #22C55E !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  padding: 10px 14px !important;
+  border-radius: 10px 10px 10px 10px !important;
+}
+
+.pa-card {
+  position: relative !important;
+  background: #111111 !important;
+  border-radius: 20px 20px 20px 20px !important;
+  border: 1px solid #1f1f1f !important;
+  padding: 28px 24px !important;
+  overflow: hidden !important;
+  animation: pa-fade-in 0.6s cubic-bezier(0.16,1,0.3,1) both !important;
+}
+.pa-card-top-border {
+  position: absolute !important;
+  top: 0 !important; left: 0 !important; right: 0 !important;
+  height: 2px !important;
+  background: linear-gradient(90deg, transparent, #FF5C0A, #FF7A30, #FF5C0A, transparent) !important;
+  background-size: 200% 100% !important;
+  animation: pa-top-border 3s linear infinite !important;
+}
+.pa-card-title {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  margin: 0 0 6px 0 !important;
+}
+.pa-card-desc {
+  font-size: 13px !important;
+  color: #666666 !important;
+  margin: 0 0 16px 0 !important;
+  line-height: 1.5 !important;
+}
+
+.pa-textarea {
+  width: 100% !important;
+  background: #0d0d0d !important;
+  border: 1px solid #2a2a2a !important;
+  border-radius: 12px 12px 12px 12px !important;
+  padding: 12px 16px !important;
+  font-size: 14px !important;
+  color: #ffffff !important;
+  outline: none !important;
+  resize: vertical !important;
+  transition: border-color 0.2s, box-shadow 0.2s !important;
+}
+.pa-textarea::placeholder { color: #444444 !important; }
+.pa-textarea:focus {
+  border-color: #FF5C0A !important;
+  box-shadow: 0 0 0 3px rgba(255, 92, 10, 0.15) !important;
+}
+.pa-char-count {
+  font-size: 11px !important;
+  color: #444444 !important;
+  text-align: right !important;
+  margin: 4px 0 0 0 !important;
+}
+
+.pa-img-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 10px !important;
+  margin-bottom: 14px !important;
+}
+.pa-img-grid-preview { opacity: 0.6 !important; }
+.pa-img-wrap {
+  position: relative !important;
+}
+.pa-img {
+  width: 100% !important;
+  height: 90px !important;
+  object-fit: cover !important;
+  border-radius: 10px 10px 10px 10px !important;
+  border: 1px solid #2a2a2a !important;
+}
+.pa-img-preview { opacity: 0.7 !important; }
+.pa-img-delete {
+  position: absolute !important;
+  top: 4px !important; right: 4px !important;
+  background: #ef4444 !important;
+  border: none !important;
+  border-radius: 50% 50% 50% 50% !important;
+  width: 22px !important; height: 22px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: background 0.2s !important;
+}
+.pa-img-delete:hover { background: #dc2626 !important; }
+
+.pa-file-label {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  background: #0d0d0d !important;
+  border: 1px dashed #2a2a2a !important;
+  border-radius: 12px 12px 12px 12px !important;
+  padding: 12px 16px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: #666666 !important;
+  cursor: pointer !important;
+  transition: border-color 0.2s, color 0.2s !important;
+}
+.pa-file-label:hover { border-color: #FF5C0A !important; color: #FF5C0A !important; }
+.pa-file-input { display: none !important; }
+
+.pa-toggle-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 20px !important;
+  padding: 14px 16px !important;
+  background: #0d0d0d !important;
+  border-radius: 12px 12px 12px 12px !important;
+  border: 1px solid #1f1f1f !important;
+}
+.pa-toggle-label {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: #ffffff !important;
+  margin: 0 0 2px 0 !important;
+}
+.pa-toggle-status {
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  margin: 0 !important;
+}
+.pa-status-on { color: #22C55E !important; }
+.pa-status-off { color: #ef4444 !important; }
+.pa-toggle-btn {
+  padding: 8px 16px !important;
+  border-radius: 8px 8px 8px 8px !important;
+  border: none !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: background 0.2s, transform 0.2s !important;
+}
+.pa-toggle-on {
+  background: rgba(34, 197, 94, 0.15) !important;
+  color: #22C55E !important;
+}
+.pa-toggle-on:hover { background: rgba(34, 197, 94, 0.25) !important; transform: translateY(-1px) !important; }
+.pa-toggle-off {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #ef4444 !important;
+}
+.pa-toggle-off:hover { background: rgba(239, 68, 68, 0.25) !important; transform: translateY(-1px) !important; }
+
+.pa-field { display: flex !important; flex-direction: column !important; gap: 6px !important; }
+.pa-label {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: #FF5C0A !important;
+  letter-spacing: 1px !important;
+}
+.pa-input {
+  width: 100% !important;
+  background: #0d0d0d !important;
+  border: 1px solid #2a2a2a !important;
+  border-radius: 12px 12px 12px 12px !important;
+  padding: 12px 16px !important;
+  font-size: 14px !important;
+  color: #ffffff !important;
+  outline: none !important;
+  transition: border-color 0.2s, box-shadow 0.2s !important;
+}
+.pa-input:focus {
+  border-color: #FF5C0A !important;
+  box-shadow: 0 0 0 3px rgba(255, 92, 10, 0.15) !important;
+}
+.pa-input-disabled {
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+}
+.pa-promo-hint {
+  font-size: 12px !important;
+  color: #22C55E !important;
+  margin: 4px 0 0 0 !important;
+}
+
+.pa-btn-save {
+  position: relative !important;
+  overflow: hidden !important;
+  width: 100% !important;
+  background: #FF5C0A !important;
+  color: #ffffff !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  padding: 15px !important;
+  border-radius: 12px 12px 12px 12px !important;
+  border: none !important;
+  cursor: pointer !important;
+  transition: background 0.2s, transform 0.2s, box-shadow 0.2s !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+}
+.pa-btn-save:hover:not(:disabled) {
+  background: #e04e00 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 30px rgba(255, 92, 10, 0.4) !important;
+}
+.pa-btn-save:disabled {
+  background: #2a2a2a !important;
+  color: #555555 !important;
+  cursor: not-allowed !important;
+}
+.pa-btn-shimmer {
+  position: absolute !important;
+  top: 0 !important; left: 0 !important;
+  width: 40% !important; height: 100% !important;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent) !important;
+  animation: pa-shimmer 2.5s ease infinite !important;
+}
+
+.pa-loading {
+  color: #666666 !important;
+  font-size: 15px !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  position: relative !important;
+}

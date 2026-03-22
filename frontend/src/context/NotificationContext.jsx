@@ -2,6 +2,8 @@
 import { createContext, useState, useEffect } from "react";
 import socket from "../services/socket";
 
+const BASE_URL = import.meta.env.VITE_API_URL || "http://192.168.1.132:5000";
+
 export const NotificationContext = createContext();
 
 export function NotificationProvider({ children }) {
@@ -22,7 +24,7 @@ export function NotificationProvider({ children }) {
           if (usuario.rol === "vendedor") url = "/pedidos/vendedor";
           if (!url) return;
 
-          const res = await fetch(`http://localhost:5000/api${url}`, {
+          const res = await fetch(`${BASE_URL}/api${url}`, {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
             },

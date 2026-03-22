@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import "../../styles/estudiante/MenuLocales.css";
 
+const BASE_URL = import.meta.env.VITE_API_URL || "http://192.168.1.132:5000";
+
 function MenuLocales() {
   const [locales, setLocales] = useState([]);
   const [cargando, setCargando] = useState(true);
@@ -92,7 +94,7 @@ function MenuLocales() {
           <div className="ml-carrusel">
             <div className="ml-carrusel-img-wrap">
               <img
-                src={`http://localhost:5000${imagenesPromo[imagenActiva].imagen}`}
+                src={`${BASE_URL}${imagenesPromo[imagenActiva].imagen}`}
                 alt="Promoción"
                 className="ml-carrusel-img"
               />
@@ -166,7 +168,7 @@ function MenuLocales() {
                   {/* Imagen */}
                   {local.fotos?.[0] ? (
                     <img
-                      src={`http://localhost:5000${local.fotos[0]}`}
+                      src={`${BASE_URL}${local.fotos[0]}`}
                       alt={local.nombre}
                       className="ml-local-img"
                     />

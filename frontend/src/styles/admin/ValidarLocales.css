@@ -1,0 +1,240 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+.vl-wrap input,
+.vl-wrap button,
+.vl-wrap select {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  box-sizing: border-box !important;
+}
+
+@keyframes vl-fade-in {
+  from { opacity: 0; transform: translateY(40px) scale(0.95); filter: blur(4px); }
+  to   { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+@keyframes vl-top-border {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+@keyframes vl-orbe-float {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50%       { transform: translateY(-30px) scale(1.05); }
+}
+
+.vl-wrap {
+  min-height: 100vh !important;
+  background: #080808 !important;
+  padding: 80px 24px 48px 24px !important;
+  position: relative !important;
+  overflow: hidden !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+}
+.vl-wrap::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  background-image: radial-gradient(circle, #ffffff08 1px, transparent 1px) !important;
+  background-size: 28px 28px !important;
+  pointer-events: none !important;
+}
+
+.vl-orbe {
+  position: absolute !important;
+  border-radius: 50% !important;
+  filter: blur(80px) !important;
+  pointer-events: none !important;
+  animation: vl-orbe-float 8s ease-in-out infinite !important;
+}
+.vl-orbe-1 {
+  width: 400px !important; height: 400px !important;
+  background: rgba(255, 92, 10, 0.1) !important;
+  top: -100px !important; right: -100px !important;
+}
+.vl-orbe-2 {
+  width: 300px !important; height: 300px !important;
+  background: rgba(245, 158, 11, 0.07) !important;
+  bottom: -80px !important; left: -80px !important;
+  animation-delay: 3s !important;
+}
+
+.vl-container {
+  position: relative !important;
+  max-width: 860px !important;
+  margin: 0 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 24px !important;
+}
+
+.vl-header {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+}
+.vl-title {
+  font-size: 26px !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+  margin: 0 0 4px 0 !important;
+  letter-spacing: -0.5px !important;
+}
+.vl-subtitle {
+  font-size: 13px !important;
+  color: #666666 !important;
+  margin: 0 !important;
+}
+.vl-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  background: rgba(245, 158, 11, 0.1) !important;
+  border: 1px solid rgba(245, 158, 11, 0.25) !important;
+  color: #f59e0b !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  padding: 6px 12px !important;
+  border-radius: 999px 999px 999px 999px !important;
+  white-space: nowrap !important;
+}
+
+.vl-empty {
+  background: #111111 !important;
+  border-radius: 20px 20px 20px 20px !important;
+  border: 1px solid #1f1f1f !important;
+  padding: 56px 24px !important;
+  text-align: center !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 14px !important;
+}
+.vl-empty-icon {
+  width: 64px !important;
+  height: 64px !important;
+  background: #1a1a1a !important;
+  border-radius: 16px 16px 16px 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.vl-empty-text {
+  color: #555555 !important;
+  font-size: 14px !important;
+  margin: 0 !important;
+}
+
+.vl-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 14px !important;
+}
+
+.vl-card {
+  position: relative !important;
+  background: #111111 !important;
+  border-radius: 18px 18px 18px 18px !important;
+  border: 1px solid #1f1f1f !important;
+  overflow: hidden !important;
+  animation: vl-fade-in 0.5s cubic-bezier(0.16,1,0.3,1) both !important;
+  transition: border-color 0.2s, transform 0.2s !important;
+}
+.vl-card:hover {
+  border-color: #2a2a2a !important;
+  transform: translateY(-2px) !important;
+}
+.vl-card-top-border {
+  position: absolute !important;
+  top: 0 !important; left: 0 !important; right: 0 !important;
+  height: 2px !important;
+  background: linear-gradient(90deg, transparent, #FF5C0A, #FF7A30, #FF5C0A, transparent) !important;
+  background-size: 200% 100% !important;
+  animation: vl-top-border 3s linear infinite !important;
+}
+.vl-card-body {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  padding: 22px 24px !important;
+  gap: 16px !important;
+}
+
+.vl-card-info { flex: 1 !important; min-width: 0 !important; }
+.vl-local-nombre {
+  font-size: 17px !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  margin: 0 0 6px 0 !important;
+}
+.vl-local-desc {
+  font-size: 13px !important;
+  color: #888888 !important;
+  margin: 0 0 12px 0 !important;
+  line-height: 1.5 !important;
+}
+.vl-local-meta {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+}
+.vl-meta-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 12px !important;
+  color: #666666 !important;
+}
+
+.vl-card-actions {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  flex-shrink: 0 !important;
+}
+.vl-btn-aprobar {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 9px 18px !important;
+  background: rgba(34, 197, 94, 0.15) !important;
+  color: #22c55e !important;
+  border: 1px solid rgba(34, 197, 94, 0.3) !important;
+  border-radius: 10px 10px 10px 10px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: background 0.2s, transform 0.2s !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  white-space: nowrap !important;
+}
+.vl-btn-aprobar:hover {
+  background: rgba(34, 197, 94, 0.25) !important;
+  transform: translateY(-1px) !important;
+}
+.vl-btn-rechazar {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 9px 18px !important;
+  background: rgba(239, 68, 68, 0.12) !important;
+  color: #f87171 !important;
+  border: 1px solid rgba(239, 68, 68, 0.25) !important;
+  border-radius: 10px 10px 10px 10px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: background 0.2s, transform 0.2s !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  white-space: nowrap !important;
+}
+.vl-btn-rechazar:hover {
+  background: rgba(239, 68, 68, 0.22) !important;
+  transform: translateY(-1px) !important;
+}
+
+.vl-loading {
+  color: #666666 !important;
+  font-size: 15px !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  position: relative !important;
+}

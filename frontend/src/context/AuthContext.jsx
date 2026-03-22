@@ -10,7 +10,6 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const token = localStorage.getItem("token");
     const user = localStorage.getItem("usuario");
-
     if (token && user) {
       setUsuario(JSON.parse(user));
     }
@@ -27,8 +26,14 @@ export function AuthProvider({ children }) {
     setUsuario(null);
   };
 
+  const actualizarUsuario = (nuevosDatos) => {
+    const actualizado = { ...usuario, ...nuevosDatos };
+    localStorage.setItem("usuario", JSON.stringify(actualizado));
+    setUsuario(actualizado);
+  };
+
   return (
-    <AuthContext.Provider value={{ usuario, login, logout }}>
+    <AuthContext.Provider value={{ usuario, login, logout, actualizarUsuario }}>
       {children}
     </AuthContext.Provider>
   );
