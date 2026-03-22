@@ -1,0 +1,298 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+.sa-wrap input,
+.sa-wrap button,
+.sa-wrap select,
+.sa-wrap textarea {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  box-sizing: border-box !important;
+}
+
+@keyframes sa-fade-in {
+  from { opacity: 0; transform: translateY(50px) scale(0.94); filter: blur(6px); }
+  to   { opacity: 1; transform: translateY(0)   scale(1);    filter: blur(0);   }
+}
+@keyframes sa-top-border {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+@keyframes sa-shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+@keyframes sa-orbe-float {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50%       { transform: translateY(-30px) scale(1.05); }
+}
+@keyframes sa-shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-8px); }
+  40%       { transform: translateX(8px); }
+  60%       { transform: translateX(-5px); }
+  80%       { transform: translateX(5px); }
+}
+@keyframes sa-glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 92, 10, 0); }
+  50%       { box-shadow: 0 0 0 4px rgba(255, 92, 10, 0.15); }
+}
+
+.sa-wrap {
+  min-height: 100vh !important;
+  background: #080808 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 80px 16px 32px 16px !important;
+  position: relative !important;
+  overflow: hidden !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+}
+
+.sa-wrap::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  background-image: radial-gradient(circle, #ffffff08 1px, transparent 1px) !important;
+  background-size: 28px 28px !important;
+  pointer-events: none !important;
+}
+
+.sa-orbe {
+  position: absolute !important;
+  border-radius: 50% !important;
+  filter: blur(80px) !important;
+  pointer-events: none !important;
+  animation: sa-orbe-float 8s ease-in-out infinite !important;
+}
+.sa-orbe-1 {
+  width: 400px !important;
+  height: 400px !important;
+  background: rgba(255, 92, 10, 0.12) !important;
+  top: -100px !important;
+  right: -100px !important;
+  animation-delay: 0s !important;
+}
+.sa-orbe-2 {
+  width: 300px !important;
+  height: 300px !important;
+  background: rgba(34, 197, 94, 0.07) !important;
+  bottom: -80px !important;
+  left: -80px !important;
+  animation-delay: 3s !important;
+}
+
+.sa-card {
+  position: relative !important;
+  background: #111111 !important;
+  border-radius: 24px 24px 24px 24px !important;
+  border: 1px solid #1f1f1f !important;
+  padding: 40px 36px !important;
+  width: 100% !important;
+  max-width: 480px !important;
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.6) !important;
+  animation: sa-fade-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+  overflow: hidden !important;
+}
+
+.sa-card-top-border {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 2px !important;
+  background: linear-gradient(90deg, transparent, #FF5C0A, #FF7A30, #FF5C0A, transparent) !important;
+  background-size: 200% 100% !important;
+  animation: sa-top-border 3s linear infinite !important;
+}
+
+.sa-logo-wrap {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin-bottom: 20px !important;
+}
+.sa-logo-icon {
+  width: 40px !important;
+  height: 40px !important;
+  background: #FF5C0A !important;
+  border-radius: 10px 10px 10px 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.sa-logo-svg {
+  width: 22px !important;
+  height: 22px !important;
+  stroke: #ffffff !important
+}
+.sa-logo-text {
+  font-size: 18px !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+  letter-spacing: -0.3px !important;
+}
+
+.sa-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  background: rgba(34, 197, 94, 0.1) !important;
+  border: 1px solid rgba(34, 197, 94, 0.25) !important;
+  color: #22C55E !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  padding: 4px 12px !important;
+  border-radius: 999px 999px 999px 999px !important;
+  margin-bottom: 16px !important;
+}
+
+.sa-title {
+  font-size: 26px !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+  margin: 0 0 6px 0 !important;
+  letter-spacing: -0.5px !important;
+}
+.sa-subtitle {
+  font-size: 14px !important;
+  color: #666666 !important;
+  margin: 0 0 24px 0 !important;
+}
+
+.sa-error {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  background: rgba(239, 68, 68, 0.1) !important;
+  border: 1px solid rgba(239, 68, 68, 0.25) !important;
+  color: #f87171 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  padding: 10px 14px !important;
+  border-radius: 10px 10px 10px 10px !important;
+  margin-bottom: 20px !important;
+  animation: sa-shake 0.4s ease !important;
+}
+
+.sa-form {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 18px !important;
+}
+.sa-field {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+}
+.sa-label {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: #FF5C0A !important;
+  letter-spacing: 1px !important;
+}
+
+.sa-input {
+  width: 100% !important;
+  background: #0d0d0d !important;
+  border: 1px solid #2a2a2a !important;
+  border-radius: 12px 12px 12px 12px !important;
+  padding: 12px 16px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: #ffffff !important;
+  outline: none !important;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s !important;
+}
+.sa-input::placeholder {
+  color: #888888 !important;
+}
+.sa-input:hover {
+  border-color: #3a3a3a !important;
+  transform: translateY(-1px) !important;
+}
+.sa-input:focus {
+  border-color: #FF5C0A !important;
+  box-shadow: 0 0 0 3px rgba(255, 92, 10, 0.15), 0 0 20px rgba(255, 92, 10, 0.08) !important;
+  animation: sa-glow-pulse 2s ease infinite !important;
+}
+.sa-textarea {
+  resize: vertical !important;
+  min-height: 90px !important;
+}
+
+.sa-file-label {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  background: #0d0d0d !important;
+  border: 1px dashed #2a2a2a !important;
+  border-radius: 12px 12px 12px 12px !important;
+  padding: 14px 16px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: #666666 !important;
+  cursor: pointer !important;
+  transition: border-color 0.2s, color 0.2s !important;
+}
+.sa-file-label:hover {
+  border-color: #FF5C0A !important;
+  color: #FF5C0A !important;
+}
+.sa-file-input {
+  display: none !important;
+}
+
+.sa-previews {
+  display: flex !important;
+  gap: 10px !important;
+  margin-top: 10px !important;
+  flex-wrap: wrap !important;
+}
+.sa-preview-img {
+  width: 76px !important;
+  height: 76px !important;
+  object-fit: cover !important;
+  border-radius: 10px 10px 10px 10px !important;
+  border: 1px solid #2a2a2a !important;
+}
+
+.sa-btn {
+  position: relative !important;
+  overflow: hidden !important;
+  width: 100% !important;
+  background: #FF5C0A !important;
+  color: #ffffff !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  padding: 14px !important;
+  border-radius: 12px 12px 12px 12px !important;
+  border: none !important;
+  cursor: pointer !important;
+  letter-spacing: 0.3px !important;
+  transition: background 0.2s, transform 0.2s, box-shadow 0.2s !important;
+  margin-top: 4px !important;
+}
+.sa-btn:hover:not(:disabled) {
+  background: #e04e00 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 30px rgba(255, 92, 10, 0.4) !important;
+}
+.sa-btn:active:not(:disabled) {
+  transform: translateY(0px) !important;
+}
+.sa-btn:disabled {
+  background: #2a2a2a !important;
+  color: #555555 !important;
+  cursor: not-allowed !important;
+}
+.sa-btn-shimmer {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 40% !important;
+  height: 100% !important;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent) !important;
+  animation: sa-shimmer 2.5s ease infinite !important;
+}

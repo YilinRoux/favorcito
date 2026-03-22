@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
+import "../../styles/vendedor/SolicitarAlta.css";
 
 function SolicitarAlta() {
   const [nombre, setNombre] = useState("");
@@ -49,74 +50,101 @@ function SolicitarAlta() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">Solicitar Alta de Local</h2>
-        <p className="text-gray-500 mb-6">Llena el formulario y un administrador revisará tu solicitud.</p>
+    <div className="sa-wrap">
+      <div className="sa-orbe sa-orbe-1" />
+      <div className="sa-orbe sa-orbe-2" />
 
-        <form onSubmit={handleSubmit}>
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
-              {error}
-            </div>
-          )}
+      <div className="sa-card">
+        <div className="sa-card-top-border" />
 
-          <div className="mb-4">
-            <label className="block text-gray-700 font-medium mb-2">Nombre del local</label>
+        <div className="sa-logo-wrap">
+          <div className="sa-logo-icon">
+            <svg viewBox="0 0 24 24" fill="none" className="sa-logo-svg">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#FF5C0A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+          <span className="sa-logo-text">Favorcito</span>
+        </div>
+
+        <div className="sa-badge">
+          <svg viewBox="0 0 16 16" fill="none" width="13" height="13">
+            <path d="M8 1.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13zM0 8a8 8 0 1116 0A8 8 0 010 8z" fill="#22C55E"/>
+          </svg>
+          Alta de Local
+        </div>
+
+        <h2 className="sa-title">Registra tu local</h2>
+        <p className="sa-subtitle">Un administrador revisará tu solicitud antes de publicarla</p>
+
+        {error && (
+          <div className="sa-error">
+            <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
+            </svg>
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="sa-form">
+          <div className="sa-field">
+            <label className="sa-label">NOMBRE DEL LOCAL</label>
             <input
               type="text"
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
-              className="w-full border-2 border-gray-300 px-4 py-2 rounded-lg focus:border-blue-500 focus:outline-none"
+              className="sa-input"
               placeholder="Ej: Tacos El Güero"
             />
           </div>
 
-          <div className="mb-4">
-            <label className="block text-gray-700 font-medium mb-2">Descripción</label>
+          <div className="sa-field">
+            <label className="sa-label">DESCRIPCIÓN</label>
             <textarea
               value={descripcion}
               onChange={(e) => setDescripcion(e.target.value)}
-              className="w-full border-2 border-gray-300 px-4 py-2 rounded-lg focus:border-blue-500 focus:outline-none"
+              className="sa-input sa-textarea"
               rows={3}
               placeholder="¿Qué vendes?"
             />
           </div>
 
-          <div className="mb-4">
-            <label className="block text-gray-700 font-medium mb-2">Dirección</label>
+          <div className="sa-field">
+            <label className="sa-label">DIRECCIÓN</label>
             <input
               type="text"
               value={direccion}
               onChange={(e) => setDireccion(e.target.value)}
-              className="w-full border-2 border-gray-300 px-4 py-2 rounded-lg focus:border-blue-500 focus:outline-none"
+              className="sa-input"
               placeholder="Ej: Edificio A, planta baja"
             />
           </div>
 
-          <div className="mb-6">
-            <label className="block text-gray-700 font-medium mb-2">Fotos del local (máx. 3)</label>
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleFotos}
-              className="w-full border-2 border-gray-300 px-4 py-2 rounded-lg focus:border-blue-500 focus:outline-none"
-            />
+          <div className="sa-field">
+            <label className="sa-label">FOTOS DEL LOCAL (MÁX. 3)</label>
+            <label className="sa-file-label">
+              <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="#FF5C0A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Seleccionar imágenes
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleFotos}
+                className="sa-file-input"
+              />
+            </label>
             {previews.length > 0 && (
-              <div className="flex gap-2 mt-3">
+              <div className="sa-previews">
                 {previews.map((src, i) => (
-                  <img key={i} src={src} className="w-20 h-20 object-cover rounded-lg border" />
+                  <img key={i} src={src} className="sa-preview-img" />
                 ))}
               </div>
             )}
           </div>
 
-          <button
-            type="submit"
-            disabled={cargando}
-            className="w-full bg-blue-500 text-white py-3 rounded-lg font-semibold hover:bg-blue-600 disabled:bg-gray-400 transition"
-          >
+          <button type="submit" disabled={cargando} className="sa-btn">
+            <span className="sa-btn-shimmer" />
             {cargando ? "Enviando..." : "Enviar Solicitud"}
           </button>
         </form>

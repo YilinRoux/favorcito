@@ -4,6 +4,8 @@ import api from "../../services/api";
 import { AuthContext } from "../../context/AuthContext";
 import "../../styles/estudiante/DetalleLocal.css";
 
+const BASE_URL = import.meta.env.VITE_API_URL || "http://192.168.1.132:5000";
+
 function DetalleLocal() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -177,7 +179,12 @@ function DetalleLocal() {
           {local.imagenesAnuncios?.length > 0 && (
             <div className="dl-imagenes-scroll">
               {local.imagenesAnuncios.map((img, i) => (
-                <img key={i} src={`http://localhost:5000${img}`} className="dl-imagen-anuncio" alt={`Anuncio ${i + 1}`} />
+                <img 
+            key={i} 
+            src={`${BASE_URL}${img}`} 
+            className="dl-imagen-anuncio" 
+            alt={`Anuncio ${i + 1}`} 
+               />
               ))}
             </div>
           )}
@@ -227,7 +234,11 @@ function DetalleLocal() {
                 return (
                   <div key={producto._id} className="dl-producto-card" style={{ animationDelay: `${i * 0.06}s` }}>
                     {producto.imagen ? (
-                      <img src={`http://localhost:5000${producto.imagen}`} className="dl-producto-img" alt={producto.nombre} />
+                      <img 
+                      src={`${BASE_URL}${producto.imagen}`} 
+                      className="dl-producto-img" 
+                      alt={producto.nombre} 
+                       />
                     ) : (
                       <div className="dl-producto-img-placeholder">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">

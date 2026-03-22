@@ -491,3 +491,48 @@
   .pf-card--usuario { flex-direction: column; align-items: flex-start; gap: 14px; }
   .pf-avatar { width: 60px; height: 60px; }
 }
+
+/* ── Aviso sospechoso ── */
+.pf-aviso-sospechoso {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  background: linear-gradient(135deg, #fff7ed, #fef3c7);
+  border: 1.5px solid #f59e0b;
+  border-left: 4px solid #f59e0b;
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+  animation: pf-fade-in 0.4s ease;
+}
+
+.pf-aviso-sospechoso-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
+}
+
+.pf-aviso-sospechoso-texto {
+  flex: 1;
+}
+
+.pf-aviso-sospechoso-titulo {
+  font-size: 14px;
+  font-weight: 700;
+  color: #92400e;
+  margin: 0 0 4px 0;
+}
+
+.pf-aviso-sospechoso-desc {
+  font-size: 13px;
+  color: #b45309;
+  margin: 0;
+  line-height: 1.5;
+}

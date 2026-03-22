@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
+import "../../styles/vendedor/GestionMenu.css";
+
+const BASE_URL = import.meta.env.VITE_API_URL || "http://192.168.1.132:5000";
 
 function GestionMenu() {
   const [productos, setProductos] = useState([]);
@@ -42,14 +45,11 @@ function GestionMenu() {
 
   const handleCrearProducto = async (e) => {
     e.preventDefault();
-    setError("");
-    setMensaje("");
-
+    setError(""); setMensaje("");
     if (!nombre.trim() || !precio || !stock) {
       setError("Nombre, precio y stock son obligatorios");
       return;
     }
-
     try {
       const formData = new FormData();
       formData.append("nombre", nombre);
@@ -58,19 +58,13 @@ function GestionMenu() {
       formData.append("stock", Number(stock));
       formData.append("localId", local._id);
       if (imagen) formData.append("imagen", imagen);
-
       const res = await api.post("/productos", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-
       setProductos((prev) => [...prev, res.data.producto]);
       setMensaje("Producto agregado correctamente");
-      setNombre("");
-      setDescripcion("");
-      setPrecio("");
-      setStock("");
-      setImagen(null);
-      setPreview(null);
+      setNombre(""); setDescripcion(""); setPrecio(""); setStock("");
+      setImagen(null); setPreview(null);
     } catch (err) {
       setError(err.response?.data?.mensaje || "Error al crear producto");
     }
@@ -82,16 +76,14 @@ function GestionMenu() {
     setDescripcion(producto.descripcion || "");
     setPrecio(producto.precio);
     setStock(producto.stock);
-    setPreview(producto.imagen ? `http://localhost:5000${producto.imagen}` : null);
+    setPreview(producto.imagen ? `${BASE_URL}${producto.imagen}` : null);
     setMenuAbierto(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleEditar = async (e) => {
     e.preventDefault();
-    setError("");
-    setMensaje("");
-
+    setError(""); setMensaje("");
     try {
       const formData = new FormData();
       formData.append("nombre", nombre);
@@ -99,22 +91,14 @@ function GestionMenu() {
       formData.append("precio", Number(precio));
       formData.append("stock", Number(stock));
       if (imagen) formData.append("imagen", imagen);
-
       const res = await api.put(`/productos/${editando._id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-
-      setProductos((prev) =>
-        prev.map((p) => (p._id === editando._id ? res.data.producto : p))
-      );
+      setProductos((prev) => prev.map((p) => (p._id === editando._id ? res.data.producto : p)));
       setMensaje("Producto actualizado correctamente");
       setEditando(null);
-      setNombre("");
-      setDescripcion("");
-      setPrecio("");
-      setStock("");
-      setImagen(null);
-      setPreview(null);
+      setNombre(""); setDescripcion(""); setPrecio(""); setStock("");
+      setImagen(null); setPreview(null);
     } catch (err) {
       setError(err.response?.data?.mensaje || "Error al editar producto");
     }
@@ -126,210 +110,195 @@ function GestionMenu() {
       await api.delete(`/productos/${id}`);
       setProductos((prev) => prev.filter((p) => p._id !== id));
       setMenuAbierto(null);
-    } catch {
-      alert("Error al eliminar producto");
-    }
+    } catch { alert("Error al eliminar producto"); }
   };
 
   const toggleActivo = async (id) => {
     try {
       const res = await api.put(`/productos/${id}/toggle`);
-      setProductos((prev) =>
-        prev.map((p) => (p._id === id ? res.data.producto : p))
-      );
+      setProductos((prev) => prev.map((p) => (p._id === id ? res.data.producto : p)));
       setMenuAbierto(null);
-    } catch {
-      alert("Error al cambiar estado del producto");
-    }
+    } catch { alert("Error al cambiar estado del producto"); }
   };
 
   const cancelarEdicion = () => {
     setEditando(null);
-    setNombre("");
-    setDescripcion("");
-    setPrecio("");
-    setStock("");
-    setImagen(null);
-    setPreview(null);
+    setNombre(""); setDescripcion(""); setPrecio(""); setStock("");
+    setImagen(null); setPreview(null);
   };
 
-  if (cargando) return <div className="p-10 text-gray-500">Cargando...</div>;
+  if (cargando) return (
+    <div className="gm-wrap">
+      <div className="gm-orbe gm-orbe-1" /><div className="gm-orbe gm-orbe-2" />
+      <p className="gm-loading">Cargando...</p>
+    </div>
+  );
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Gestión de Menú</h2>
+    <div className="gm-wrap">
+      <div className="gm-orbe gm-orbe-1" />
+      <div className="gm-orbe gm-orbe-2" />
 
-      <div className="bg-white rounded-2xl shadow p-6 mb-8">
-        <h3 className="text-lg font-bold text-gray-700 mb-4">
-          {editando ? "✏️ Editar Producto" : "Agregar Producto"}
-        </h3>
+      <div className="gm-container">
+        <h2 className="gm-page-title">
+          <svg viewBox="0 0 24 24" fill="none" width="26" height="26">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="#FF5C0A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          Gestión de Menú
+        </h2>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
-            {error}
-          </div>
-        )}
-        {mensaje && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4">
-            {mensaje}
-          </div>
-        )}
-
-        <form onSubmit={editando ? handleEditar : handleCrearProducto} className="space-y-4">
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Nombre</label>
-            <input
-              type="text"
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              className="w-full border-2 border-gray-300 px-4 py-2 rounded-lg focus:border-blue-500 focus:outline-none"
-              placeholder="Ej: Taco de pastor"
-            />
-          </div>
-
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Descripción</label>
-            <input
-              type="text"
-              value={descripcion}
-              onChange={(e) => setDescripcion(e.target.value)}
-              className="w-full border-2 border-gray-300 px-4 py-2 rounded-lg focus:border-blue-500 focus:outline-none"
-              placeholder="Opcional"
-            />
-          </div>
-
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <label className="block text-gray-700 font-medium mb-1">Precio ($)</label>
-              <input
-                type="number"
-                value={precio}
-                onChange={(e) => setPrecio(e.target.value)}
-                className="w-full border-2 border-gray-300 px-4 py-2 rounded-lg focus:border-blue-500 focus:outline-none"
-                placeholder="0.00"
-                min="0"
-              />
-            </div>
-            <div className="flex-1">
-              <label className="block text-gray-700 font-medium mb-1">Stock</label>
-              <input
-                type="number"
-                value={stock}
-                onChange={(e) => setStock(e.target.value)}
-                className="w-full border-2 border-gray-300 px-4 py-2 rounded-lg focus:border-blue-500 focus:outline-none"
-                placeholder="0"
-                min="0"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Imagen</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImagen}
-              className="w-full border-2 border-gray-300 px-4 py-2 rounded-lg focus:outline-none"
-            />
-            {preview && (
-              <img src={preview} className="w-24 h-24 object-cover rounded-lg mt-2 border" />
+        {/* Formulario */}
+        <div className="gm-card">
+          <div className="gm-card-top-border" />
+          <h3 className="gm-card-title">
+            {editando ? (
+              <>
+                <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
+                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="#FF5C0A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Editar Producto
+              </>
+            ) : (
+              <>
+                <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
+                  <circle cx="12" cy="12" r="10" stroke="#FF5C0A" strokeWidth="2"/>
+                  <path d="M12 8v8M8 12h8" stroke="#FF5C0A" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+                Agregar Producto
+              </>
             )}
-          </div>
+          </h3>
 
-          <div className="flex gap-3">
-            <button
-              type="submit"
-              className="flex-1 bg-blue-500 text-white py-3 rounded-lg font-semibold hover:bg-blue-600 transition"
-            >
-              {editando ? "Guardar cambios" : "Agregar Producto"}
-            </button>
-            {editando && (
-              <button
-                type="button"
-                onClick={cancelarEdicion}
-                className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-300 transition"
-              >
-                Cancelar
-              </button>
-            )}
-          </div>
-        </form>
-      </div>
+          {error && (
+            <div className="gm-error">
+              <svg viewBox="0 0 20 20" fill="currentColor" width="15" height="15">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
+              </svg>
+              {error}
+            </div>
+          )}
+          {mensaje && (
+            <div className="gm-success">
+              <svg viewBox="0 0 20 20" fill="currentColor" width="15" height="15">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+              </svg>
+              {mensaje}
+            </div>
+          )}
 
-      <h3 className="text-lg font-bold text-gray-700 mb-4">Mis Productos ({productos.length})</h3>
-
-      {productos.length === 0 ? (
-        <div className="bg-white rounded-2xl shadow p-8 text-center text-gray-500">
-          No tienes productos aún. ¡Agrega el primero!
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {productos.map((producto) => (
-            <div
-              key={producto._id}
-              className={`bg-white rounded-2xl shadow p-5 flex gap-4 items-center relative ${!producto.activo ? "opacity-50" : ""}`}
-            >
-              {producto.imagen ? (
-                <img
-                  src={`http://localhost:5000${producto.imagen}`}
-                  alt={producto.nombre}
-                  className="w-20 h-20 object-cover rounded-xl border"
-                />
-              ) : (
-                <div className="w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center text-gray-400 text-2xl">
-                  🍽️
-                </div>
-              )}
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <p className="font-semibold text-gray-800">{producto.nombre}</p>
-                  {!producto.activo && (
-                    <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full">
-                      Desactivado
-                    </span>
-                  )}
-                </div>
-                {producto.descripcion && (
-                  <p className="text-gray-500 text-sm mt-1">{producto.descripcion}</p>
-                )}
-                <p className="text-blue-600 font-bold mt-1">${producto.precio}</p>
-                <p className="text-gray-400 text-sm">Stock: {producto.stock}</p>
+          <form onSubmit={editando ? handleEditar : handleCrearProducto} className="gm-form">
+            <div className="gm-field">
+              <label className="gm-label">NOMBRE</label>
+              <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} className="gm-input" placeholder="Ej: Taco de pastor"/>
+            </div>
+            <div className="gm-field">
+              <label className="gm-label">DESCRIPCIÓN</label>
+              <input type="text" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} className="gm-input" placeholder="Opcional"/>
+            </div>
+            <div className="gm-row">
+              <div className="gm-field">
+                <label className="gm-label">PRECIO ($)</label>
+                <input type="number" value={precio} onChange={(e) => setPrecio(e.target.value)} className="gm-input" placeholder="0.00" min="0"/>
               </div>
-
-              <div className="relative">
-                <button
-                  onClick={() => setMenuAbierto(menuAbierto === producto._id ? null : producto._id)}
-                  className="text-gray-400 hover:text-gray-700 text-xl font-bold px-2"
-                >
-                  ⋯
+              <div className="gm-field">
+                <label className="gm-label">STOCK</label>
+                <input type="number" value={stock} onChange={(e) => setStock(e.target.value)} className="gm-input" placeholder="0" min="0"/>
+              </div>
+            </div>
+            <div className="gm-field">
+              <label className="gm-label">IMAGEN</label>
+              <label className="gm-file-label">
+                <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="#FF5C0A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Seleccionar imagen
+                <input type="file" accept="image/*" onChange={handleImagen} className="gm-file-input"/>
+              </label>
+              {preview && <img src={preview} className="gm-preview"/>}
+            </div>
+            <div className="gm-btn-row">
+              <button type="submit" className="gm-btn-primary">
+                <span className="gm-btn-shimmer"/>
+                {editando ? "Guardar cambios" : "Agregar Producto"}
+              </button>
+              {editando && (
+                <button type="button" onClick={cancelarEdicion} className="gm-btn-secondary">
+                  Cancelar
                 </button>
-                {menuAbierto === producto._id && (
-                  <div className="absolute right-0 top-8 bg-white border rounded-xl shadow-lg z-10 w-36">
-                    <button
-                      onClick={() => iniciarEdicion(producto)}
-                      className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 text-sm rounded-t-xl"
-                    >
-                      ✏️ Editar
-                    </button>
-                    <button
-                      onClick={() => toggleActivo(producto._id)}
-                      className="w-full text-left px-4 py-3 hover:bg-yellow-50 text-yellow-600 text-sm"
-                    >
-                      {producto.activo ? "⏸️ Desactivar" : "▶️ Activar"}
-                    </button>
-                    <button
-                      onClick={() => eliminar(producto._id)}
-                      className="w-full text-left px-4 py-3 hover:bg-red-50 text-red-600 text-sm rounded-b-xl"
-                    >
-                      🗑️ Eliminar
-                    </button>
+              )}
+            </div>
+          </form>
+        </div>
+
+        {/* Lista de productos */}
+        <h3 className="gm-section-title">Mis Productos ({productos.length})</h3>
+
+        {productos.length === 0 ? (
+          <div className="gm-empty">
+            <svg viewBox="0 0 24 24" fill="none" width="36" height="36">
+              <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" stroke="#444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <p>No tienes productos aún. ¡Agrega el primero!</p>
+          </div>
+        ) : (
+          <div className="gm-productos-list">
+            {productos.map((producto) => (
+              <div key={producto._id} className={`gm-producto-card ${!producto.activo ? "gm-producto-inactivo" : ""}`}>
+                <div className="gm-card-top-border"/>
+                {producto.imagen ? (
+                  <img src={`${BASE_URL}${producto.imagen}`} alt={producto.nombre} className="gm-producto-img"/>
+                ) : (
+                  <div className="gm-producto-img-placeholder">
+                    <svg viewBox="0 0 24 24" fill="none" width="28" height="28">
+                      <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" stroke="#444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
                   </div>
                 )}
+                <div className="gm-producto-info">
+                  <div className="gm-producto-nombre-row">
+                    <p className="gm-producto-nombre">{producto.nombre}</p>
+                    {!producto.activo && <span className="gm-badge-inactivo">Desactivado</span>}
+                  </div>
+                  {producto.descripcion && <p className="gm-producto-desc">{producto.descripcion}</p>}
+                  <p className="gm-producto-precio">${producto.precio}</p>
+                  <p className="gm-producto-stock">Stock: {producto.stock}</p>
+                </div>
+                <div className="gm-menu-wrap">
+                  <button onClick={() => setMenuAbierto(menuAbierto === producto._id ? null : producto._id)} className="gm-menu-btn">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                      <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                    </svg>
+                  </button>
+                  {menuAbierto === producto._id && (
+                    <div className="gm-dropdown">
+                      <button onClick={() => iniciarEdicion(producto)} className="gm-dropdown-item">
+                        <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
+                          <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        Editar
+                      </button>
+                      <button onClick={() => toggleActivo(producto._id)} className="gm-dropdown-item gm-dropdown-warning">
+                        <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
+                          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+                          <path d="M10 15l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                        </svg>
+                        {producto.activo ? "Desactivar" : "Activar"}
+                      </button>
+                      <button onClick={() => eliminar(producto._id)} className="gm-dropdown-item gm-dropdown-danger">
+                        <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
+                          <polyline points="3 6 5 6 21 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6M10 11v6M14 11v6M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        Eliminar
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

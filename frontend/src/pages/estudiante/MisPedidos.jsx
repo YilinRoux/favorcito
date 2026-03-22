@@ -2,6 +2,7 @@ import { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import { NotificationContext } from "../../context/NotificationContext";
+import { AuthContext } from "../../context/AuthContext";
 import "../../styles/estudiante/MisPedidos.css";
 
 const estadoLabel = {
@@ -14,7 +15,6 @@ const estadoLabel = {
   cancelado:      "Cancelado",
 };
 
-// Iconos SVG por estado
 const EstadoIcon = ({ estado }) => {
   const icons = {
     enviado: (
@@ -61,6 +61,7 @@ function MisPedidos() {
   const [pedidos, setPedidos] = useState([]);
   const [cargando, setCargando] = useState(true);
   const { notificaciones } = useContext(NotificationContext);
+  const { actualizarUsuario } = useContext(AuthContext);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -80,10 +81,21 @@ function MisPedidos() {
   const cancelar = async (pedidoId) => {
     if (!confirm("¿Seguro que quieres cancelar este pedido?")) return;
     try {
-      await api.put(`/pedidos/${pedidoId}/cancelar`);
+      const res = await api.put(`/pedidos/${pedidoId}/cancelar`);
+
+      // Actualizar estado del pedido en la lista
       setPedidos((prev) =>
         prev.map((p) => (p._id === pedidoId ? { ...p, estado: "cancelado" } : p))
       );
+
+      // ✅ Actualizar sospechoso y cancelaciones en el contexto al instante
+      if (res.data.sospechoso !== undefined) {
+        actualizarUsuario({
+          sospechoso: res.data.sospechoso,
+          cancelaciones: res.data.cancelaciones,
+        });
+      }
+
     } catch (err) {
       alert(err.response?.data?.mensaje || "Error al cancelar pedido");
     }

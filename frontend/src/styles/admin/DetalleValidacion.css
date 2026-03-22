@@ -1,0 +1,221 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+.dv-wrap input,
+.dv-wrap button,
+.dv-wrap select {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  box-sizing: border-box !important;
+}
+
+@keyframes dv-fade-in {
+  from { opacity: 0; transform: translateY(40px) scale(0.95); filter: blur(4px); }
+  to   { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+@keyframes dv-top-border {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+@keyframes dv-orbe-float {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50%       { transform: translateY(-30px) scale(1.05); }
+}
+
+.dv-wrap {
+  min-height: 100vh !important;
+  background: #080808 !important;
+  padding: 80px 24px 48px 24px !important;
+  position: relative !important;
+  overflow: hidden !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+}
+.dv-wrap::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  background-image: radial-gradient(circle, #ffffff08 1px, transparent 1px) !important;
+  background-size: 28px 28px !important;
+  pointer-events: none !important;
+}
+
+.dv-orbe {
+  position: absolute !important;
+  border-radius: 50% !important;
+  filter: blur(80px) !important;
+  pointer-events: none !important;
+  animation: dv-orbe-float 8s ease-in-out infinite !important;
+}
+.dv-orbe-1 {
+  width: 400px !important; height: 400px !important;
+  background: rgba(255, 92, 10, 0.1) !important;
+  top: -100px !important; right: -100px !important;
+}
+.dv-orbe-2 {
+  width: 300px !important; height: 300px !important;
+  background: rgba(34, 197, 94, 0.07) !important;
+  bottom: -80px !important; left: -80px !important;
+  animation-delay: 3s !important;
+}
+
+.dv-container {
+  position: relative !important;
+  max-width: 600px !important;
+  margin: 0 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 20px !important;
+}
+
+.dv-back {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  background: transparent !important;
+  border: none !important;
+  color: #FF5C0A !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+  transition: gap 0.2s, opacity 0.2s !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+}
+.dv-back:hover { gap: 12px !important; opacity: 0.8 !important; }
+
+.dv-card {
+  position: relative !important;
+  background: #111111 !important;
+  border-radius: 22px 22px 22px 22px !important;
+  border: 1px solid #1f1f1f !important;
+  padding: 36px !important;
+  overflow: hidden !important;
+  animation: dv-fade-in 0.6s cubic-bezier(0.16,1,0.3,1) both !important;
+}
+.dv-card-top-border {
+  position: absolute !important;
+  top: 0 !important; left: 0 !important; right: 0 !important;
+  height: 2px !important;
+  background: linear-gradient(90deg, transparent, #FF5C0A, #FF7A30, #FF5C0A, transparent) !important;
+  background-size: 200% 100% !important;
+  animation: dv-top-border 3s linear infinite !important;
+}
+
+.dv-title {
+  font-size: 22px !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+  margin: 0 0 28px 0 !important;
+  letter-spacing: -0.4px !important;
+}
+
+.dv-info-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 20px !important;
+  margin-bottom: 32px !important;
+}
+.dv-info-item {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 5px !important;
+}
+.dv-info-label {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  color: #FF5C0A !important;
+  letter-spacing: 1.2px !important;
+  margin: 0 !important;
+}
+.dv-info-value {
+  font-size: 14px !important;
+  color: #cccccc !important;
+  font-weight: 500 !important;
+  margin: 0 !important;
+  line-height: 1.5 !important;
+}
+.dv-value-large {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+}
+.dv-value-medium {
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  color: #ffffff !important;
+}
+.dv-divider {
+  height: 1px !important;
+  background: #1f1f1f !important;
+  margin: 4px 0 !important;
+}
+
+.dv-fotos {
+  display: flex !important;
+  gap: 10px !important;
+  flex-wrap: wrap !important;
+  margin-top: 4px !important;
+}
+.dv-foto {
+  width: 90px !important;
+  height: 90px !important;
+  object-fit: cover !important;
+  border-radius: 10px 10px 10px 10px !important;
+  border: 1px solid #2a2a2a !important;
+}
+
+.dv-actions {
+  display: flex !important;
+  gap: 12px !important;
+}
+.dv-btn-aprobar {
+  flex: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  padding: 14px !important;
+  background: rgba(34, 197, 94, 0.15) !important;
+  color: #22c55e !important;
+  border: 1px solid rgba(34, 197, 94, 0.3) !important;
+  border-radius: 12px 12px 12px 12px !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  transition: background 0.2s, transform 0.2s, box-shadow 0.2s !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+}
+.dv-btn-aprobar:hover {
+  background: rgba(34, 197, 94, 0.25) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(34, 197, 94, 0.2) !important;
+}
+.dv-btn-rechazar {
+  flex: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  padding: 14px !important;
+  background: rgba(239, 68, 68, 0.12) !important;
+  color: #f87171 !important;
+  border: 1px solid rgba(239, 68, 68, 0.25) !important;
+  border-radius: 12px 12px 12px 12px !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  transition: background 0.2s, transform 0.2s, box-shadow 0.2s !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+}
+.dv-btn-rechazar:hover {
+  background: rgba(239, 68, 68, 0.22) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.2) !important;
+}
+
+.dv-loading {
+  color: #666666 !important;
+  font-size: 15px !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  position: relative !important;
+}

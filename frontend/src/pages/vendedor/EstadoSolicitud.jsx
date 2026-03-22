@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
+import "../../styles/vendedor/EstadoSolicitud.css";
 
 function EstadoSolicitud() {
   const [local, setLocal] = useState(null);
@@ -21,80 +22,83 @@ function EstadoSolicitud() {
     obtener();
   }, []);
 
-  if (cargando) return <div className="p-10 text-gray-500">Cargando...</div>;
+  if (cargando) return (
+    <div className="es-wrap">
+      <div className="es-orbe es-orbe-1" />
+      <div className="es-orbe es-orbe-2" />
+      <p className="es-loading">Cargando...</p>
+    </div>
+  );
 
   if (!local) return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 text-center max-w-md w-full">
-        <p className="text-gray-600 mb-4">No tienes ninguna solicitud registrada.</p>
-        <button
-          onClick={() => navigate("/vendedor/solicitar")}
-          className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition"
-        >
+    <div className="es-wrap">
+      <div className="es-orbe es-orbe-1" />
+      <div className="es-orbe es-orbe-2" />
+      <div className="es-card">
+        <div className="es-card-top-border" />
+        <div className="es-empty-icon">
+          <svg viewBox="0 0 24 24" fill="none" width="32" height="32">
+            <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </div>
+        <p className="es-empty-text">No tienes ninguna solicitud registrada.</p>
+        <button onClick={() => navigate("/vendedor/solicitar")} className="es-btn">
+          <span className="es-btn-shimmer" />
           Solicitar Alta
         </button>
       </div>
     </div>
   );
 
-  // Determinar estado real
-  const estado = local.aprobado ? "aprobado" : local.rechazado ? "rechazado" : "pendiente";
+  const estadoConfig = {
+    true:  { texto: "Aprobado",  icono: "✅", clase: "es-badge-aprobado" },
+    false: { texto: "Pendiente", icono: "⏳", clase: "es-badge-pendiente" },
+  };
+
+  const config = estadoConfig[local.aprobado] || estadoConfig[false];
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">Estado de tu Solicitud</h2>
+    <div className="es-wrap">
+      <div className="es-orbe es-orbe-1" />
+      <div className="es-orbe es-orbe-2" />
 
-        {/* Banner de estado — solo se muestra si NO está aprobado */}
-        {estado === "pendiente" && (
-          <div className="border border-yellow-200 bg-yellow-50 rounded-xl p-4 mb-6">
-            <p className="text-yellow-700 font-bold text-lg">⏳ Solicitud enviada</p>
-            <p className="text-yellow-600 text-sm mt-1">
-              Tu solicitud fue recibida correctamente. Un administrador la revisará pronto.
-              Te notificaremos por correo electrónico cuando haya una respuesta.
+      <div className="es-card">
+        <div className="es-card-top-border" />
+
+        <h2 className="es-title">Estado de tu Solicitud</h2>
+
+        <div className={`es-badge ${config.clase}`}>
+          <span>{config.icono}</span>
+          <span>{config.texto}</span>
+          {!local.aprobado && (
+            <span className="es-badge-sub">Tu solicitud está siendo revisada por un administrador.</span>
+          )}
+        </div>
+
+        <div className="es-info-list">
+          <div className="es-info-item">
+            <p className="es-info-label">Nombre</p>
+            <p className="es-info-value">{local.nombre}</p>
+          </div>
+          <div className="es-info-item">
+            <p className="es-info-label">Descripción</p>
+            <p className="es-info-value">{local.descripcion}</p>
+          </div>
+          <div className="es-info-item">
+            <p className="es-info-label">Dirección</p>
+            <p className="es-info-value">
+              <svg viewBox="0 0 16 16" fill="none" width="13" height="13" style={{display:"inline",marginRight:"4px",verticalAlign:"middle"}}>
+                <path d="M8 1.5a4.5 4.5 0 00-4.5 4.5c0 3 4.5 8.5 4.5 8.5s4.5-5.5 4.5-8.5A4.5 4.5 0 008 1.5zm0 6a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" fill="#666"/>
+              </svg>
+              {local.direccion}
             </p>
-          </div>
-        )}
-
-        {estado === "rechazado" && (
-          <div className="border border-red-200 bg-red-50 rounded-xl p-4 mb-6">
-            <p className="text-red-700 font-bold text-lg">❌ Solicitud rechazada</p>
-            <p className="text-red-600 text-sm mt-1">
-              Tu solicitud no fue aprobada por el administrador. Puedes enviar una nueva
-              solicitud con información más completa o corregida.
-            </p>
-            <button
-              onClick={() => navigate("/vendedor/solicitar")}
-              className="mt-3 bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-600 transition"
-            >
-              Enviar nueva solicitud
-            </button>
-          </div>
-        )}
-
-        {/* Datos del local */}
-        <div className="space-y-3 mb-6">
-          <div>
-            <p className="text-gray-500 text-sm">Nombre</p>
-            <p className="font-semibold text-gray-800">{local.nombre}</p>
-          </div>
-          <div>
-            <p className="text-gray-500 text-sm">Descripción</p>
-            <p className="text-gray-700">{local.descripcion}</p>
-          </div>
-          <div>
-            <p className="text-gray-500 text-sm">Dirección</p>
-            <p className="text-gray-700">{local.direccion}</p>
           </div>
         </div>
 
-        {/* Botón solo si está aprobado */}
-        {estado === "aprobado" && (
-          <button
-            onClick={() => navigate("/vendedor/dashboard")}
-            className="w-full bg-green-500 text-white py-3 rounded-lg font-semibold hover:bg-green-600 transition"
-          >
-            Ir a mi Dashboard ✅
+        {local.aprobado && (
+          <button onClick={() => navigate("/vendedor/dashboard")} className="es-btn es-btn-green">
+            <span className="es-btn-shimmer" />
+            Ir a mi Dashboard
           </button>
         )}
       </div>

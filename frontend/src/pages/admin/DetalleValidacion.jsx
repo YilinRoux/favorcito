@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../services/api";
+import "../../styles/admin/DetalleValidacion.css";
+
+const BASE_URL = import.meta.env.VITE_API_URL || "http://192.168.1.132:5000";
 
 function DetalleValidacion() {
   const { id } = useParams();
@@ -31,60 +34,93 @@ function DetalleValidacion() {
     }
   };
 
-  if (cargando) return <div className="p-10 text-gray-500">Cargando...</div>;
+  if (cargando) return (
+    <div className="dv-wrap">
+      <div className="dv-orbe dv-orbe-1" /><div className="dv-orbe dv-orbe-2" />
+      <p className="dv-loading">Cargando...</p>
+    </div>
+  );
   if (!local) return null;
 
   return (
-    <div className="p-8 max-w-2xl mx-auto">
-      <button
-        onClick={() => navigate("/admin/validar")}
-        className="text-blue-500 hover:underline mb-6 block"
-      >
-        ← Volver
-      </button>
+    <div className="dv-wrap">
+      <div className="dv-orbe dv-orbe-1" />
+      <div className="dv-orbe dv-orbe-2" />
 
-      <div className="bg-white rounded-2xl shadow p-8">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">Detalle del Local</h2>
+      <div className="dv-container">
+        <button onClick={() => navigate("/admin/validar")} className="dv-back">
+          <svg viewBox="0 0 24 24" fill="none" width="16" height="16">
+            <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          Volver a solicitudes
+        </button>
 
-        <div className="space-y-4">
-          <div>
-            <p className="text-gray-500 text-sm">Nombre</p>
-            <p className="font-semibold text-gray-800 text-lg">{local.nombre}</p>
-          </div>
-          <div>
-            <p className="text-gray-500 text-sm">Descripción</p>
-            <p className="text-gray-700">{local.descripcion}</p>
-          </div>
-          <div>
-            <p className="text-gray-500 text-sm">Dirección</p>
-            <p className="text-gray-700">📍 {local.direccion}</p>
+        <div className="dv-card">
+          <div className="dv-card-top-border" />
+
+          <h2 className="dv-title">Detalle del Local</h2>
+
+          <div className="dv-info-list">
+            <div className="dv-info-item">
+              <p className="dv-info-label">NOMBRE</p>
+              <p className="dv-info-value dv-value-large">{local.nombre}</p>
+            </div>
+            <div className="dv-info-item">
+              <p className="dv-info-label">DESCRIPCIÓN</p>
+              <p className="dv-info-value">{local.descripcion}</p>
+            </div>
+            <div className="dv-info-item">
+              <p className="dv-info-label">DIRECCIÓN</p>
+              <p className="dv-info-value">
+                <svg viewBox="0 0 16 16" fill="none" width="13" height="13" style={{display:"inline", marginRight:"5px", verticalAlign:"middle"}}>
+                  <path d="M8 1.5a4.5 4.5 0 00-4.5 4.5c0 3 4.5 8.5 4.5 8.5s4.5-5.5 4.5-8.5A4.5 4.5 0 008 1.5zm0 6a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" fill="#666"/>
+                </svg>
+                {local.direccion}
+              </p>
+            </div>
+
+            <div className="dv-divider" />
+
+            <div className="dv-info-item">
+              <p className="dv-info-label">VENDEDOR</p>
+              <p className="dv-info-value dv-value-medium">{local.vendedor?.nombre_completo}</p>
+            </div>
+            <div className="dv-info-item">
+              <p className="dv-info-label">EMAIL DEL VENDEDOR</p>
+              <p className="dv-info-value">
+                <svg viewBox="0 0 16 16" fill="none" width="13" height="13" style={{display:"inline", marginRight:"5px", verticalAlign:"middle"}}>
+                  <path d="M2 4a1 1 0 011-1h10a1 1 0 011 1v8a1 1 0 01-1 1H3a1 1 0 01-1-1V4zm0 0l6 5 6-5" stroke="#666" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                {local.vendedor?.email}
+              </p>
+            </div>
+
+            {local.fotos?.length > 0 && (
+              <div className="dv-info-item">
+                <p className="dv-info-label">FOTOS</p>
+                <div className="dv-fotos">
+                  {local.fotos.map((foto, i) => (
+                    <img key={i} src={`${BASE_URL}${foto}`} className="dv-foto" />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
-          <hr />
-
-          <div>
-            <p className="text-gray-500 text-sm">Vendedor</p>
-            <p className="font-semibold text-gray-800">{local.vendedor?.nombre_completo}</p>
+          <div className="dv-actions">
+            <button onClick={() => handleDecision(true)} className="dv-btn-aprobar">
+              <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+              </svg>
+              Aprobar Local
+            </button>
+            <button onClick={() => handleDecision(false)} className="dv-btn-rechazar">
+              <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
+              </svg>
+              Rechazar Local
+            </button>
           </div>
-          <div>
-            <p className="text-gray-500 text-sm">Email del vendedor</p>
-            <p className="text-gray-700">{local.vendedor?.email}</p>
-          </div>
-        </div>
-
-        <div className="flex gap-4 mt-8">
-          <button
-            onClick={() => handleDecision(true)}
-            className="flex-1 bg-green-500 text-white py-3 rounded-lg font-semibold hover:bg-green-600 transition"
-          >
-            ✅ Aprobar
-          </button>
-          <button
-            onClick={() => handleDecision(false)}
-            className="flex-1 bg-red-500 text-white py-3 rounded-lg font-semibold hover:bg-red-600 transition"
-          >
-            ❌ Rechazar
-          </button>
         </div>
       </div>
     </div>
