@@ -17,6 +17,7 @@ import ConfirmarPedido from "./pages/estudiante/ConfirmarPedido";
 import MisPedidos from "./pages/estudiante/MisPedidos";
 import RastreoPedido from "./pages/estudiante/RastreoPedido";
 import CalificarPedido from "./pages/estudiante/CalificarPedido";
+import Onboarding from "./pages/estudiante/Onboarding";
 
 /* VENDEDOR */
 import DashboardVendedor from "./pages/vendedor/DashboardVendedor";
@@ -74,6 +75,7 @@ function App() {
         <Route path="/rastreo/:id" element={<RastreoPedido />} />
         <Route path="/calificar/:id" element={<CalificarPedido />} />
         <Route path="/perfil" element={<Perfil />} />
+        <Route path="/onboarding" element={<Onboarding />} />
 
         {/* VENDEDOR */}
         <Route path="/vendedor/dashboard" element={<DashboardVendedor />} />

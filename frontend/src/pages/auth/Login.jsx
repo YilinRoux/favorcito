@@ -28,10 +28,11 @@ export default function Login() {
       return;
     }
     try {
-      const res = await api.post("/auth/login", { email, password });
+     const res = await api.post("/auth/login", { email, password });
       login(res.data);
-      const rol = res.data.usuario.rol;
-      if (rol === "estudiante") navigate("/perfil");
+      const { rol, onboardingCompletado } = res.data.usuario;
+      if (rol === "estudiante" && !onboardingCompletado) navigate("/onboarding");
+      else if (rol === "estudiante") navigate("/perfil");
       else if (rol === "vendedor") navigate("/vendedor/dashboard");
       else if (rol === "admin") navigate("/admin/dashboard");
       else navigate("/");

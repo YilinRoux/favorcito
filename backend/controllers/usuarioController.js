@@ -1,4 +1,5 @@
 import Usuario from "../models/Usuario.js";
+import { CATEGORIAS } from "../config/categorias.js";
 
 export const obtenerUsuarios = async (req, res) => {
   try {
@@ -51,5 +52,41 @@ export const reactivarUsuario = async (req, res) => {
     res.json({ mensaje: "Usuario reactivado correctamente" });
   } catch (error) {
     res.status(500).json({ mensaje: "Error al reactivar usuario", error: error.message });
+  }
+};
+
+export const guardarPreferencias = async (req, res) => {
+  try {
+    const { preferencias } = req.body;
+
+    if (!Array.isArray(preferencias) || preferencias.length === 0) {
+      return res.status(400).json({ mensaje: "Debes seleccionar al menos una categoría" });
+    }
+
+    const invalidas = preferencias.filter((c) => !CATEGORIAS.includes(c));
+    if (invalidas.length > 0) {
+      return res.status(400).json({ mensaje: "Categorías inválidas", invalidas });
+    }
+
+    const usuario = await Usuario.findById(req.usuario._id);
+    usuario.preferencias = preferencias;
+    usuario.onboardingCompletado = true;
+    await usuario.save();
+
+    res.json({ mensaje: "Preferencias guardadas correctamente", preferencias: usuario.preferencias });
+  } catch (error) {
+    res.status(500).json({ mensaje: "Error al guardar preferencias", error: error.message });
+  }
+};
+
+export const obtenerPreferencias = async (req, res) => {
+  try {
+    const usuario = await Usuario.findById(req.usuario._id);
+    res.json({
+      preferencias: usuario.preferencias,
+      onboardingCompletado: usuario.onboardingCompletado,
+    });
+  } catch (error) {
+    res.status(500).json({ mensaje: "Error al obtener preferencias", error: error.message });
   }
 };

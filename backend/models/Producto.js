@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { CATEGORIAS } from "../config/categorias.js";
 
 const productoSchema = new mongoose.Schema(
   {
@@ -27,6 +28,12 @@ const productoSchema = new mongoose.Schema(
 
     imagen: {
       type: String,
+    },
+
+    categoria: {
+      type: String,
+      enum: CATEGORIAS,
+      default: "Otro",
     },
 
     local: {

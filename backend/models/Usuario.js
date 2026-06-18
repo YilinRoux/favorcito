@@ -53,6 +53,15 @@ const usuarioSchema = new mongoose.Schema(
       default: false,
     },
 
+    preferencias: {
+      type: [String],
+      default: [],
+    },
+    onboardingCompletado: {
+      type: Boolean,
+      default: false,
+    },
+
     local: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Local",

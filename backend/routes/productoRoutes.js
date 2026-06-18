@@ -6,7 +6,9 @@ import {
   obtenerProductosPorLocal,
   editarProducto,
   eliminarProducto,
-  toggleProducto
+  toggleProducto,
+   obtenerCategorias,
+  obtenerProductosRecomendados,
 } from "../controllers/productoController.js";
 import { upload } from "../config/multer.js";
 
@@ -48,5 +50,6 @@ router.delete(
   autorizarRoles("vendedor"),
   eliminarProducto
 );
+
 
 export default router;

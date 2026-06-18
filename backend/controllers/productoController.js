@@ -1,9 +1,11 @@
 import Producto from "../models/Producto.js";
 import Local from "../models/Local.js";
+import Pedido from "../models/Pedido.js";
+import { CATEGORIAS } from "../config/categorias.js";
 
 export const crearProducto = async (req, res) => {
   try {
-    const { nombre, descripcion, precio, stock, localId } = req.body;
+    const { nombre, descripcion, precio, stock, localId, categoria } = req.body;
 
     const local = await Local.findById(localId);
 
@@ -32,6 +34,7 @@ export const crearProducto = async (req, res) => {
       stock,
       imagen,
       local: localId,
+      categoria, // si no se manda, usa el default "Otro"
     });
 
     await nuevoProducto.save();
@@ -70,7 +73,7 @@ export const obtenerProductosPorLocal = async (req, res) => {
 export const editarProducto = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, descripcion, precio, stock } = req.body;
+    const { nombre, descripcion, precio, stock, categoria } = req.body;
 
     const producto = await Producto.findById(id).populate("local");
 
@@ -85,6 +88,7 @@ export const editarProducto = async (req, res) => {
     if (precio) producto.precio = precio;
     if (stock) producto.stock = stock;
     if (req.file) producto.imagen = `/uploads/${req.file.filename}`;
+    if (categoria) producto.categoria = categoria;
 
     await producto.save();
 
@@ -114,6 +118,7 @@ export const eliminarProducto = async (req, res) => {
     res.status(500).json({ mensaje: "Error al eliminar producto", error: error.message });
   }
 };
+
 export const toggleProducto = async (req, res) => {
   try {
     const { id } = req.params;
@@ -132,5 +137,50 @@ export const toggleProducto = async (req, res) => {
     res.json({ mensaje: `Producto ${producto.activo ? "activado" : "desactivado"}`, producto });
   } catch (error) {
     res.status(500).json({ mensaje: "Error al cambiar estado", error: error.message });
+  }
+};
+
+export const obtenerCategorias = (req, res) => {
+  res.json({ categorias: CATEGORIAS });
+};
+
+export const obtenerProductosRecomendados = async (req, res) => {
+  try {
+    const preferencias = req.usuario.preferencias || [];
+
+    // Data Mining: contar cuántas veces se ha pedido cada producto
+    const popularidad = await Pedido.aggregate([
+      { $unwind: "$productos" },
+      {
+        $group: {
+          _id: "$productos.producto",
+          totalPedido: { $sum: "$productos.cantidad" },
+        },
+      },
+    ]);
+
+    const mapaPopularidad = {};
+    popularidad.forEach((p) => {
+      mapaPopularidad[p._id.toString()] = p.totalPedido;
+    });
+
+    const productos = await Producto.find({ activo: true }).populate("local");
+
+    const productosConScore = productos.map((producto) => {
+      const esFavorito = preferencias.includes(producto.categoria);
+      const popularidadProducto = mapaPopularidad[producto._id.toString()] || 0;
+      // Bonus fuerte si coincide con preferencia + suma de popularidad real
+      const score = (esFavorito ? 1000 : 0) + popularidadProducto;
+      return { producto, score };
+    });
+
+    productosConScore.sort((a, b) => b.score - a.score);
+
+    res.json(productosConScore.map((p) => p.producto));
+  } catch (error) {
+    res.status(500).json({
+      mensaje: "Error al obtener recomendaciones",
+      error: error.message,
+    });
   }
 };

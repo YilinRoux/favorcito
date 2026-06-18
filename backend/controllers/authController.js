@@ -213,6 +213,7 @@ export const login = async (req, res) => {
         nombre: usuario.nombre_completo,
         email: usuario.email,
         rol: usuario.rol,
+        onboardingCompletado: usuario.onboardingCompletado,
       },
     });
   } catch (error) {
