@@ -49,6 +49,91 @@ export const obtenerEstadisticas = async (req, res) => {
     res.status(500).json({ mensaje: "Error al obtener estadísticas", error: error.message });
   }
 };
+
+// 🔹 Data Mining: patrones agregados de todo el sistema (productos, categorías,
+// horarios y días con más demanda). Alimenta el dashboard de admin y, a futuro,
+// sirve de base para el modelo de predicción de demanda (Machine Learning).
+export const obtenerInsightsDataMining = async (req, res) => {
+  try {
+    // 1. Productos más vendidos (unidades totales en pedidos entregados)
+    const productosMasVendidos = await Pedido.aggregate([
+      { $match: { estado: "entregado" } },
+      { $unwind: "$productos" },
+      {
+        $group: {
+          _id: "$productos.producto",
+          nombre: { $first: "$productos.nombre" },
+          unidadesVendidas: { $sum: "$productos.cantidad" },
+        },
+      },
+      { $sort: { unidadesVendidas: -1 } },
+      { $limit: 5 },
+    ]);
+
+    // 2. Categorías más populares (join con Producto para conocer su categoría)
+    const categoriasPopulares = await Pedido.aggregate([
+      { $match: { estado: "entregado" } },
+      { $unwind: "$productos" },
+      {
+        $lookup: {
+          from: "productos",
+          localField: "productos.producto",
+          foreignField: "_id",
+          as: "productoInfo",
+        },
+      },
+      { $unwind: "$productoInfo" },
+      {
+        $group: {
+          _id: "$productoInfo.categoria",
+          unidadesVendidas: { $sum: "$productos.cantidad" },
+        },
+      },
+      { $sort: { unidadesVendidas: -1 } },
+    ]);
+
+    // 3. Horarios pico: mismos buckets que usamos en el onboarding
+    // (mañana 6-12, mediodía 12-18, tarde 18-6) para poder cruzar ambos datasets
+    const horariosPico = await Pedido.aggregate([
+      { $project: { hora: { $hour: "$createdAt" } } },
+      {
+        $group: {
+          _id: {
+            $switch: {
+              branches: [
+                { case: { $and: [{ $gte: ["$hora", 6] }, { $lt: ["$hora", 12] }] }, then: "manana" },
+                { case: { $and: [{ $gte: ["$hora", 12] }, { $lt: ["$hora", 18] }] }, then: "mediodia" },
+              ],
+              default: "tarde",
+            },
+          },
+          totalPedidos: { $sum: 1 },
+        },
+      },
+      { $sort: { totalPedidos: -1 } },
+    ]);
+
+    // 4. Día de la semana con más pedidos
+    const diasPopulares = await Pedido.aggregate([
+      { $group: { _id: { $dayOfWeek: "$createdAt" }, totalPedidos: { $sum: 1 } } },
+      { $sort: { totalPedidos: -1 } },
+    ]);
+    const nombresDias = ["", "Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+    const diasFormateados = diasPopulares.map((d) => ({
+      dia: nombresDias[d._id],
+      totalPedidos: d.totalPedidos,
+    }));
+
+    res.json({
+      productosMasVendidos,
+      categoriasPopulares,
+      horariosPico,
+      diasPopulares: diasFormateados,
+    });
+  } catch (error) {
+    res.status(500).json({ mensaje: "Error al obtener insights", error: error.message });
+  }
+};
 export const obtenerUsuarios = async (req, res) => {
   try {
     const usuarios = await Usuario.find()

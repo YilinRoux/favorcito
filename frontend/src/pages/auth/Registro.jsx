@@ -97,7 +97,7 @@ function Registro() {
                 </svg>
               </div>
               <div className="rg-role-content">
-                <span className="rg-role-label">Estudiante</span>
+                <span className="rg-role-label">Estudiahambre</span>
                 <span className="rg-role-desc">Pide favores y recibe pedidos</span>
               </div>
               <svg className="rg-role-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
@@ -254,11 +254,15 @@ function Registro() {
                 onChange={(e) => setAñoAcademico(e.target.value)}
                 className="rg-select"
               >
-                <option value="">Selecciona tu año</option>
+                <option value="">Selecciona tu cuatrimestre</option>
                 <option value="1">1er año</option>
                 <option value="2">2do año</option>
                 <option value="3">3er año</option>
                 <option value="4">4to año</option>
+                <option value="5">5to año</option>
+                <option value="6">6to año</option>
+                <option value="7">7to año</option>
+                <option value="8">8to año</option>
               </select>
             </div>
           )}

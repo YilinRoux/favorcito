@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import "../../styles/estudiante/Perfil.css";
@@ -35,8 +35,13 @@ function Perfil() {
     navigate("/login");
   };
 
+  useEffect(() => {
+    if (!usuario) {
+      navigate("/login");
+    }
+  }, [usuario, navigate]);
+
   if (!usuario) {
-    navigate("/login");
     return null;
   }
 

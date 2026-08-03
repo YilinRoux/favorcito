@@ -1,5 +1,6 @@
 import Local from "../models/Local.js";
 import { enviarNotificacionLocal } from "../services/emailService.js";
+import { entrenarModeloLocal, obtenerPrediccionLocal } from "../services/mlService.js";
 
 // Crear solicitud de local (solo vendedor)
 export const crearLocal = async (req, res) => {
@@ -157,6 +158,37 @@ export const obtenerMiLocal = async (req, res) => {
     res.json(local);
   } catch (error) {
     res.status(500).json({ mensaje: "Error al obtener local", error: error.message });
+  }
+};
+
+// 🔹 Machine Learning: predicción de demanda para mañana, para el local del
+// vendedor autenticado. Si el modelo aún no ha sido entrenado, lo entrena
+// automáticamente en este mismo request (el primer llamado tarda un poco más).
+export const obtenerPrediccionMiLocal = async (req, res) => {
+  try {
+    const local = await Local.findOne({ vendedor: req.usuario._id });
+    if (!local) {
+      return res.status(404).json({ mensaje: "No tienes un local registrado" });
+    }
+
+    try {
+      const prediccion = await obtenerPrediccionLocal(local._id.toString());
+      return res.json(prediccion);
+    } catch (err) {
+      if (err.status !== 404) throw err;
+      // Aún no existe un modelo entrenado para este local: lo entrenamos ahora.
+      await entrenarModeloLocal(local._id.toString());
+      const prediccion = await obtenerPrediccionLocal(local._id.toString());
+      return res.json(prediccion);
+    }
+  } catch (error) {
+    const status = error.status && error.status !== 500 ? error.status : 500;
+    res.status(status).json({
+      mensaje: status === 400
+        ? error.message
+        : "Error al obtener la predicción. ¿Está corriendo el microservicio de ML?",
+      error: error.message,
+    });
   }
 };
 

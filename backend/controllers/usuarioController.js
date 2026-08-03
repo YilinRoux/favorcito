@@ -70,7 +70,6 @@ export const guardarPreferencias = async (req, res) => {
 
     const usuario = await Usuario.findById(req.usuario._id);
     usuario.preferencias = preferencias;
-    usuario.onboardingCompletado = true;
     await usuario.save();
 
     res.json({ mensaje: "Preferencias guardadas correctamente", preferencias: usuario.preferencias });
@@ -79,11 +78,48 @@ export const guardarPreferencias = async (req, res) => {
   }
 };
 
+export const guardarHabitos = async (req, res) => {
+  try {
+    const { horario, presupuesto, restricciones } = req.body;
+
+    const horariosValidos = ["manana", "mediodia", "tarde"];
+    const presupuestosValidos = ["menos_30", "30_60", "mas_60"];
+
+    if (!horariosValidos.includes(horario)) {
+      return res.status(400).json({ mensaje: "Horario inválido" });
+    }
+    if (!presupuestosValidos.includes(presupuesto)) {
+      return res.status(400).json({ mensaje: "Presupuesto inválido" });
+    }
+    if (restricciones && !Array.isArray(restricciones)) {
+      return res.status(400).json({ mensaje: "Restricciones inválidas" });
+    }
+
+    const usuario = await Usuario.findById(req.usuario._id);
+    usuario.habitosCompra = {
+      horario,
+      presupuesto,
+      restricciones: restricciones || [],
+    };
+    usuario.onboardingCompletado = true;
+    await usuario.save();
+
+    res.json({
+      mensaje: "Hábitos guardados correctamente",
+      habitosCompra: usuario.habitosCompra,
+      onboardingCompletado: usuario.onboardingCompletado,
+    });
+  } catch (error) {
+    res.status(500).json({ mensaje: "Error al guardar hábitos", error: error.message });
+  }
+};
+
 export const obtenerPreferencias = async (req, res) => {
   try {
     const usuario = await Usuario.findById(req.usuario._id);
     res.json({
       preferencias: usuario.preferencias,
+      habitosCompra: usuario.habitosCompra,
       onboardingCompletado: usuario.onboardingCompletado,
     });
   } catch (error) {

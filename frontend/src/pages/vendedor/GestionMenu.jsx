@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../../services/api";
 import "../../styles/vendedor/GestionMenu.css";
 
-const BASE_URL = import.meta.env.VITE_API_URL || "http://192.168.1.132:5000";
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 function GestionMenu() {
   const [productos, setProductos] = useState([]);
@@ -15,6 +15,8 @@ function GestionMenu() {
   const [descripcion, setDescripcion] = useState("");
   const [precio, setPrecio] = useState("");
   const [stock, setStock] = useState("");
+  const [categoria, setCategoria] = useState("Otro");
+  const [categorias, setCategorias] = useState([]);
   const [imagen, setImagen] = useState(null);
   const [preview, setPreview] = useState(null);
 
@@ -37,6 +39,19 @@ function GestionMenu() {
     cargar();
   }, []);
 
+  useEffect(() => {
+    const cargarCategorias = async () => {
+      try {
+        const res = await api.get("/productos/categorias");
+        setCategorias(res.data.categorias);
+      } catch {
+        // No bloqueamos el formulario si esto falla; se usa el default "Otro"
+        setCategorias([]);
+      }
+    };
+    cargarCategorias();
+  }, []);
+
   const handleImagen = (e) => {
     const file = e.target.files[0];
     setImagen(file);
@@ -57,6 +72,7 @@ function GestionMenu() {
       formData.append("precio", Number(precio));
       formData.append("stock", Number(stock));
       formData.append("localId", local._id);
+      formData.append("categoria", categoria);
       if (imagen) formData.append("imagen", imagen);
       const res = await api.post("/productos", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -64,6 +80,7 @@ function GestionMenu() {
       setProductos((prev) => [...prev, res.data.producto]);
       setMensaje("Producto agregado correctamente");
       setNombre(""); setDescripcion(""); setPrecio(""); setStock("");
+      setCategoria("Otro");
       setImagen(null); setPreview(null);
     } catch (err) {
       setError(err.response?.data?.mensaje || "Error al crear producto");
@@ -76,6 +93,7 @@ function GestionMenu() {
     setDescripcion(producto.descripcion || "");
     setPrecio(producto.precio);
     setStock(producto.stock);
+    setCategoria(producto.categoria || "Otro");
     setPreview(producto.imagen ? `${BASE_URL}${producto.imagen}` : null);
     setMenuAbierto(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -90,6 +108,7 @@ function GestionMenu() {
       formData.append("descripcion", descripcion);
       formData.append("precio", Number(precio));
       formData.append("stock", Number(stock));
+      formData.append("categoria", categoria);
       if (imagen) formData.append("imagen", imagen);
       const res = await api.put(`/productos/${editando._id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -98,6 +117,7 @@ function GestionMenu() {
       setMensaje("Producto actualizado correctamente");
       setEditando(null);
       setNombre(""); setDescripcion(""); setPrecio(""); setStock("");
+      setCategoria("Otro");
       setImagen(null); setPreview(null);
     } catch (err) {
       setError(err.response?.data?.mensaje || "Error al editar producto");
@@ -124,6 +144,7 @@ function GestionMenu() {
   const cancelarEdicion = () => {
     setEditando(null);
     setNombre(""); setDescripcion(""); setPrecio(""); setStock("");
+    setCategoria("Otro");
     setImagen(null); setPreview(null);
   };
 
@@ -195,6 +216,18 @@ function GestionMenu() {
               <label className="gm-label">DESCRIPCIÓN</label>
               <input type="text" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} className="gm-input" placeholder="Opcional"/>
             </div>
+            <div className="gm-field">
+              <label className="gm-label">CATEGORÍA</label>
+              <select value={categoria} onChange={(e) => setCategoria(e.target.value)} className="gm-input">
+                {categorias.length > 0 ? (
+                  categorias.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))
+                ) : (
+                  <option value="Otro">Otro</option>
+                )}
+              </select>
+            </div>
             <div className="gm-row">
               <div className="gm-field">
                 <label className="gm-label">PRECIO ($)</label>
@@ -260,6 +293,7 @@ function GestionMenu() {
                     {!producto.activo && <span className="gm-badge-inactivo">Desactivado</span>}
                   </div>
                   {producto.descripcion && <p className="gm-producto-desc">{producto.descripcion}</p>}
+                  {producto.categoria && <p className="gm-producto-categoria">{producto.categoria}</p>}
                   <p className="gm-producto-precio">${producto.precio}</p>
                   <p className="gm-producto-stock">Stock: {producto.stock}</p>
                 </div>

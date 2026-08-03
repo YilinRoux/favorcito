@@ -14,6 +14,7 @@ import {
 import {
   obtenerResumen,
   obtenerEstadisticas,
+  obtenerInsightsDataMining,
 } from "../controllers/adminController.js";
 import { obtenerReportes, resolverReporte } from "../controllers/reporteController.js";
 
@@ -33,6 +34,7 @@ router.put("/aprobar/:id", protegerRuta, soloAdmin, aprobarLocal);
 // Resumen y estadísticas
 router.get("/resumen", protegerRuta, soloAdmin, obtenerResumen);
 router.get("/estadisticas", protegerRuta, soloAdmin, obtenerEstadisticas);
+router.get("/insights", protegerRuta, soloAdmin, obtenerInsightsDataMining);
 
 // Reportes
 router.get("/reportes", protegerRuta, soloAdmin, obtenerReportes);

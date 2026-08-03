@@ -40,8 +40,8 @@ export default function Onboarding() {
     setError("");
     try {
       await api.put("/usuarios/preferencias", { preferencias: seleccionadas });
-      actualizarUsuario({ onboardingCompletado: true, preferencias: seleccionadas });
-      navigate("/perfil");
+      actualizarUsuario({ preferencias: seleccionadas });
+      navigate("/onboarding/habitos");
     } catch (err) {
       setError(err.response?.data?.mensaje || "Error al guardar tus preferencias");
     } finally {
@@ -67,6 +67,7 @@ export default function Onboarding() {
           <span className="ob-logo-text">Favorcito</span>
         </div>
 
+        <p className="ob-paso">Paso 1 de 3</p>
         <h2 className="ob-title">¿Qué te gusta pedir?</h2>
         <p className="ob-subtitle">
           Elige tus favoritos para mostrarte mejores recomendaciones

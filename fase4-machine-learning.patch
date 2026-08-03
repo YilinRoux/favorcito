@@ -1,0 +1,428 @@
+diff --git a/backend/controllers/localController.js b/backend/controllers/localController.js
+index debccbd..c3194fc 100644
+--- a/backend/controllers/localController.js
++++ b/backend/controllers/localController.js
+@@ -1,5 +1,6 @@
+ import Local from "../models/Local.js";
+ import { enviarNotificacionLocal } from "../services/emailService.js";
++import { entrenarModeloLocal, obtenerPrediccionLocal } from "../services/mlService.js";
+ 
+ // Crear solicitud de local (solo vendedor)
+ export const crearLocal = async (req, res) => {
+@@ -160,6 +161,37 @@ export const obtenerMiLocal = async (req, res) => {
+   }
+ };
+ 
++// 🔹 Machine Learning: predicción de demanda para mañana, para el local del
++// vendedor autenticado. Si el modelo aún no ha sido entrenado, lo entrena
++// automáticamente en este mismo request (el primer llamado tarda un poco más).
++export const obtenerPrediccionMiLocal = async (req, res) => {
++  try {
++    const local = await Local.findOne({ vendedor: req.usuario._id });
++    if (!local) {
++      return res.status(404).json({ mensaje: "No tienes un local registrado" });
++    }
++
++    try {
++      const prediccion = await obtenerPrediccionLocal(local._id.toString());
++      return res.json(prediccion);
++    } catch (err) {
++      if (err.status !== 404) throw err;
++      // Aún no existe un modelo entrenado para este local: lo entrenamos ahora.
++      await entrenarModeloLocal(local._id.toString());
++      const prediccion = await obtenerPrediccionLocal(local._id.toString());
++      return res.json(prediccion);
++    }
++  } catch (error) {
++    const status = error.status && error.status !== 500 ? error.status : 500;
++    res.status(status).json({
++      mensaje: status === 400
++        ? error.message
++        : "Error al obtener la predicción. ¿Está corriendo el microservicio de ML?",
++      error: error.message,
++    });
++  }
++};
++
+ export const obtenerPendientes = async (req, res) => {
+   try {
+     const locales = await Local.find({ aprobado: false })
+diff --git a/backend/routes/localRoutes.js b/backend/routes/localRoutes.js
+index f6c1801..d3b1df7 100644
+--- a/backend/routes/localRoutes.js
++++ b/backend/routes/localRoutes.js
+@@ -6,6 +6,7 @@ import {
+   aprobarLocal,
+   obtenerLocales,
+   obtenerMiLocal,
++  obtenerPrediccionMiLocal,
+   obtenerPendientes,
+   obtenerLocalPublico, // ✅ Cambiado aquí
+   actualizarPromocion,
+@@ -33,6 +34,14 @@ router.get(
+   obtenerMiLocal
+ );
+ 
++// 🔹 Predicción de demanda para mañana (Machine Learning) (Vendedor)
++router.get(
++  "/mi-local/prediccion",
++  protegerRuta,
++  autorizarRoles("vendedor"),
++  obtenerPrediccionMiLocal
++);
++
+ // 🔹 Actualizar promoción (Vendedor)
+ router.put(
+   "/mi-local/promocion",
+diff --git a/backend/services/mlService.js b/backend/services/mlService.js
+new file mode 100644
+index 0000000..7f94746
+--- /dev/null
++++ b/backend/services/mlService.js
+@@ -0,0 +1,27 @@
++// Puente entre el backend Node y el microservicio de Machine Learning (Python).
++// El backend nunca entrena ni predice directamente: solo le pide al
++// microservicio, igual que le pediría a cualquier otra API externa.
++
++const ML_SERVICE_URL = process.env.ML_SERVICE_URL || "http://localhost:8000";
++
++export const entrenarModeloLocal = async (localId) => {
++  const res = await fetch(`${ML_SERVICE_URL}/entrenar/${localId}`, { method: "POST" });
++  const data = await res.json();
++  if (!res.ok) {
++    const error = new Error(data.detail || "Error al entrenar el modelo");
++    error.status = res.status;
++    throw error;
++  }
++  return data;
++};
++
++export const obtenerPrediccionLocal = async (localId) => {
++  const res = await fetch(`${ML_SERVICE_URL}/prediccion/${localId}`);
++  const data = await res.json();
++  if (!res.ok) {
++    const error = new Error(data.detail || "Error al obtener la predicción");
++    error.status = res.status;
++    throw error;
++  }
++  return data;
++};
+diff --git a/ml-service/.env.example b/ml-service/.env.example
+new file mode 100644
+index 0000000..605198f
+--- /dev/null
++++ b/ml-service/.env.example
+@@ -0,0 +1,4 @@
++# Debe apuntar a LA MISMA base de datos que usa tu backend Node
++# (revisa el valor de MONGO_URI en backend/.env)
++MONGO_URI=mongodb://localhost:27017/miapp
++PORT=8000
+diff --git a/ml-service/app.py b/ml-service/app.py
+new file mode 100644
+index 0000000..034de87
+--- /dev/null
++++ b/ml-service/app.py
+@@ -0,0 +1,225 @@
++"""
++Microservicio de Machine Learning para Favorcito.
++
++Entrena y sirve un modelo de REGRESIÓN LINEAL (aprendizaje supervisado) que
++predice cuántas unidades venderá un local al día siguiente, usando como
++variables de entrada el día de la semana y una variable de tendencia
++(qué tan lejos está esa fecha del inicio del historial).
++
++Este servicio vive separado del backend Node porque el ecosistema de
++Machine Learning en Python (scikit-learn, pandas) es mucho más maduro que
++el de Node para este tipo de tareas. El backend Node le pide predicciones
++a este servicio vía HTTP, igual que le pediría a cualquier otra API.
++"""
++
++import os
++from datetime import datetime, timedelta, timezone
++
++import joblib
++import pandas as pd
++from bson import ObjectId
++from dotenv import load_dotenv
++from fastapi import FastAPI, HTTPException
++from fastapi.middleware.cors import CORSMiddleware
++from pymongo import MongoClient
++from sklearn.linear_model import LinearRegression
++
++load_dotenv()
++
++MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/miapp")
++MODELOS_DIR = os.path.join(os.path.dirname(__file__), "modelos")
++os.makedirs(MODELOS_DIR, exist_ok=True)
++
++DIAS_MINIMOS_PARA_ENTRENAR = 5  # menos que esto, el modelo no es confiable
++
++cliente = MongoClient(MONGO_URI)
++db = cliente.get_default_database()
++
++app = FastAPI(title="Favorcito ML Service", version="1.0.0")
++
++app.add_middleware(
++    CORSMiddleware,
++    allow_origins=["*"],  # este servicio solo lo consume el backend Node, no el navegador
++    allow_methods=["*"],
++    allow_headers=["*"],
++)
++
++
++def _dow_mongo_de_manana() -> int:
++    """
++    Convierte el día de la semana de Python (lunes=0..domingo=6) al mismo
++    formato que usa el operador $dayOfWeek de MongoDB (domingo=1..sábado=7),
++    para el día de MAÑANA respecto a ahorita.
++    """
++    manana = datetime.now(timezone.utc) + timedelta(days=1)
++    python_dow = manana.weekday()  # lunes=0 .. domingo=6
++    return ((python_dow + 1) % 7) + 1
++
++
++def _obtener_datos_diarios(local_id: str) -> pd.DataFrame:
++    """Unidades vendidas por día para un local, agrupadas y ordenadas por fecha."""
++    pipeline = [
++        {"$match": {"local": ObjectId(local_id)}},
++        {"$unwind": "$productos"},
++        {
++            "$project": {
++                "fecha": {"$dateToString": {"format": "%Y-%m-%d", "date": "$createdAt"}},
++                "diaSemana": {"$dayOfWeek": "$createdAt"},
++                "cantidad": "$productos.cantidad",
++            }
++        },
++        {
++            "$group": {
++                "_id": {"fecha": "$fecha", "diaSemana": "$diaSemana"},
++                "totalUnidades": {"$sum": "$cantidad"},
++            }
++        },
++        {"$sort": {"_id.fecha": 1}},
++    ]
++    filas = list(db.pedidos.aggregate(pipeline))
++    if not filas:
++        return pd.DataFrame(columns=["fecha", "dia_semana", "total_unidades"])
++
++    return pd.DataFrame(
++        [
++            {
++                "fecha": f["_id"]["fecha"],
++                "dia_semana": f["_id"]["diaSemana"],
++                "total_unidades": f["totalUnidades"],
++            }
++            for f in filas
++        ]
++    )
++
++
++def _obtener_participacion_productos(local_id: str, top_n: int = 5) -> list[dict]:
++    """
++    Qué porcentaje de las unidades históricas corresponde a cada producto.
++    Se usa para repartir la predicción total del local entre sus productos.
++    """
++    pipeline = [
++        {"$match": {"local": ObjectId(local_id)}},
++        {"$unwind": "$productos"},
++        {
++            "$group": {
++                "_id": "$productos.producto",
++                "nombre": {"$first": "$productos.nombre"},
++                "unidades": {"$sum": "$productos.cantidad"},
++            }
++        },
++        {"$sort": {"unidades": -1}},
++        {"$limit": top_n},
++    ]
++    filas = list(db.pedidos.aggregate(pipeline))
++    total = sum(f["unidades"] for f in filas) or 1
++    return [
++        {"nombre": f["nombre"], "participacion": round(f["unidades"] / total, 4)}
++        for f in filas
++    ]
++
++
++def _construir_features(df: pd.DataFrame) -> pd.DataFrame:
++    """Convierte día_semana en columnas one-hot (dow_1..dow_7) + variable de tendencia."""
++    df = df.copy()
++    df["trend"] = range(len(df))
++    dow_dummies = pd.get_dummies(df["dia_semana"], prefix="dow")
++    for i in range(1, 8):
++        col = f"dow_{i}"
++        if col not in dow_dummies.columns:
++            dow_dummies[col] = 0
++    dow_dummies = dow_dummies[[f"dow_{i}" for i in range(1, 8)]]
++    return pd.concat([df[["trend"]], dow_dummies], axis=1)
++
++
++def _ruta_modelo(local_id: str) -> str:
++    return os.path.join(MODELOS_DIR, f"{local_id}.pkl")
++
++
++@app.get("/health")
++def health():
++    return {"status": "ok"}
++
++
++@app.post("/entrenar/{local_id}")
++def entrenar(local_id: str):
++    try:
++        ObjectId(local_id)
++    except Exception:
++        raise HTTPException(status_code=400, detail="local_id inválido")
++
++    df = _obtener_datos_diarios(local_id)
++
++    if len(df) < DIAS_MINIMOS_PARA_ENTRENAR:
++        raise HTTPException(
++            status_code=400,
++            detail=(
++                f"No hay suficiente historial para entrenar un modelo confiable. "
++                f"Se necesitan al menos {DIAS_MINIMOS_PARA_ENTRENAR} días con pedidos "
++                f"y este local tiene {len(df)}."
++            ),
++        )
++
++    X = _construir_features(df)
++    y = df["total_unidades"]
++
++    modelo = LinearRegression()
++    modelo.fit(X, y)
++    r2 = modelo.score(X, y)
++
++    participacion_productos = _obtener_participacion_productos(local_id)
++
++    joblib.dump(
++        {
++            "modelo": modelo,
++            "columnas": list(X.columns),
++            "trend_siguiente": len(df),
++            "muestras": len(df),
++            "r2": r2,
++            "participacion_productos": participacion_productos,
++            "entrenado_en": datetime.now(timezone.utc).isoformat(),
++        },
++        _ruta_modelo(local_id),
++    )
++
++    return {
++        "mensaje": "Modelo entrenado correctamente",
++        "muestras_usadas": len(df),
++        "r2": round(r2, 3),
++    }
++
++
++@app.get("/prediccion/{local_id}")
++def prediccion(local_id: str):
++    ruta = _ruta_modelo(local_id)
++    if not os.path.exists(ruta):
++        raise HTTPException(
++            status_code=404,
++            detail="Este local no tiene un modelo entrenado. Llama primero a /entrenar/{local_id}.",
++        )
++
++    datos = joblib.load(ruta)
++    modelo: LinearRegression = datos["modelo"]
++
++    dow_manana = _dow_mongo_de_manana()
++    fila = {"trend": datos["trend_siguiente"]}
++    for i in range(1, 8):
++        fila[f"dow_{i}"] = 1 if i == dow_manana else 0
++
++    X_manana = pd.DataFrame([fila])[datos["columnas"]]
++    prediccion_total = max(0, round(float(modelo.predict(X_manana)[0])))
++
++    desglose = [
++        {
++            "producto": p["nombre"],
++            "unidades_estimadas": round(prediccion_total * p["participacion"]),
++        }
++        for p in datos["participacion_productos"]
++    ]
++
++    return {
++        "local_id": local_id,
++        "unidades_estimadas_manana": prediccion_total,
++        "desglose_por_producto": desglose,
++        "modelo_entrenado_en": datos["entrenado_en"],
++        "confianza_r2": round(datos["r2"], 3),
++    }
+diff --git a/ml-service/entrenamiento/entrenar_modelo.py b/ml-service/entrenamiento/entrenar_modelo.py
+new file mode 100644
+index 0000000..2abfe6e
+--- /dev/null
++++ b/ml-service/entrenamiento/entrenar_modelo.py
+@@ -0,0 +1,58 @@
++"""
++Entrena el modelo de predicción de demanda de TODOS los locales aprobados.
++
++Uso:
++    python entrenamiento/entrenar_modelo.py
++
++Pensado para correrse periódicamente (ej. una vez al día con un cron job),
++para que las predicciones se mantengan al día con los pedidos más recientes.
++Reutiliza la misma lógica de entrenamiento que expone el endpoint
++POST /entrenar/{local_id} del microservicio (ver app.py), llamándolo por HTTP
++para no duplicar código.
++"""
++
++import os
++import sys
++
++import requests
++from dotenv import load_dotenv
++from pymongo import MongoClient
++
++load_dotenv()
++
++MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/miapp")
++ML_SERVICE_URL = os.getenv("ML_SERVICE_URL", "http://localhost:8000")
++
++
++def main():
++    cliente = MongoClient(MONGO_URI)
++    db = cliente.get_default_database()
++
++    locales = list(db.locals.find({"aprobado": True, "activo": True}, {"_id": 1, "nombre": 1}))
++    print(f"Entrenando modelo para {len(locales)} locales activos...\n")
++
++    exitosos, fallidos = 0, 0
++    for local in locales:
++        local_id = str(local["_id"])
++        nombre = local.get("nombre", local_id)
++        try:
++            resp = requests.post(f"{ML_SERVICE_URL}/entrenar/{local_id}", timeout=30)
++            if resp.status_code == 200:
++                data = resp.json()
++                print(f"✅ {nombre}: {data['muestras_usadas']} muestras, r2={data['r2']}")
++                exitosos += 1
++            else:
++                print(f"⏭️  {nombre}: {resp.json().get('detail', 'sin datos suficientes')}")
++                fallidos += 1
++        except requests.RequestException as e:
++            print(f"❌ {nombre}: error de conexión con el microservicio ({e})")
++            fallidos += 1
++
++    print(f"\nListo. Entrenados: {exitosos} | Sin suficientes datos o con error: {fallidos}")
++
++
++if __name__ == "__main__":
++    if len(sys.argv) > 1 and sys.argv[1] in ("-h", "--help"):
++        print(__doc__)
++        sys.exit(0)
++    main()
+diff --git a/ml-service/requirements.txt b/ml-service/requirements.txt
+new file mode 100644
+index 0000000..0513200
+--- /dev/null
++++ b/ml-service/requirements.txt
+@@ -0,0 +1,8 @@
++fastapi==0.115.0
++uvicorn[standard]==0.30.6
++scikit-learn==1.5.2
++pandas==2.2.3
++pymongo==4.9.1
++python-dotenv==1.0.1
++joblib==1.4.2
++requests==2.32.3

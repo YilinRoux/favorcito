@@ -62,6 +62,21 @@ const usuarioSchema = new mongoose.Schema(
       default: false,
     },
 
+    habitosCompra: {
+      horario: {
+        type: String,
+        enum: ["manana", "mediodia", "tarde"],
+      },
+      presupuesto: {
+        type: String,
+        enum: ["menos_30", "30_60", "mas_60"],
+      },
+      restricciones: {
+        type: [String],
+        default: [],
+      },
+    },
+
     local: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Local",

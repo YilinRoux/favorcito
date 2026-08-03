@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import "../../styles/estudiante/MenuLocales.css";
 
-const BASE_URL = import.meta.env.VITE_API_URL || "http://192.168.1.132:5000";
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 function MenuLocales() {
   const [locales, setLocales] = useState([]);

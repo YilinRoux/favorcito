@@ -136,6 +136,40 @@
 .est-top-purple {
   background: linear-gradient(90deg, transparent, #a855f7, #c084fc, #a855f7, transparent) !important;
 }
+.est-top-blue {
+  background: linear-gradient(90deg, transparent, #3b82f6, #60a5fa, #3b82f6, transparent) !important;
+}
+.est-top-orange {
+  background: linear-gradient(90deg, transparent, #FF5C0A, #FF7A30, #FF5C0A, transparent) !important;
+}
+
+.est-rank-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  margin-top: 4px !important;
+}
+.est-rank-item { display: flex !important; flex-direction: column !important; gap: 4px !important; }
+.est-rank-top {
+  display: flex !important;
+  justify-content: space-between !important;
+  font-size: 12px !important;
+}
+.est-rank-etiqueta { color: #ccc !important; font-weight: 600 !important; }
+.est-rank-valor { color: #888 !important; font-weight: 700 !important; }
+.est-rank-track {
+  width: 100% !important;
+  height: 6px !important;
+  border-radius: 999px !important;
+  background: #1f1f1f !important;
+  overflow: hidden !important;
+}
+.est-rank-fill {
+  height: 100% !important;
+  border-radius: 999px !important;
+  background: linear-gradient(90deg, #FF5C0A, #FF7A30) !important;
+  transition: width 0.4s ease !important;
+}
 
 .est-card-icon {
   width: 46px !important;

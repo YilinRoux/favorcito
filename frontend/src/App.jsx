@@ -18,6 +18,8 @@ import MisPedidos from "./pages/estudiante/MisPedidos";
 import RastreoPedido from "./pages/estudiante/RastreoPedido";
 import CalificarPedido from "./pages/estudiante/CalificarPedido";
 import Onboarding from "./pages/estudiante/Onboarding";
+import OnboardingHabitos from "./pages/estudiante/OnboardingHabitos";
+import OnboardingConfirmacion from "./pages/estudiante/OnboardingConfirmacion";
 
 /* VENDEDOR */
 import DashboardVendedor from "./pages/vendedor/DashboardVendedor";
@@ -76,6 +78,8 @@ function App() {
         <Route path="/calificar/:id" element={<CalificarPedido />} />
         <Route path="/perfil" element={<Perfil />} />
         <Route path="/onboarding" element={<Onboarding />} />
+        <Route path="/onboarding/habitos" element={<OnboardingHabitos />} />
+        <Route path="/onboarding/confirmacion" element={<OnboardingConfirmacion />} />
 
         {/* VENDEDOR */}
         <Route path="/vendedor/dashboard" element={<DashboardVendedor />} />

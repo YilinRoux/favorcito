@@ -14,6 +14,12 @@ import { upload } from "../config/multer.js";
 
 const router = express.Router();
 
+// 🔹 Obtener catálogo de categorías (usado por el onboarding)
+router.get("/categorias", obtenerCategorias);
+
+// 🔹 Obtener productos recomendados (Data Mining + preferencias del usuario)
+router.get("/recomendados", protegerRuta, obtenerProductosRecomendados);
+
 // 🔹 Obtener productos por local
 router.get("/local/:localId", obtenerProductosPorLocal);
 

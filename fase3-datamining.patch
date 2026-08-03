@@ -1,0 +1,282 @@
+diff --git a/backend/controllers/adminController.js b/backend/controllers/adminController.js
+index 51fae75..74bdcbb 100644
+--- a/backend/controllers/adminController.js
++++ b/backend/controllers/adminController.js
+@@ -49,6 +49,91 @@ export const obtenerEstadisticas = async (req, res) => {
+     res.status(500).json({ mensaje: "Error al obtener estadísticas", error: error.message });
+   }
+ };
++
++// 🔹 Data Mining: patrones agregados de todo el sistema (productos, categorías,
++// horarios y días con más demanda). Alimenta el dashboard de admin y, a futuro,
++// sirve de base para el modelo de predicción de demanda (Machine Learning).
++export const obtenerInsightsDataMining = async (req, res) => {
++  try {
++    // 1. Productos más vendidos (unidades totales en pedidos entregados)
++    const productosMasVendidos = await Pedido.aggregate([
++      { $match: { estado: "entregado" } },
++      { $unwind: "$productos" },
++      {
++        $group: {
++          _id: "$productos.producto",
++          nombre: { $first: "$productos.nombre" },
++          unidadesVendidas: { $sum: "$productos.cantidad" },
++        },
++      },
++      { $sort: { unidadesVendidas: -1 } },
++      { $limit: 5 },
++    ]);
++
++    // 2. Categorías más populares (join con Producto para conocer su categoría)
++    const categoriasPopulares = await Pedido.aggregate([
++      { $match: { estado: "entregado" } },
++      { $unwind: "$productos" },
++      {
++        $lookup: {
++          from: "productos",
++          localField: "productos.producto",
++          foreignField: "_id",
++          as: "productoInfo",
++        },
++      },
++      { $unwind: "$productoInfo" },
++      {
++        $group: {
++          _id: "$productoInfo.categoria",
++          unidadesVendidas: { $sum: "$productos.cantidad" },
++        },
++      },
++      { $sort: { unidadesVendidas: -1 } },
++    ]);
++
++    // 3. Horarios pico: mismos buckets que usamos en el onboarding
++    // (mañana 6-12, mediodía 12-18, tarde 18-6) para poder cruzar ambos datasets
++    const horariosPico = await Pedido.aggregate([
++      { $project: { hora: { $hour: "$createdAt" } } },
++      {
++        $group: {
++          _id: {
++            $switch: {
++              branches: [
++                { case: { $and: [{ $gte: ["$hora", 6] }, { $lt: ["$hora", 12] }] }, then: "manana" },
++                { case: { $and: [{ $gte: ["$hora", 12] }, { $lt: ["$hora", 18] }] }, then: "mediodia" },
++              ],
++              default: "tarde",
++            },
++          },
++          totalPedidos: { $sum: 1 },
++        },
++      },
++      { $sort: { totalPedidos: -1 } },
++    ]);
++
++    // 4. Día de la semana con más pedidos
++    const diasPopulares = await Pedido.aggregate([
++      { $group: { _id: { $dayOfWeek: "$createdAt" }, totalPedidos: { $sum: 1 } } },
++      { $sort: { totalPedidos: -1 } },
++    ]);
++    const nombresDias = ["", "Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
++    const diasFormateados = diasPopulares.map((d) => ({
++      dia: nombresDias[d._id],
++      totalPedidos: d.totalPedidos,
++    }));
++
++    res.json({
++      productosMasVendidos,
++      categoriasPopulares,
++      horariosPico,
++      diasPopulares: diasFormateados,
++    });
++  } catch (error) {
++    res.status(500).json({ mensaje: "Error al obtener insights", error: error.message });
++  }
++};
+ export const obtenerUsuarios = async (req, res) => {
+   try {
+     const usuarios = await Usuario.find()
+diff --git a/backend/routes/adminRoutes.js b/backend/routes/adminRoutes.js
+index 954272a..345b993 100644
+--- a/backend/routes/adminRoutes.js
++++ b/backend/routes/adminRoutes.js
+@@ -14,6 +14,7 @@ import {
+ import {
+   obtenerResumen,
+   obtenerEstadisticas,
++  obtenerInsightsDataMining,
+ } from "../controllers/adminController.js";
+ import { obtenerReportes, resolverReporte } from "../controllers/reporteController.js";
+ 
+@@ -33,6 +34,7 @@ router.put("/aprobar/:id", protegerRuta, soloAdmin, aprobarLocal);
+ // Resumen y estadísticas
+ router.get("/resumen", protegerRuta, soloAdmin, obtenerResumen);
+ router.get("/estadisticas", protegerRuta, soloAdmin, obtenerEstadisticas);
++router.get("/insights", protegerRuta, soloAdmin, obtenerInsightsDataMining);
+ 
+ // Reportes
+ router.get("/reportes", protegerRuta, soloAdmin, obtenerReportes);
+diff --git a/frontend/src/pages/admin/Estadisticas.jsx b/frontend/src/pages/admin/Estadisticas.jsx
+index 1b792df..0d605ba 100644
+--- a/frontend/src/pages/admin/Estadisticas.jsx
++++ b/frontend/src/pages/admin/Estadisticas.jsx
+@@ -4,13 +4,18 @@ import "../../styles/admin/Estadisticas.css";
+ 
+ function Estadisticas() {
+   const [stats, setStats] = useState(null);
++  const [insights, setInsights] = useState(null);
+   const [cargando, setCargando] = useState(true);
+ 
+   useEffect(() => {
+     const cargar = async () => {
+       try {
+-        const res = await api.get("/admin/estadisticas");
+-        setStats(res.data);
++        const [resStats, resInsights] = await Promise.all([
++          api.get("/admin/estadisticas"),
++          api.get("/admin/insights"),
++        ]);
++        setStats(resStats.data);
++        setInsights(resInsights.data);
+       } catch {
+         console.error("Error al cargar estadísticas");
+       } finally {
+@@ -93,9 +98,94 @@ function Estadisticas() {
+           </div>
+         </div>
+ 
++        {insights && (
++          <>
++            <div className="est-header" style={{ marginTop: 8 }}>
++              <div>
++                <h2 className="est-title" style={{ fontSize: 20 }}>Patrones de consumo</h2>
++                <p className="est-subtitle">Data Mining sobre pedidos entregados</p>
++              </div>
++            </div>
++
++            <div className="est-grid">
++              <RankingCard
++                titulo="Productos más vendidos"
++                items={insights.productosMasVendidos.map((p) => ({
++                  etiqueta: p.nombre,
++                  valor: p.unidadesVendidas,
++                }))}
++                colorClase="est-top-blue"
++                vacio="Aún no hay pedidos entregados"
++              />
++
++              <RankingCard
++                titulo="Categorías más populares"
++                items={insights.categoriasPopulares.map((c) => ({
++                  etiqueta: c._id || "Otro",
++                  valor: c.unidadesVendidas,
++                }))}
++                colorClase="est-top-green"
++                vacio="Aún no hay pedidos entregados"
++              />
++
++              <RankingCard
++                titulo="Horarios con más pedidos"
++                items={insights.horariosPico.map((h) => ({
++                  etiqueta: ETIQUETAS_HORARIO[h._id] || h._id,
++                  valor: h.totalPedidos,
++                }))}
++                colorClase="est-top-purple"
++                vacio="Aún no hay pedidos registrados"
++              />
++
++              <RankingCard
++                titulo="Días con más pedidos"
++                items={insights.diasPopulares.map((d) => ({
++                  etiqueta: d.dia,
++                  valor: d.totalPedidos,
++                }))}
++                colorClase="est-top-orange"
++                vacio="Aún no hay pedidos registrados"
++              />
++            </div>
++          </>
++        )}
++
+       </div>
+     </div>
+   );
+ }
+ 
++const ETIQUETAS_HORARIO = { manana: "Mañana", mediodia: "Mediodía", tarde: "Tarde" };
++
++function RankingCard({ titulo, items, colorClase, vacio }) {
++  const maxValor = Math.max(1, ...items.map((i) => i.valor));
++  return (
++    <div className="est-card">
++      <div className={`est-card-top-border ${colorClase}`} />
++      <p className="est-card-label">{titulo}</p>
++      {items.length === 0 ? (
++        <p className="est-card-hint">{vacio}</p>
++      ) : (
++        <div className="est-rank-list">
++          {items.map((item, i) => (
++            <div key={i} className="est-rank-item">
++              <div className="est-rank-top">
++                <span className="est-rank-etiqueta">{item.etiqueta}</span>
++                <span className="est-rank-valor">{item.valor}</span>
++              </div>
++              <div className="est-rank-track">
++                <div
++                  className="est-rank-fill"
++                  style={{ width: `${(item.valor / maxValor) * 100}%` }}
++                />
++              </div>
++            </div>
++          ))}
++        </div>
++      )}
++    </div>
++  );
++}
++
+ export default Estadisticas;
+\ No newline at end of file
+diff --git a/frontend/src/styles/admin/Estadisticas.css b/frontend/src/styles/admin/Estadisticas.css
+index 6cf11db..c065820 100644
+--- a/frontend/src/styles/admin/Estadisticas.css
++++ b/frontend/src/styles/admin/Estadisticas.css
+@@ -136,6 +136,40 @@
+ .est-top-purple {
+   background: linear-gradient(90deg, transparent, #a855f7, #c084fc, #a855f7, transparent) !important;
+ }
++.est-top-blue {
++  background: linear-gradient(90deg, transparent, #3b82f6, #60a5fa, #3b82f6, transparent) !important;
++}
++.est-top-orange {
++  background: linear-gradient(90deg, transparent, #FF5C0A, #FF7A30, #FF5C0A, transparent) !important;
++}
++
++.est-rank-list {
++  display: flex !important;
++  flex-direction: column !important;
++  gap: 12px !important;
++  margin-top: 4px !important;
++}
++.est-rank-item { display: flex !important; flex-direction: column !important; gap: 4px !important; }
++.est-rank-top {
++  display: flex !important;
++  justify-content: space-between !important;
++  font-size: 12px !important;
++}
++.est-rank-etiqueta { color: #ccc !important; font-weight: 600 !important; }
++.est-rank-valor { color: #888 !important; font-weight: 700 !important; }
++.est-rank-track {
++  width: 100% !important;
++  height: 6px !important;
++  border-radius: 999px !important;
++  background: #1f1f1f !important;
++  overflow: hidden !important;
++}
++.est-rank-fill {
++  height: 100% !important;
++  border-radius: 999px !important;
++  background: linear-gradient(90deg, #FF5C0A, #FF7A30) !important;
++  transition: width 0.4s ease !important;
++}
+ 
+ .est-card-icon {
+   width: 46px !important;

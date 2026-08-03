@@ -1,0 +1,476 @@
+diff --git a/backend/controllers/usuarioController.js b/backend/controllers/usuarioController.js
+index db46cb5..e187c1c 100644
+--- a/backend/controllers/usuarioController.js
++++ b/backend/controllers/usuarioController.js
+@@ -70,7 +70,6 @@ export const guardarPreferencias = async (req, res) => {
+ 
+     const usuario = await Usuario.findById(req.usuario._id);
+     usuario.preferencias = preferencias;
+-    usuario.onboardingCompletado = true;
+     await usuario.save();
+ 
+     res.json({ mensaje: "Preferencias guardadas correctamente", preferencias: usuario.preferencias });
+@@ -79,11 +78,48 @@ export const guardarPreferencias = async (req, res) => {
+   }
+ };
+ 
++export const guardarHabitos = async (req, res) => {
++  try {
++    const { horario, presupuesto, restricciones } = req.body;
++
++    const horariosValidos = ["manana", "mediodia", "tarde"];
++    const presupuestosValidos = ["menos_30", "30_60", "mas_60"];
++
++    if (!horariosValidos.includes(horario)) {
++      return res.status(400).json({ mensaje: "Horario inválido" });
++    }
++    if (!presupuestosValidos.includes(presupuesto)) {
++      return res.status(400).json({ mensaje: "Presupuesto inválido" });
++    }
++    if (restricciones && !Array.isArray(restricciones)) {
++      return res.status(400).json({ mensaje: "Restricciones inválidas" });
++    }
++
++    const usuario = await Usuario.findById(req.usuario._id);
++    usuario.habitosCompra = {
++      horario,
++      presupuesto,
++      restricciones: restricciones || [],
++    };
++    usuario.onboardingCompletado = true;
++    await usuario.save();
++
++    res.json({
++      mensaje: "Hábitos guardados correctamente",
++      habitosCompra: usuario.habitosCompra,
++      onboardingCompletado: usuario.onboardingCompletado,
++    });
++  } catch (error) {
++    res.status(500).json({ mensaje: "Error al guardar hábitos", error: error.message });
++  }
++};
++
+ export const obtenerPreferencias = async (req, res) => {
+   try {
+     const usuario = await Usuario.findById(req.usuario._id);
+     res.json({
+       preferencias: usuario.preferencias,
++      habitosCompra: usuario.habitosCompra,
+       onboardingCompletado: usuario.onboardingCompletado,
+     });
+   } catch (error) {
+diff --git a/backend/models/Usuario.js b/backend/models/Usuario.js
+index 0f094d8..d1d9c09 100644
+--- a/backend/models/Usuario.js
++++ b/backend/models/Usuario.js
+@@ -62,6 +62,21 @@ const usuarioSchema = new mongoose.Schema(
+       default: false,
+     },
+ 
++    habitosCompra: {
++      horario: {
++        type: String,
++        enum: ["manana", "mediodia", "tarde"],
++      },
++      presupuesto: {
++        type: String,
++        enum: ["menos_30", "30_60", "mas_60"],
++      },
++      restricciones: {
++        type: [String],
++        default: [],
++      },
++    },
++
+     local: {
+       type: mongoose.Schema.Types.ObjectId,
+       ref: "Local",
+diff --git a/backend/routes/usuarioRoutes.js b/backend/routes/usuarioRoutes.js
+index ef203f9..7a7a38e 100644
+--- a/backend/routes/usuarioRoutes.js
++++ b/backend/routes/usuarioRoutes.js
+@@ -1,10 +1,11 @@
+ import express from "express";
+ import { protegerRuta } from "../middlewares/authMiddleware.js";
+-import { guardarPreferencias, obtenerPreferencias } from "../controllers/usuarioController.js";
++import { guardarPreferencias, obtenerPreferencias, guardarHabitos } from "../controllers/usuarioController.js";
+ 
+ const router = express.Router();
+ 
+ router.put("/preferencias", protegerRuta, guardarPreferencias);
+ router.get("/preferencias", protegerRuta, obtenerPreferencias);
++router.put("/habitos", protegerRuta, guardarHabitos);
+ 
+ export default router;
+\ No newline at end of file
+diff --git a/frontend/src/App.jsx b/frontend/src/App.jsx
+index 617d70e..f6fb0de 100644
+--- a/frontend/src/App.jsx
++++ b/frontend/src/App.jsx
+@@ -18,6 +18,8 @@ import MisPedidos from "./pages/estudiante/MisPedidos";
+ import RastreoPedido from "./pages/estudiante/RastreoPedido";
+ import CalificarPedido from "./pages/estudiante/CalificarPedido";
+ import Onboarding from "./pages/estudiante/Onboarding";
++import OnboardingHabitos from "./pages/estudiante/OnboardingHabitos";
++import OnboardingConfirmacion from "./pages/estudiante/OnboardingConfirmacion";
+ 
+ /* VENDEDOR */
+ import DashboardVendedor from "./pages/vendedor/DashboardVendedor";
+@@ -76,6 +78,8 @@ function App() {
+         <Route path="/calificar/:id" element={<CalificarPedido />} />
+         <Route path="/perfil" element={<Perfil />} />
+         <Route path="/onboarding" element={<Onboarding />} />
++        <Route path="/onboarding/habitos" element={<OnboardingHabitos />} />
++        <Route path="/onboarding/confirmacion" element={<OnboardingConfirmacion />} />
+ 
+         {/* VENDEDOR */}
+         <Route path="/vendedor/dashboard" element={<DashboardVendedor />} />
+diff --git a/frontend/src/pages/estudiante/Onboarding.jsx b/frontend/src/pages/estudiante/Onboarding.jsx
+index 24934b0..42877ec 100644
+--- a/frontend/src/pages/estudiante/Onboarding.jsx
++++ b/frontend/src/pages/estudiante/Onboarding.jsx
+@@ -40,8 +40,8 @@ export default function Onboarding() {
+     setError("");
+     try {
+       await api.put("/usuarios/preferencias", { preferencias: seleccionadas });
+-      actualizarUsuario({ onboardingCompletado: true, preferencias: seleccionadas });
+-      navigate("/perfil");
++      actualizarUsuario({ preferencias: seleccionadas });
++      navigate("/onboarding/habitos");
+     } catch (err) {
+       setError(err.response?.data?.mensaje || "Error al guardar tus preferencias");
+     } finally {
+@@ -67,6 +67,7 @@ export default function Onboarding() {
+           <span className="ob-logo-text">Favorcito</span>
+         </div>
+ 
++        <p className="ob-paso">Paso 1 de 3</p>
+         <h2 className="ob-title">¿Qué te gusta pedir?</h2>
+         <p className="ob-subtitle">
+           Elige tus favoritos para mostrarte mejores recomendaciones
+diff --git a/frontend/src/pages/estudiante/OnboardingConfirmacion.jsx b/frontend/src/pages/estudiante/OnboardingConfirmacion.jsx
+new file mode 100644
+index 0000000..9a3d23b
+--- /dev/null
++++ b/frontend/src/pages/estudiante/OnboardingConfirmacion.jsx
+@@ -0,0 +1,98 @@
++import { useState, useEffect } from "react";
++import { useNavigate } from "react-router-dom";
++import api from "../../services/api";
++import "../../styles/estudiante/Onboarding.css";
++
++const ETIQUETAS_HORARIO = {
++  manana: "Mañana",
++  mediodia: "Mediodía",
++  tarde: "Tarde",
++};
++
++const ETIQUETAS_PRESUPUESTO = {
++  menos_30: "Menos $30",
++  "30_60": "$30 - $60",
++  mas_60: "Más $60",
++};
++
++const ETIQUETAS_RESTRICCION = {
++  vegetariano: "Vegetariano",
++  sin_picante: "Sin picante",
++  ninguna: "Ninguna",
++};
++
++export default function OnboardingConfirmacion() {
++  const navigate = useNavigate();
++
++  const [perfil, setPerfil] = useState(null);
++  const [cargando, setCargando] = useState(true);
++  const [error, setError] = useState("");
++
++  useEffect(() => {
++    const cargarPerfil = async () => {
++      try {
++        const res = await api.get("/usuarios/preferencias");
++        setPerfil(res.data);
++      } catch {
++        setError("No se pudo cargar tu perfil");
++      } finally {
++        setCargando(false);
++      }
++    };
++    cargarPerfil();
++  }, []);
++
++  const preferencias = perfil?.preferencias || [];
++  const horario = perfil?.habitosCompra?.horario;
++  const presupuesto = perfil?.habitosCompra?.presupuesto;
++  const restricciones = perfil?.habitosCompra?.restricciones || [];
++
++  if (cargando) {
++    return (
++      <div className="ob-wrap">
++        <div className="ob-card">
++          <p className="ob-subtitle">Cargando tu perfil...</p>
++        </div>
++      </div>
++    );
++  }
++
++  return (
++    <div className="ob-wrap">
++      <div className="ob-orb ob-orb-1" />
++      <div className="ob-orb ob-orb-2" />
++
++      <div className="ob-card">
++        <div className="ob-check-icono">
++          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
++            <polyline points="20 6 9 17 4 12" />
++          </svg>
++        </div>
++
++        <p className="ob-paso">Paso 3 de 3</p>
++        <h2 className="ob-title">¡Listo!</h2>
++        <p className="ob-subtitle">
++          Tus preferencias fueron guardadas. Recibirás recomendaciones personalizadas desde ahora.
++        </p>
++
++        {error && <div className="ob-error">{error}</div>}
++
++        <div className="ob-resumen">
++          <p><strong>Gustos:</strong> {preferencias.length > 0 ? preferencias.join(", ") : "Sin especificar"}</p>
++          <p><strong>Horario:</strong> {ETIQUETAS_HORARIO[horario] || "Sin especificar"}</p>
++          <p><strong>Presupuesto:</strong> {ETIQUETAS_PRESUPUESTO[presupuesto] || "Sin especificar"}</p>
++          <p>
++            <strong>Restricciones:</strong>{" "}
++            {restricciones.length > 0
++              ? restricciones.map((r) => ETIQUETAS_RESTRICCION[r] || r).join(", ")
++              : "Ninguna"}
++          </p>
++        </div>
++
++        <button className="ob-btn" onClick={() => navigate("/menu")}>
++          Ir al menú
++        </button>
++      </div>
++    </div>
++  );
++}
+diff --git a/frontend/src/pages/estudiante/OnboardingHabitos.jsx b/frontend/src/pages/estudiante/OnboardingHabitos.jsx
+new file mode 100644
+index 0000000..bcda71c
+--- /dev/null
++++ b/frontend/src/pages/estudiante/OnboardingHabitos.jsx
+@@ -0,0 +1,144 @@
++import { useState, useContext } from "react";
++import { useNavigate } from "react-router-dom";
++import api from "../../services/api";
++import { AuthContext } from "../../context/AuthContext";
++import "../../styles/estudiante/Onboarding.css";
++
++const HORARIOS = [
++  { value: "manana", label: "Mañana" },
++  { value: "mediodia", label: "Mediodía" },
++  { value: "tarde", label: "Tarde" },
++];
++
++const PRESUPUESTOS = [
++  { value: "menos_30", label: "Menos $30" },
++  { value: "30_60", label: "$30 - $60" },
++  { value: "mas_60", label: "Más $60" },
++];
++
++const RESTRICCIONES = [
++  { value: "vegetariano", label: "Vegetariano" },
++  { value: "sin_picante", label: "Sin picante" },
++  { value: "ninguna", label: "Ninguna" },
++];
++
++export default function OnboardingHabitos() {
++  const [horario, setHorario] = useState(null);
++  const [presupuesto, setPresupuesto] = useState(null);
++  const [restricciones, setRestricciones] = useState([]);
++  const [cargando, setCargando] = useState(false);
++  const [error, setError] = useState("");
++
++  const { actualizarUsuario } = useContext(AuthContext);
++  const navigate = useNavigate();
++
++  const toggleRestriccion = (valor) => {
++    setRestricciones((prev) =>
++      prev.includes(valor) ? prev.filter((r) => r !== valor) : [...prev, valor]
++    );
++  };
++
++  const handleContinuar = async () => {
++    if (!horario || !presupuesto) {
++      setError("Selecciona tu horario habitual y tu presupuesto");
++      return;
++    }
++    setCargando(true);
++    setError("");
++    try {
++      const res = await api.put("/usuarios/habitos", {
++        horario,
++        presupuesto,
++        restricciones,
++      });
++      actualizarUsuario({
++        onboardingCompletado: true,
++        habitosCompra: res.data.habitosCompra,
++      });
++      navigate("/onboarding/confirmacion");
++    } catch (err) {
++      setError(err.response?.data?.mensaje || "Error al guardar tus hábitos");
++    } finally {
++      setCargando(false);
++    }
++  };
++
++  return (
++    <div className="ob-wrap">
++      <div className="ob-orb ob-orb-1" />
++      <div className="ob-orb ob-orb-2" />
++
++      <div className="ob-card">
++        <div className="ob-logo">
++          <div className="ob-logo-icon">
++            <svg className="ob-logo-svg" viewBox="0 0 24 24">
++              <circle cx="5.5" cy="17.5" r="2.5" />
++              <circle cx="18.5" cy="17.5" r="2.5" />
++              <path d="M3 5h11l2 7H5L3 5z" />
++              <path d="M15 12h4l2 5" />
++            </svg>
++          </div>
++          <span className="ob-logo-text">Favorcito</span>
++        </div>
++
++        <p className="ob-paso">Paso 2 de 3</p>
++        <h2 className="ob-title">¿Cuándo sueles pedir?</h2>
++        <p className="ob-subtitle">Ayúdanos a anticipar lo que necesitas</p>
++
++        {error && <div className="ob-error">{error}</div>}
++
++        <div className="ob-section">
++          <p className="ob-section-label">Horario habitual</p>
++          <div className="ob-grid">
++            {HORARIOS.map((h) => (
++              <button
++                key={h.value}
++                type="button"
++                onClick={() => setHorario(h.value)}
++                className={`ob-chip ${horario === h.value ? "ob-chip-activa" : ""}`}
++              >
++                {h.label}
++              </button>
++            ))}
++          </div>
++        </div>
++
++        <div className="ob-section">
++          <p className="ob-section-label">Presupuesto por pedido</p>
++          <div className="ob-grid">
++            {PRESUPUESTOS.map((p) => (
++              <button
++                key={p.value}
++                type="button"
++                onClick={() => setPresupuesto(p.value)}
++                className={`ob-chip ${presupuesto === p.value ? "ob-chip-activa" : ""}`}
++              >
++                {p.label}
++              </button>
++            ))}
++          </div>
++        </div>
++
++        <div className="ob-section">
++          <p className="ob-section-label">Restricciones</p>
++          <div className="ob-grid">
++            {RESTRICCIONES.map((r) => (
++              <button
++                key={r.value}
++                type="button"
++                onClick={() => toggleRestriccion(r.value)}
++                className={`ob-chip ${restricciones.includes(r.value) ? "ob-chip-activa" : ""}`}
++              >
++                {r.label}
++              </button>
++            ))}
++          </div>
++        </div>
++
++        <button className="ob-btn" disabled={cargando} onClick={handleContinuar}>
++          {cargando ? "Guardando..." : "Continuar"}
++        </button>
++      </div>
++    </div>
++  );
++}
+diff --git a/frontend/src/styles/estudiante/Onboarding.css b/frontend/src/styles/estudiante/Onboarding.css
+index d0bf9e0..e29856e 100644
+--- a/frontend/src/styles/estudiante/Onboarding.css
++++ b/frontend/src/styles/estudiante/Onboarding.css
+@@ -88,4 +88,64 @@
+   font-size: 15px;
+   cursor: pointer;
+ }
+-.ob-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+\ No newline at end of file
++.ob-btn:disabled { opacity: 0.6; cursor: not-allowed; }
++
++.ob-paso {
++  font-size: 12px;
++  font-weight: 700;
++  letter-spacing: 0.06em;
++  text-transform: uppercase;
++  color: #667eea;
++  margin-bottom: 6px;
++}
++
++.ob-section-label {
++  font-size: 13px;
++  font-weight: 700;
++  color: #444;
++  text-align: left;
++  margin-bottom: 8px;
++}
++
++.ob-section {
++  margin-bottom: 24px;
++}
++
++.ob-btn-secundario {
++  width: 100%;
++  padding: 12px;
++  border: 2px solid #e5e7eb;
++  border-radius: 10px;
++  background: #fff;
++  color: #444;
++  font-weight: 600;
++  font-size: 14px;
++  cursor: pointer;
++  margin-top: 10px;
++}
++.ob-btn-secundario:hover { border-color: #667eea; }
++
++.ob-resumen {
++  background: #f9fafb;
++  border: 1px solid #e5e7eb;
++  border-radius: 10px;
++  padding: 16px;
++  text-align: left;
++  margin-bottom: 24px;
++  font-size: 13px;
++  color: #444;
++  line-height: 1.8;
++}
++.ob-resumen strong { color: #222; }
++
++.ob-check-icono {
++  width: 56px;
++  height: 56px;
++  border-radius: 50%;
++  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
++  display: flex;
++  align-items: center;
++  justify-content: center;
++  margin: 0 auto 16px;
++  color: #fff;
++}
+\ No newline at end of file

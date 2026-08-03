@@ -4,13 +4,18 @@ import "../../styles/admin/Estadisticas.css";
 
 function Estadisticas() {
   const [stats, setStats] = useState(null);
+  const [insights, setInsights] = useState(null);
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
     const cargar = async () => {
       try {
-        const res = await api.get("/admin/estadisticas");
-        setStats(res.data);
+        const [resStats, resInsights] = await Promise.all([
+          api.get("/admin/estadisticas"),
+          api.get("/admin/insights"),
+        ]);
+        setStats(resStats.data);
+        setInsights(resInsights.data);
       } catch {
         console.error("Error al cargar estadísticas");
       } finally {
@@ -93,7 +98,92 @@ function Estadisticas() {
           </div>
         </div>
 
+        {insights && (
+          <>
+            <div className="est-header" style={{ marginTop: 8 }}>
+              <div>
+                <h2 className="est-title" style={{ fontSize: 20 }}>Patrones de consumo</h2>
+                <p className="est-subtitle">Data Mining sobre pedidos entregados</p>
+              </div>
+            </div>
+
+            <div className="est-grid">
+              <RankingCard
+                titulo="Productos más vendidos"
+                items={insights.productosMasVendidos.map((p) => ({
+                  etiqueta: p.nombre,
+                  valor: p.unidadesVendidas,
+                }))}
+                colorClase="est-top-blue"
+                vacio="Aún no hay pedidos entregados"
+              />
+
+              <RankingCard
+                titulo="Categorías más populares"
+                items={insights.categoriasPopulares.map((c) => ({
+                  etiqueta: c._id || "Otro",
+                  valor: c.unidadesVendidas,
+                }))}
+                colorClase="est-top-green"
+                vacio="Aún no hay pedidos entregados"
+              />
+
+              <RankingCard
+                titulo="Horarios con más pedidos"
+                items={insights.horariosPico.map((h) => ({
+                  etiqueta: ETIQUETAS_HORARIO[h._id] || h._id,
+                  valor: h.totalPedidos,
+                }))}
+                colorClase="est-top-purple"
+                vacio="Aún no hay pedidos registrados"
+              />
+
+              <RankingCard
+                titulo="Días con más pedidos"
+                items={insights.diasPopulares.map((d) => ({
+                  etiqueta: d.dia,
+                  valor: d.totalPedidos,
+                }))}
+                colorClase="est-top-orange"
+                vacio="Aún no hay pedidos registrados"
+              />
+            </div>
+          </>
+        )}
+
       </div>
+    </div>
+  );
+}
+
+const ETIQUETAS_HORARIO = { manana: "Mañana", mediodia: "Mediodía", tarde: "Tarde" };
+
+function RankingCard({ titulo, items, colorClase, vacio }) {
+  const maxValor = Math.max(1, ...items.map((i) => i.valor));
+  return (
+    <div className="est-card">
+      <div className={`est-card-top-border ${colorClase}`} />
+      <p className="est-card-label">{titulo}</p>
+      {items.length === 0 ? (
+        <p className="est-card-hint">{vacio}</p>
+      ) : (
+        <div className="est-rank-list">
+          {items.map((item, i) => (
+            <div key={i} className="est-rank-item">
+              <div className="est-rank-top">
+                <span className="est-rank-etiqueta">{item.etiqueta}</span>
+                <span className="est-rank-valor">{item.valor}</span>
+              </div>
+              <div className="est-rank-track">
+                <div
+                  className="est-rank-fill"
+                  style={{ width: `${(item.valor / maxValor) * 100}%` }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

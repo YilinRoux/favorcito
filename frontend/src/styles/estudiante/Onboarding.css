@@ -89,3 +89,63 @@
   cursor: pointer;
 }
 .ob-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.ob-paso {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #667eea;
+  margin-bottom: 6px;
+}
+
+.ob-section-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #444;
+  text-align: left;
+  margin-bottom: 8px;
+}
+
+.ob-section {
+  margin-bottom: 24px;
+}
+
+.ob-btn-secundario {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+  color: #444;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+.ob-btn-secundario:hover { border-color: #667eea; }
+
+.ob-resumen {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 16px;
+  text-align: left;
+  margin-bottom: 24px;
+  font-size: 13px;
+  color: #444;
+  line-height: 1.8;
+}
+.ob-resumen strong { color: #222; }
+
+.ob-check-icono {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  color: #fff;
+}

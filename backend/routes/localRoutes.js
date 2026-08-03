@@ -6,6 +6,7 @@ import {
   aprobarLocal,
   obtenerLocales,
   obtenerMiLocal,
+  obtenerPrediccionMiLocal,
   obtenerPendientes,
   obtenerLocalPublico, // ✅ Cambiado aquí
   actualizarPromocion,
@@ -31,6 +32,14 @@ router.get(
   protegerRuta,
   autorizarRoles("vendedor"),
   obtenerMiLocal
+);
+
+// 🔹 Predicción de demanda para mañana (Machine Learning) (Vendedor)
+router.get(
+  "/mi-local/prediccion",
+  protegerRuta,
+  autorizarRoles("vendedor"),
+  obtenerPrediccionMiLocal
 );
 
 // 🔹 Actualizar promoción (Vendedor)
