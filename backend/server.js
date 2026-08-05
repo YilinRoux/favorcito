@@ -16,6 +16,7 @@ import { protegerRuta } from "./middlewares/authMiddleware.js";
 import autorizarRoles from "./middlewares/roleMiddleware.js";
 import path from "path";
 import { fileURLToPath } from "url";
+import { existsSync } from "fs";
 import Usuario from "./models/Usuario.js";
 import Pedido from "./models/Pedido.js";
 import Local from "./models/Local.js";
@@ -102,6 +103,15 @@ app.use(express.json());
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+const frontendDistPath = path.resolve(__dirname, "../frontend/dist");
+if (existsSync(frontendDistPath)) {
+  app.use(express.static(frontendDistPath));
+
+  app.get(/^\/(?!api\/|uploads\/).*/, (req, res) => {
+    res.sendFile(path.join(frontendDistPath, "index.html"));
+  });
+}
 
 app.get("/", (req, res) => res.json({ mensaje: "API funcionando 🚀" }));
 
