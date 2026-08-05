@@ -45,7 +45,7 @@ export default function RecuperarContrasena() {
       setMensaje("Código enviado a tu correo");
       setPaso(2);
     } catch (err) {
-      setError(err.response?.data?.message || "Error al enviar el código");
+      setError(err.response?.data?.mensaje || err.response?.data?.message || err.message || "Error al enviar el código");
     } finally { setCargando(false); }
   };
 
@@ -57,7 +57,7 @@ export default function RecuperarContrasena() {
       setMensaje("Código correcto, ahora pon tu nueva contraseña");
       setPaso(3);
     } catch (err) {
-      setError(err.response?.data?.message || "Código incorrecto");
+      setError(err.response?.data?.mensaje || err.response?.data?.message || err.message || "Código incorrecto");
       setDigits(["","","","","",""]);
       setTimeout(() => inputRefs.current[0]?.focus(), 50);
     } finally { setCargando(false); }
@@ -72,7 +72,7 @@ export default function RecuperarContrasena() {
       setMensaje("¡Contraseña actualizada! Redirigiendo...");
       setTimeout(() => navigate("/login"), 2200);
     } catch (err) {
-      setError(err.response?.data?.message || "Error al cambiar la contraseña");
+      setError(err.response?.data?.mensaje || err.response?.data?.message || err.message || "Error al cambiar la contraseña");
     } finally { setCargando(false); }
   };
 
