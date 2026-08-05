@@ -8,7 +8,7 @@ const getDefaultBaseUrl = () => {
     return "http://localhost:5000";
   }
 
-  return "";
+  return "https://favorcito-full.onrender.com";
 };
 
 const rawBaseUrl = import.meta.env.VITE_API_URL || getDefaultBaseUrl();
