@@ -1,9 +1,21 @@
 import axios from "axios";
 
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const getDefaultBaseUrl = () => {
+  if (typeof window === "undefined") return "http://localhost:5000";
+
+  const { hostname } = window.location;
+  if (hostname === "localhost" || hostname === "127.0.0.1") {
+    return "http://localhost:5000";
+  }
+
+  return "";
+};
+
+const rawBaseUrl = import.meta.env.VITE_API_URL || getDefaultBaseUrl();
+const BASE_URL = rawBaseUrl.replace(/\/$/, "");
 
 const api = axios.create({
-  baseURL: `${BASE_URL}/api`,
+  baseURL: BASE_URL ? `${BASE_URL}/api` : "/api",
 });
 
 api.interceptors.request.use((config) => {
