@@ -1,13 +1,14 @@
 import Local from "../models/Local.js";
 import { enviarNotificacionLocal } from "../services/emailService.js";
 import { entrenarModeloLocal, obtenerPrediccionLocal } from "../services/mlService.js";
+import { eliminarImagenGuardada, guardarImagenes } from "../services/imageStorage.js";
 
 // Crear solicitud de local (solo vendedor)
 export const crearLocal = async (req, res) => {
   try {
     const { nombre, descripcion, direccion } = req.body;
 
-    const fotos = req.files ? req.files.map((f) => `/uploads/${f.filename}`) : [];
+    const fotos = req.files ? await guardarImagenes(req.files, "favorcito/locales") : [];
 
     const nuevoLocal = new Local({
       nombre,
@@ -230,7 +231,7 @@ export const actualizarPromocion = async (req, res) => {
     if (anuncio !== undefined) local.anuncio = anuncio;
 
     if (req.files && req.files.length > 0) {
-      const nuevasImagenes = req.files.map((f) => `/uploads/${f.filename}`);
+      const nuevasImagenes = await guardarImagenes(req.files, "favorcito/promociones");
       local.imagenesAnuncios = [...(local.imagenesAnuncios || []), ...nuevasImagenes];
     }
 
@@ -249,6 +250,7 @@ export const eliminarImagenAnuncio = async (req, res) => {
     const local = await Local.findOne({ vendedor: req.usuario._id });
     if (!local) return res.status(404).json({ mensaje: "Local no encontrado" });
 
+    await eliminarImagenGuardada(imagen);
     local.imagenesAnuncios = local.imagenesAnuncios.filter((img) => img !== imagen);
     await local.save();
 

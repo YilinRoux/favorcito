@@ -2,6 +2,7 @@ import Producto from "../models/Producto.js";
 import Local from "../models/Local.js";
 import Pedido from "../models/Pedido.js";
 import { CATEGORIAS } from "../config/categorias.js";
+import { eliminarImagenGuardada, guardarImagen } from "../services/imageStorage.js";
 
 export const crearProducto = async (req, res) => {
   try {
@@ -25,7 +26,7 @@ export const crearProducto = async (req, res) => {
       });
     }
 
-    const imagen = req.file ? `/uploads/${req.file.filename}` : "";
+    const imagen = req.file ? await guardarImagen(req.file, "favorcito/productos") : "";
 
     const nuevoProducto = new Producto({
       nombre,
@@ -87,7 +88,12 @@ export const editarProducto = async (req, res) => {
     if (descripcion) producto.descripcion = descripcion;
     if (precio) producto.precio = precio;
     if (stock) producto.stock = stock;
-    if (req.file) producto.imagen = `/uploads/${req.file.filename}`;
+    if (req.file) {
+      if (producto.imagen) {
+        await eliminarImagenGuardada(producto.imagen);
+      }
+      producto.imagen = await guardarImagen(req.file, "favorcito/productos");
+    }
     if (categoria) producto.categoria = categoria;
 
     await producto.save();

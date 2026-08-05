@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import "../../styles/admin/DetalleValidacion.css";
-
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import { getImageUrl } from "../../utils/imageUrl";
 
 function DetalleValidacion() {
   const { id } = useParams();
@@ -100,7 +99,7 @@ function DetalleValidacion() {
                 <p className="dv-info-label">FOTOS</p>
                 <div className="dv-fotos">
                   {local.fotos.map((foto, i) => (
-                    <img key={i} src={`${BASE_URL}${foto}`} className="dv-foto" />
+                    <img key={i} src={getImageUrl(foto)} className="dv-foto" />
                   ))}
                 </div>
               </div>

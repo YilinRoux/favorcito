@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import "../../styles/vendedor/GestionMenu.css";
-
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import { getImageUrl } from "../../utils/imageUrl";
 
 function GestionMenu() {
   const [productos, setProductos] = useState([]);
@@ -94,7 +93,7 @@ function GestionMenu() {
     setPrecio(producto.precio);
     setStock(producto.stock);
     setCategoria(producto.categoria || "Otro");
-    setPreview(producto.imagen ? `${BASE_URL}${producto.imagen}` : null);
+    setPreview(producto.imagen ? getImageUrl(producto.imagen) : null);
     setMenuAbierto(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -279,7 +278,7 @@ function GestionMenu() {
               <div key={producto._id} className={`gm-producto-card ${!producto.activo ? "gm-producto-inactivo" : ""}`}>
                 <div className="gm-card-top-border"/>
                 {producto.imagen ? (
-                  <img src={`${BASE_URL}${producto.imagen}`} alt={producto.nombre} className="gm-producto-img"/>
+                  <img src={getImageUrl(producto.imagen)} alt={producto.nombre} className="gm-producto-img"/>
                 ) : (
                   <div className="gm-producto-img-placeholder">
                     <svg viewBox="0 0 24 24" fill="none" width="28" height="28">
