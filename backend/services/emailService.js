@@ -1,14 +1,29 @@
 import nodemailer from "nodemailer";
 
-export const enviarCodigoVerificacion = async (email, codigo) => {
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
+const crearTransporter = () =>
+  nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
+    requireTLS: true,
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
+    pool: true,
+    maxConnections: 1,
+    maxMessages: 10,
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 10000,
+    tls: {
+      minVersion: "TLSv1.2",
+    },
   });
 
+const transporter = crearTransporter();
+
+export const enviarCodigoVerificacion = async (email, codigo) => {
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
@@ -50,14 +65,6 @@ export const enviarCodigoVerificacion = async (email, codigo) => {
   }
 };
 export const enviarNotificacionLocal = async (email, nombreLocal, aprobado) => {
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
-
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,

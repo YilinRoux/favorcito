@@ -8,6 +8,13 @@ const generarCodigo = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
+const enviarCodigoEnSegundoPlano = (email, codigo, contexto) => {
+  void enviarCodigoVerificacion(email, codigo).catch((emailError) => {
+    console.error(`❌ Error enviando email (${contexto}):`, emailError.message);
+    console.error(emailError.stack);
+  });
+};
+
 export const registro = async (req, res) => {
   try {
     console.log("📥 Body recibido:", req.body);
@@ -60,19 +67,7 @@ export const registro = async (req, res) => {
 
     await nuevoUsuario.save();
 
-    // ✅ TRY/CATCH SOLO PARA EL EMAIL
-    try {
-      await enviarCodigoVerificacion(email, codigoVerificacion);
-    } catch (emailError) {
-      console.error("❌ Error enviando email:", emailError.message);
-      console.error(emailError.stack);
-
-      await Usuario.findByIdAndDelete(nuevoUsuario._id);
-
-      return res.status(500).json({
-        mensaje: "Error al enviar el código de verificación. Intenta de nuevo.",
-      });
-    }
+    enviarCodigoEnSegundoPlano(email, codigoVerificacion, "registro");
 
     res.status(201).json({
       mensaje: "Usuario registrado. Revisa tu correo para verificar tu cuenta.",
@@ -238,8 +233,7 @@ export const solicitarRecuperacion = async (req, res) => {
     usuario.codigoRecuperacionExpira = expira;
     await usuario.save();
 
-    // Usa el mismo servicio que ya tienes
-    await enviarCodigoVerificacion(email, codigo);
+    enviarCodigoEnSegundoPlano(email, codigo, "recuperacion");
 
     res.json({ mensaje: "Código enviado al correo" });
   } catch (err) {
