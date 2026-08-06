@@ -1,18 +1,7 @@
 import axios from "axios";
+import { getApiBaseUrl } from "../utils/runtimeUrls";
 
-const getDefaultBaseUrl = () => {
-  if (typeof window === "undefined") return "http://localhost:5000";
-
-  const { hostname } = window.location;
-  if (hostname === "localhost" || hostname === "127.0.0.1") {
-    return "http://localhost:5000";
-  }
-
-  return "https://favorcito-full.onrender.com";
-};
-
-const rawBaseUrl = import.meta.env.VITE_API_URL || getDefaultBaseUrl();
-const BASE_URL = rawBaseUrl.replace(/\/$/, "");
+const BASE_URL = getApiBaseUrl().replace(/\/$/, "");
 
 const api = axios.create({
   baseURL: BASE_URL ? `${BASE_URL}/api` : "/api",

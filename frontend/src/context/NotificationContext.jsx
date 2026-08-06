@@ -1,8 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useState, useEffect } from "react";
 import socket from "../services/socket";
-
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import { getApiBaseUrl } from "../utils/runtimeUrls";
 
 export const NotificationContext = createContext();
 
@@ -24,7 +23,8 @@ export function NotificationProvider({ children }) {
           if (usuario.rol === "vendedor") url = "/pedidos/vendedor";
           if (!url) return;
 
-          const res = await fetch(`${BASE_URL}/api${url}`, {
+          const baseUrl = getApiBaseUrl();
+          const res = await fetch(`${baseUrl}/api${url}`, {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
