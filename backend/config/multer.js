@@ -1,12 +1,9 @@
 import multer from "multer";
 import fs from "fs";
 import path from "path";
+import { hasCloudinaryConfig } from "./cloudinary.js";
 
-const useCloudinaryStorage = Boolean(
-  process.env.CLOUDINARY_CLOUD_NAME &&
-  process.env.CLOUDINARY_API_KEY &&
-  process.env.CLOUDINARY_API_SECRET
-);
+const useCloudinaryStorage = hasCloudinaryConfig;
 
 if (!useCloudinaryStorage) {
   fs.mkdirSync("uploads", { recursive: true });
