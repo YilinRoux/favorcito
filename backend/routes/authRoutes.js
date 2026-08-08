@@ -8,21 +8,39 @@ import {
   verificarCodigoRecuperacion,
   resetearContrasena
 } from "../controllers/authController.js";
+import {
+  loginLimiter,
+  registroLimiter,
+  reenviarCodigoLimiter,
+  resetearContrasenaLimiter,
+  solicitarRecuperacionLimiter,
+  verificarCodigoLimiter,
+  verificarRecuperacionLimiter,
+} from "../middlewares/authRateLimiters.js";
+import {
+  validarLogin,
+  validarRegistro,
+  validarReenviarCodigo,
+  validarResetearContrasena,
+  validarSolicitarRecuperacion,
+  validarVerificarCodigo,
+  validarVerificarRecuperacion,
+} from "../validators/authValidators.js";
 
 const router = express.Router();
 
 // Auth
-router.post("/login", login);
-router.post("/registro", registro);
+router.post("/login", loginLimiter, validarLogin, login);
+router.post("/registro", registroLimiter, validarRegistro, registro);
 
 // Verificación
-router.post("/verificar-codigo", verificarCodigo);
-router.post("/reenviar-codigo", reenviarCodigo);
+router.post("/verificar-codigo", verificarCodigoLimiter, validarVerificarCodigo, verificarCodigo);
+router.post("/reenviar-codigo", reenviarCodigoLimiter, validarReenviarCodigo, reenviarCodigo);
 
 // Recuperación de contraseña
-router.post("/recuperar-contrasena", solicitarRecuperacion);
-router.post("/verificar-recuperacion", verificarCodigoRecuperacion);
-router.post("/resetear-contrasena", resetearContrasena);
+router.post("/recuperar-contrasena", solicitarRecuperacionLimiter, validarSolicitarRecuperacion, solicitarRecuperacion);
+router.post("/verificar-recuperacion", verificarRecuperacionLimiter, validarVerificarRecuperacion, verificarCodigoRecuperacion);
+router.post("/resetear-contrasena", resetearContrasenaLimiter, validarResetearContrasena, resetearContrasena);
 
 
 export default router;

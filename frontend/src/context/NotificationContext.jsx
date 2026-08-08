@@ -36,7 +36,7 @@ export function NotificationProvider({ children }) {
             pedidos.forEach((p) => socket.emit("unirsePedido", p._id));
           }
         } catch (err) {
-          console.error("Error uniéndose a pedidos:", err);
+          console.error("Error uniendose a pedidos:", err);
         }
       };
 
@@ -55,26 +55,17 @@ export function NotificationProvider({ children }) {
     };
   }, []);
 
-  // 🔔 EFECTO DE NOTIFICACIONES CON LOGS TEMPORALES
   useEffect(() => {
     const handler = ({ pedidoId, emisorId }) => {
-      console.log("🔔 nuevaNotificacion recibida:", { pedidoId, emisorId });
-
       const usuario = JSON.parse(localStorage.getItem("usuario"));
-      console.log("👤 usuario actual:", usuario?.id);
-      console.log("💬 chatActivo:", chatActivo);
 
       if (emisorId === usuario?.id) {
-        console.log("❌ ignorada: soy el emisor");
         return;
       }
 
       if (pedidoId === chatActivo) {
-        console.log("❌ ignorada: estoy en ese chat");
         return;
       }
-
-      console.log("✅ notificacion contada");
 
       setNotificaciones((prev) => ({
         ...prev,

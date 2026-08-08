@@ -21,13 +21,16 @@ import Usuario from "./models/Usuario.js";
 import Pedido from "./models/Pedido.js";
 import Local from "./models/Local.js";
 import apelacionRoutes from "./routes/apelacionRoutes.js";
-import usuarioRoutes from "./routes/usuarioRoutes.js"; 
-
+import usuarioRoutes from "./routes/usuarioRoutes.js";
 
 dotenv.config();
 connectDB();
 
+const isDev = process.env.NODE_ENV !== "production";
+
 const app = express();
+app.set("trust proxy", 1);
+
 const server = http.createServer(app);
 
 const io = new Server(server, {
@@ -39,11 +42,16 @@ app.set("io", io);
 const usuariosOnline = new Map();
 
 io.on("connection", (socket) => {
-  console.log("Usuario conectado:", socket.id);
+  if (isDev) {
+    console.log("Usuario conectado:", socket.id);
+  }
 
   socket.on("unirsePedido", (pedidoId) => {
     socket.join(pedidoId);
-    console.log(`Socket ${socket.id} se unió al pedido ${pedidoId}`);
+
+    if (isDev) {
+      console.log(`Socket ${socket.id} se unio al pedido ${pedidoId}`);
+    }
   });
 
   socket.on("join_pedido", (pedidoId) => {
@@ -58,7 +66,6 @@ io.on("connection", (socket) => {
     usuariosOnline.set(usuarioId, socket.id);
     io.emit("usuariosOnline", Array.from(usuariosOnline.keys()));
 
-    // Unir al usuario a todos sus pedidos activos automáticamente
     try {
       const usuario = await Usuario.findById(usuarioId);
       if (!usuario) return;
@@ -79,19 +86,22 @@ io.on("connection", (socket) => {
         socket.join(p._id.toString());
       });
 
-      console.log(`Usuario ${usuarioId} (${usuario.rol}) unido a ${pedidos.length} pedidos`);
+      if (isDev) {
+        console.log(`Usuario ${usuarioId} (${usuario.rol}) unido a ${pedidos.length} pedidos`);
+      }
     } catch (err) {
       console.error("Error uniendo usuario a pedidos:", err);
     }
   });
 
   socket.on("disconnect", () => {
-    for (let [userId, socketId] of usuariosOnline.entries()) {
+    for (const [userId, socketId] of usuariosOnline.entries()) {
       if (socketId === socket.id) {
         usuariosOnline.delete(userId);
         break;
       }
     }
+
     io.emit("usuariosOnline", Array.from(usuariosOnline.keys()));
   });
 });
@@ -124,6 +134,7 @@ app.use("/api/chat", chatRoutes);
 app.use("/api/reportes", reporteRoutes);
 app.use("/api/apelaciones", apelacionRoutes);
 app.use("/api/usuarios", usuarioRoutes);
+
 app.get("/api/protegido", protegerRuta, (req, res) => {
   res.json({ mensaje: "Ruta protegida accesible", usuario: req.usuario });
 });

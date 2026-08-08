@@ -7,12 +7,11 @@ const {
   GMAIL_REFRESH_TOKEN,
 } = process.env;
 
-const base64Encode = (value) => Buffer.from(value).toString("base64");
+const isDev = process.env.NODE_ENV !== "production";
 
+const base64Encode = (value) => Buffer.from(value).toString("base64");
 const base64UrlEncode = (value) =>
-  Buffer.from(value)
-    .toString("base64url")
-    .replace(/=+$/g, "");
+  Buffer.from(value).toString("base64url").replace(/=+$/g, "");
 
 const requireGmailOAuthConfig = () => {
   const missing = [];
@@ -23,9 +22,7 @@ const requireGmailOAuthConfig = () => {
   if (!GMAIL_REFRESH_TOKEN) missing.push("GMAIL_REFRESH_TOKEN");
 
   if (missing.length > 0) {
-    throw new Error(
-      `Faltan variables de Gmail OAuth2: ${missing.join(", ")}`
-    );
+    throw new Error(`Faltan variables de Gmail OAuth2: ${missing.join(", ")}`);
   }
 };
 
@@ -91,115 +88,74 @@ const enviarConGmailApi = async ({ to, subject, text, html }) => {
   });
 
   const raw = base64UrlEncode(message);
-
   const gmail = getGmailClient();
 
   await gmail.users.messages.send({
     userId: "me",
-    requestBody: {
-      raw,
-    },
+    requestBody: { raw },
   });
 };
 
 const plantillaCodigoVerificacion = (codigo) => ({
-  subject: "Código de Verificación - UT Tehuacán",
+  subject: "Codigo de verificacion - Favorcito",
   text: [
-    "UT Tehuacán",
+    "Favorcito",
     "",
-    "Tu código de verificación es:",
+    "Tu codigo de verificacion es:",
     "",
     codigo,
     "",
-    "Este código expira en 10 minutos.",
+    "Este codigo expira en 10 minutos.",
     "",
-    "Si no solicitaste este código, ignora este mensaje.",
+    "Si no solicitaste este codigo, ignora este mensaje.",
   ].join("\n"),
   html: `
-    <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto;">
-      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0;">
-        <h1 style="color: white; margin: 0; text-align: center;">UT Tehuacán</h1>
+    <div style="font-family: Arial, sans-serif; padding: 24px; max-width: 600px; margin: 0 auto; color: #111;">
+      <h1 style="margin: 0 0 12px; font-size: 24px;">Favorcito</h1>
+      <p style="font-size: 16px; margin: 0 0 12px;">Tu codigo de verificacion es:</p>
+      <div style="background: #111; color: #fff; padding: 18px 24px; border-radius: 12px; display: inline-block; font-size: 34px; letter-spacing: 8px; font-weight: 700;">
+        ${codigo}
       </div>
-      <div style="background: #f7f7f7; padding: 30px; border-radius: 0 0 10px 10px;">
-        <h2 style="color: #333; margin-top: 0;">Verificación de cuenta</h2>
-        <p style="color: #666; font-size: 16px;">Tu código de verificación es:</p>
-        <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
-          <h1 style="color: #667eea; font-size: 48px; letter-spacing: 10px; margin: 0;">${codigo}</h1>
-        </div>
-        <p style="color: #666; font-size: 14px;">⏱️ Este código expira en <strong>10 minutos</strong>.</p>
-        <p style="color: #999; font-size: 12px; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px;">
-          Si no solicitaste este código, ignora este mensaje.
-        </p>
-      </div>
+      <p style="margin-top: 16px; font-size: 14px; color: #555;">Este codigo expira en 10 minutos.</p>
+      <p style="font-size: 12px; color: #777;">Si no solicitaste este codigo, puedes ignorar este mensaje.</p>
     </div>
   `,
 });
 
 const plantillaNotificacionLocal = (nombreLocal, aprobado) => ({
   subject: aprobado
-    ? `✅ Tu local "${nombreLocal}" fue aprobado - UT Tehuacán`
-    : `❌ Tu local "${nombreLocal}" fue rechazado - UT Tehuacán`,
+    ? `Tu local "${nombreLocal}" fue aprobado - Favorcito`
+    : `Tu local "${nombreLocal}" fue rechazado - Favorcito`,
   text: aprobado
     ? [
-        "UT Tehuacán",
+        "Favorcito",
         "",
         `Tu solicitud para el local "${nombreLocal}" ha sido aprobada por el administrador.`,
         "",
-        "Ya puedes iniciar sesión y comenzar a gestionar tu menú y recibir pedidos.",
+        "Ya puedes iniciar sesion y comenzar a gestionar tu menu y recibir pedidos.",
       ].join("\n")
     : [
-        "UT Tehuacán",
+        "Favorcito",
         "",
         `Tu solicitud para el local "${nombreLocal}" ha sido rechazada por el administrador.`,
         "",
-        "Si crees que es un error, puedes enviar una nueva solicitud con información más completa.",
+        "Si crees que es un error, puedes enviar una nueva solicitud con informacion mas completa.",
       ].join("\n"),
   html: aprobado
     ? `
-      <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto;">
-        <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px; border-radius: 10px 10px 0 0;">
-          <h1 style="color: white; margin: 0; text-align: center;">UT Tehuacán</h1>
-        </div>
-        <div style="background: #f7f7f7; padding: 30px; border-radius: 0 0 10px 10px;">
-          <h2 style="color: #333; margin-top: 0;">¡Tu local fue aprobado! 🎉</h2>
-          <p style="color: #666; font-size: 16px;">
-            Tu solicitud para el local <strong>${nombreLocal}</strong> ha sido
-            <strong style="color:#10b981">aprobada</strong> por el administrador.
-          </p>
-          <p style="color: #666; font-size: 16px;">
-            Ya puedes iniciar sesión y comenzar a gestionar tu menú y recibir pedidos.
-          </p>
-          <div style="background: #ecfdf5; border: 1px solid #a7f3d0; padding: 16px; border-radius: 8px; margin: 20px 0;">
-            <p style="margin: 0; color: #065f46; font-size: 14px;">
-              ✅ Accede a tu panel de vendedor para agregar productos y configurar tu local.
-            </p>
-          </div>
-          <p style="color: #999; font-size: 12px; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px;">
-            Este mensaje fue generado automáticamente por el sistema de UT Tehuacán.
-          </p>
-        </div>
+      <div style="font-family: Arial, sans-serif; padding: 24px; max-width: 600px; margin: 0 auto; color: #111;">
+        <h1 style="margin: 0 0 12px; font-size: 24px;">Favorcito</h1>
+        <h2 style="margin: 0 0 12px; color: #0f9d58;">Tu local fue aprobado</h2>
+        <p style="font-size: 16px;">Tu solicitud para el local <strong>${nombreLocal}</strong> ha sido aprobada.</p>
+        <p style="font-size: 14px; color: #555;">Ya puedes iniciar sesion y comenzar a recibir pedidos.</p>
       </div>
     `
     : `
-      <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto;">
-        <div style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); padding: 30px; border-radius: 10px 10px 0 0;">
-          <h1 style="color: white; margin: 0; text-align: center;">UT Tehuacán</h1>
-        </div>
-        <div style="background: #f7f7f7; padding: 30px; border-radius: 0 0 10px 10px;">
-          <h2 style="color: #333; margin-top: 0;">Solicitud rechazada</h2>
-          <p style="color: #666; font-size: 16px;">
-            Tu solicitud para el local <strong>${nombreLocal}</strong> ha sido
-            <strong style="color:#ef4444">rechazada</strong> por el administrador.
-          </p>
-          <div style="background: #fef2f2; border: 1px solid #fecaca; padding: 16px; border-radius: 8px; margin: 20px 0;">
-            <p style="margin: 0; color: #991b1b; font-size: 14px;">
-              Si crees que es un error, puedes enviar una nueva solicitud con información más completa.
-            </p>
-          </div>
-          <p style="color: #999; font-size: 12px; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px;">
-            Este mensaje fue generado automáticamente por el sistema de UT Tehuacán.
-          </p>
-        </div>
+      <div style="font-family: Arial, sans-serif; padding: 24px; max-width: 600px; margin: 0 auto; color: #111;">
+        <h1 style="margin: 0 0 12px; font-size: 24px;">Favorcito</h1>
+        <h2 style="margin: 0 0 12px; color: #d93025;">Solicitud rechazada</h2>
+        <p style="font-size: 16px;">Tu solicitud para el local <strong>${nombreLocal}</strong> ha sido rechazada.</p>
+        <p style="font-size: 14px; color: #555;">Si crees que es un error, puedes enviar una nueva solicitud con informacion mas completa.</p>
       </div>
     `,
 });
@@ -214,9 +170,12 @@ export const enviarCodigoVerificacion = async (email, codigo) => {
       text: plantilla.text,
       html: plantilla.html,
     });
-    console.log("✅ Email enviado a:", email);
+
+    if (isDev) {
+      console.log("Email enviado a:", email);
+    }
   } catch (error) {
-    console.error("❌ Error enviando email:", error);
+    console.error("Error enviando email:", error.message);
     throw error;
   }
 };
@@ -231,9 +190,12 @@ export const enviarNotificacionLocal = async (email, nombreLocal, aprobado) => {
       text: plantilla.text,
       html: plantilla.html,
     });
-    console.log("✅ Notificación de local enviada a:", email);
+
+    if (isDev) {
+      console.log("Notificacion de local enviada a:", email);
+    }
   } catch (error) {
-    console.error("❌ Error enviando notificación:", error);
+    console.error("Error enviando notificacion:", error.message);
     throw error;
   }
 };

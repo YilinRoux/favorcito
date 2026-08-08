@@ -90,14 +90,36 @@ const usuarioSchema = new mongoose.Schema(
     codigoVerificacion: {
       type: String,
       select: false,
+      default: null,
     },
 
     codigoExpiracion: {
       type: Date,
       select: false,
+      default: null,
     },
-    codigoRecuperacion: { type: String, default: null },
-    codigoRecuperacionExpira: { type: Date, default: null },
+
+    codigoVerificacionIntentos: {
+      type: Number,
+      default: 0,
+    },
+
+    codigoRecuperacion: {
+      type: String,
+      default: null,
+      select: false,
+    },
+
+    codigoRecuperacionExpira: {
+      type: Date,
+      default: null,
+      select: false,
+    },
+
+    codigoRecuperacionIntentos: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,
