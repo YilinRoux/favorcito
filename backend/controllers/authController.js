@@ -154,7 +154,7 @@ export const reenviarCodigo = async (req, res) => {
     await usuario.save();
 
     // Enviar nuevo código
-    await enviarCodigoVerificacion(email, codigoVerificacion);
+    enviarCodigoEnSegundoPlano(email, codigoVerificacion, "reenviar");
 
     res.json({ mensaje: "Código reenviado a tu correo" });
 
