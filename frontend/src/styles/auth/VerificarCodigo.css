@@ -210,6 +210,45 @@
 @keyframes vc-ru { from{opacity:0;transform:translateY(14px);filter:blur(3px)} to{opacity:1;transform:translateY(0);filter:blur(0)} }
 
 /* Email chip */
+.vc-email-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 6px 0 6px;
+}
+
+.vc-label {
+  color: #bdbdbd !important;
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.vc-email-input {
+  width: 100% !important;
+  background: #202020 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 14px !important;
+  color: var(--vc-text) !important;
+  padding: 16px 18px !important;
+  font-size: 0.98rem !important;
+  font-weight: 600 !important;
+  outline: none !important;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s !important;
+}
+
+.vc-email-input::placeholder {
+  color: #777 !important;
+  font-weight: 500 !important;
+}
+
+.vc-email-input:focus {
+  border-color: var(--vc-orange) !important;
+  box-shadow: 0 0 0 3px rgba(255, 92, 10, 0.12) !important;
+  transform: translateY(-1px);
+}
+
 .vc-email-chip {
   display: block !important;
   background: rgba(255,92,10,0.08) !important;
