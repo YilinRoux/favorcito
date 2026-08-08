@@ -3,27 +3,21 @@ import dns from "node:dns";
 
 dns.setDefaultResultOrder("ipv4first");
 
-const obtenerHostSMTP = async () => {
-  try {
-    const addresses = await dns.promises.resolve4("smtp.gmail.com");
-    const hostIPv4 = addresses[0];
+const deshabilitarIPv6EnDns = () => {
+  const devolverSinIPv6 = (_host, callback) => callback(null, []);
 
-    if (hostIPv4) {
-      console.log("✅ SMTP Gmail IPv4 resuelto:", hostIPv4);
-      return hostIPv4;
-    }
-  } catch (error) {
-    console.warn("⚠️ No se pudo resolver smtp.gmail.com en IPv4, usando hostname:", error.message);
+  if (dns.Resolver?.prototype?.resolve6) {
+    dns.Resolver.prototype.resolve6 = devolverSinIPv6;
   }
 
-  return "smtp.gmail.com";
+  dns.resolve6 = devolverSinIPv6;
 };
 
-const hostSMTP = await obtenerHostSMTP();
+deshabilitarIPv6EnDns();
 
 const crearTransporter = () =>
   nodemailer.createTransport({
-    host: hostSMTP,
+    host: "smtp.gmail.com",
     port: 587,
     secure: false,
     requireTLS: true,
