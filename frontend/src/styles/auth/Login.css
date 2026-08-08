@@ -325,6 +325,58 @@
 }
 .lg-error-svg { width:16px; height:16px; min-width:16px; fill:none; stroke:#ff6b6b; stroke-width:2; stroke-linecap:round; }
 
+.lg-error-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lg-verification-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lg-reverify-btn {
+  width: 100%;
+  border: 1px solid rgba(255, 92, 10, 0.28) !important;
+  background: rgba(255, 92, 10, 0.12) !important;
+  color: #ffb38a !important;
+  font-family: var(--font) !important;
+  font-weight: 700 !important;
+  font-size: 0.88rem !important;
+  padding: 11px 14px !important;
+  border-radius: 10px !important;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s, border-color 0.2s, color 0.2s !important;
+}
+
+.lg-reverify-btn:hover {
+  background: rgba(255, 92, 10, 0.18) !important;
+  border-color: rgba(255, 92, 10, 0.42) !important;
+  color: #ffd2bc !important;
+  transform: translateY(-1px);
+}
+
+.lg-reverify-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.lg-reverify-link {
+  text-align: center;
+  color: #8f8f8f !important;
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.lg-reverify-link:hover {
+  color: var(--orange) !important;
+}
+
 .lg-suspended {
   background: rgba(220,38,38,0.07) !important;
   border: 1px solid rgba(220,38,38,0.22) !important;

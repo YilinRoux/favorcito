@@ -8,7 +8,7 @@ function VerificarCodigo() {
   const [digits, setDigits] = useState(["","","","","",""]);
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
-  const [mensaje, setMensaje] = useState("");
+  const [mensaje, setMensaje] = useState(location.state?.mensaje || "");
   const [verificado, setVerificado] = useState(false);
   const [timer, setTimer] = useState(60);
   const [puedeReenviar, setPuedeReenviar] = useState(false);
