@@ -97,7 +97,7 @@ function Registro() {
                 </svg>
               </div>
               <div className="rg-role-content">
-                <span className="rg-role-label">Estudiahambre</span>
+                <span className="rg-role-label">Estudiante</span>
                 <span className="rg-role-desc">Pide favores y recibe pedidos</span>
               </div>
               <svg className="rg-role-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
