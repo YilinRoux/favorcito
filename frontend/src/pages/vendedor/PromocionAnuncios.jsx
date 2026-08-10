@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../../services/api";
 import "../../styles/vendedor/PromocionAnuncios.css";
 import { getImageUrl } from "../../utils/imageUrl";
+import ImageWithFallback from "../../components/common/ImageWithFallback";
 
 function PromocionAnuncios() {
   const [cargando, setCargando] = useState(true);
@@ -151,7 +152,7 @@ function PromocionAnuncios() {
               {imagenesAnuncios.map((img, i) => (
                 <div key={i} className="pa-img-wrap">
                   {/* ✅ Cambiado: usa BASE_URL en lugar de localhost hardcodeado */}
-                  <img src={getImageUrl(img)} className="pa-img" alt={`imagen-${i}`} />
+                  <ImageWithFallback src={getImageUrl(img)} className="pa-img" alt={`imagen-${i}`} />
                   <button onClick={() => eliminarImagen(img)} className="pa-img-delete">
                     <svg viewBox="0 0 12 12" fill="currentColor" width="10" height="10">
                       <path d="M1 1l10 10M11 1L1 11" stroke="white" strokeWidth="2" strokeLinecap="round"/>

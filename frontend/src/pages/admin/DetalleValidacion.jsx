@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import "../../styles/admin/DetalleValidacion.css";
 import { getImageUrl } from "../../utils/imageUrl";
+import ImageWithFallback from "../../components/common/ImageWithFallback";
 
 function DetalleValidacion() {
   const { id } = useParams();
@@ -99,7 +100,7 @@ function DetalleValidacion() {
                 <p className="dv-info-label">FOTOS</p>
                 <div className="dv-fotos">
                   {local.fotos.map((foto, i) => (
-                    <img key={i} src={getImageUrl(foto)} className="dv-foto" />
+                    <ImageWithFallback key={i} src={getImageUrl(foto)} className="dv-foto" alt={`Foto del local ${i + 1}`} />
                   ))}
                 </div>
               </div>

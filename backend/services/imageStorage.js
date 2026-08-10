@@ -45,6 +45,12 @@ export const guardarImagen = async (file, folder) => {
     return uploadToCloudinary(file, folder);
   }
 
+  if (process.env.NODE_ENV === "production") {
+    const error = new Error("El almacenamiento de imágenes no está configurado en producción");
+    error.code = "IMAGE_STORAGE_NOT_CONFIGURED";
+    throw error;
+  }
+
   return normalizeLocalPath(`/uploads/${file.filename}`);
 };
 

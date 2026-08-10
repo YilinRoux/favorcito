@@ -4,6 +4,7 @@ import api from "../../services/api";
 import { AuthContext } from "../../context/AuthContext";
 import "../../styles/estudiante/DetalleLocal.css";
 import { getImageUrl } from "../../utils/imageUrl";
+import ImageWithFallback from "../../components/common/ImageWithFallback";
 
 function DetalleLocal() {
   const { id } = useParams();
@@ -178,7 +179,7 @@ function DetalleLocal() {
           {local.imagenesAnuncios?.length > 0 && (
             <div className="dl-imagenes-scroll">
               {local.imagenesAnuncios.map((img, i) => (
-                <img
+                <ImageWithFallback
                   key={i}
                   src={getImageUrl(img)}
                   className="dl-imagen-anuncio"
@@ -233,7 +234,7 @@ function DetalleLocal() {
                 return (
                   <div key={producto._id} className="dl-producto-card" style={{ animationDelay: `${i * 0.06}s` }}>
                     {producto.imagen ? (
-                      <img
+                      <ImageWithFallback
                         src={getImageUrl(producto.imagen)}
                         className="dl-producto-img"
                         alt={producto.nombre}

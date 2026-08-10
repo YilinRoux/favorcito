@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import "../../styles/estudiante/MenuLocales.css";
 import { getImageUrl } from "../../utils/imageUrl";
+import ImageWithFallback from "../../components/common/ImageWithFallback";
 
 function MenuLocales() {
   const [locales, setLocales] = useState([]);
@@ -92,7 +93,7 @@ function MenuLocales() {
         {imagenesPromo.length > 0 && (
           <div className="ml-carrusel">
             <div className="ml-carrusel-img-wrap">
-              <img
+              <ImageWithFallback
                 src={getImageUrl(imagenesPromo[imagenActiva].imagen)}
                 alt="Promoción"
                 className="ml-carrusel-img"
@@ -166,7 +167,7 @@ function MenuLocales() {
                 <div className="ml-local-row">
                   {/* Imagen */}
                   {local.fotos?.[0] ? (
-                    <img
+                    <ImageWithFallback
                       src={getImageUrl(local.fotos[0])}
                       alt={local.nombre}
                       className="ml-local-img"

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../../services/api";
 import "../../styles/vendedor/GestionMenu.css";
 import { getImageUrl } from "../../utils/imageUrl";
+import ImageWithFallback from "../../components/common/ImageWithFallback";
 
 function GestionMenu() {
   const [productos, setProductos] = useState([]);
@@ -278,7 +279,7 @@ function GestionMenu() {
               <div key={producto._id} className={`gm-producto-card ${!producto.activo ? "gm-producto-inactivo" : ""}`}>
                 <div className="gm-card-top-border"/>
                 {producto.imagen ? (
-                  <img src={getImageUrl(producto.imagen)} alt={producto.nombre} className="gm-producto-img"/>
+                  <ImageWithFallback src={getImageUrl(producto.imagen)} alt={producto.nombre} className="gm-producto-img"/>
                 ) : (
                   <div className="gm-producto-img-placeholder">
                     <svg viewBox="0 0 24 24" fill="none" width="28" height="28">
