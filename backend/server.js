@@ -106,7 +106,17 @@ io.on("connection", (socket) => {
   });
 });
 
-app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    contentSecurityPolicy: {
+      directives: {
+        imgSrc: ["'self'", "data:", "blob:", "https://res.cloudinary.com"],
+        connectSrc: ["'self'", "https:", "wss:"],
+      },
+    },
+  })
+);
 app.use(cors());
 app.use(express.json());
 

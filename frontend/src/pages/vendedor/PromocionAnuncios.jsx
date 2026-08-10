@@ -3,6 +3,7 @@ import api from "../../services/api";
 import "../../styles/vendedor/PromocionAnuncios.css";
 import { getImageUrl } from "../../utils/imageUrl";
 import ImageWithFallback from "../../components/common/ImageWithFallback";
+import { prepareImageFiles } from "../../utils/filePreviews";
 
 function PromocionAnuncios() {
   const [cargando, setCargando] = useState(true);
@@ -34,10 +35,11 @@ function PromocionAnuncios() {
     cargar();
   }, []);
 
-  const handleImagenes = (e) => {
-    const files = Array.from(e.target.files);
+  const handleImagenes = async (e) => {
+    const { files, previews } = await prepareImageFiles(e.target.files, 5);
     setNuevasImagenes(files);
-    setPreviews(files.map((f) => URL.createObjectURL(f)));
+    setPreviews(previews);
+    e.target.value = "";
   };
 
   const handleGuardar = async () => {
@@ -173,8 +175,13 @@ function PromocionAnuncios() {
 
           {previews.length > 0 && (
             <div className="pa-img-grid pa-img-grid-preview">
-              {previews.map((src, i) => (
-                <img key={i} src={src} className="pa-img pa-img-preview" alt={`preview-${i}`} />
+              {previews.map((preview, i) => (
+                <ImageWithFallback
+                  key={`${preview.name}-${i}`}
+                  src={preview.src}
+                  className="pa-img pa-img-preview"
+                  alt={preview.name || `preview-${i}`}
+                />
               ))}
             </div>
           )}

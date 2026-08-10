@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import "../../styles/vendedor/SolicitarAlta.css";
+import ImageWithFallback from "../../components/common/ImageWithFallback";
+import { prepareImageFiles } from "../../utils/filePreviews";
 
 function SolicitarAlta() {
   const [nombre, setNombre] = useState("");
@@ -13,10 +15,11 @@ function SolicitarAlta() {
   const [cargando, setCargando] = useState(false);
   const navigate = useNavigate();
 
-  const handleFotos = (e) => {
-    const files = Array.from(e.target.files);
+  const handleFotos = async (e) => {
+    const { files, previews } = await prepareImageFiles(e.target.files, 3);
     setFotos(files);
-    setPreviews(files.map((f) => URL.createObjectURL(f)));
+    setPreviews(previews);
+    e.target.value = "";
   };
 
   const handleSubmit = async (e) => {
@@ -136,8 +139,13 @@ function SolicitarAlta() {
             </label>
             {previews.length > 0 && (
               <div className="sa-previews">
-                {previews.map((src, i) => (
-                  <img key={i} src={src} className="sa-preview-img" />
+                {previews.map((preview, i) => (
+                  <ImageWithFallback
+                    key={`${preview.name}-${i}`}
+                    src={preview.src}
+                    className="sa-preview-img"
+                    alt={preview.name || `preview-${i}`}
+                  />
                 ))}
               </div>
             )}
