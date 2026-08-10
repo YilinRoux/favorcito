@@ -546,6 +546,103 @@
 
 @keyframes ml-spin { to { transform: rotate(360deg); } }
 
+/* Recomendado para ti */
+.ml-recomendados {
+  margin-bottom: 22px;
+}
+
+.ml-recomendados-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.ml-recomendados-header p {
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: var(--text) !important;
+  margin: 0 0 2px;
+}
+
+.ml-recomendados-header span {
+  display: block;
+  font-size: 0.74rem;
+  color: var(--text-muted) !important;
+}
+
+.ml-recomendados-scroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 2px 2px 8px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 92, 10, 0.45) transparent;
+}
+
+.ml-recomendado-card {
+  flex: 0 0 auto;
+  width: 138px;
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border);
+  border-radius: 18px !important;
+  padding: 10px;
+  cursor: pointer;
+  text-align: left;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.38);
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.ml-recomendado-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 92, 10, 0.28);
+  box-shadow: 0 16px 38px rgba(0,0,0,0.52), 0 0 0 1px rgba(255,92,10,0.08);
+}
+
+.ml-recomendado-img,
+.ml-recomendado-img-placeholder {
+  width: 100%;
+  height: 84px;
+  border-radius: 12px !important;
+  object-fit: cover;
+  margin-bottom: 9px;
+  border: 1px solid var(--border);
+}
+
+.ml-recomendado-img-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-card-inner) !important;
+  color: var(--text-muted);
+}
+
+.ml-recomendado-nombre {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--text) !important;
+  margin: 0 0 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ml-recomendado-local {
+  font-size: 0.7rem;
+  color: var(--text-muted) !important;
+  margin: 0 0 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ml-recomendado-precio {
+  font-size: 0.86rem;
+  font-weight: 900;
+  color: var(--orange) !important;
+  margin: 0;
+}
+
 /* ── Responsive ────────────────────────────────────────────── */
 @media (max-width: 640px) {
   .ml-wrap { padding: 28px 10px 60px; }
@@ -553,6 +650,9 @@
   .ml-carrusel-img { height: 160px; }
   .ml-local-img,
   .ml-local-img-placeholder { width: 60px; height: 60px; }
+  .ml-recomendado-card { width: 124px; }
+  .ml-recomendado-img,
+  .ml-recomendado-img-placeholder { height: 76px; }
   .ml-local-nombre { font-size: 0.9rem; }
   .ml-promo-badge { font-size: 0.64rem; padding: 3px 8px; }
 }

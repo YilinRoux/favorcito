@@ -154,9 +154,11 @@ export const obtenerProductosRecomendados = async (req, res) => {
   try {
     const preferencias = req.usuario.preferencias || [];
 
-    // Data Mining: contar cuántas veces se ha pedido cada producto
+    // Data mining: contar cuantas veces se ha pedido cada producto.
     const popularidad = await Pedido.aggregate([
+      { $match: { estado: "entregado" } },
       { $unwind: "$productos" },
+      { $match: { "productos.producto": { $ne: null } } },
       {
         $group: {
           _id: "$productos.producto",
@@ -167,17 +169,35 @@ export const obtenerProductosRecomendados = async (req, res) => {
 
     const mapaPopularidad = {};
     popularidad.forEach((p) => {
-      mapaPopularidad[p._id.toString()] = p.totalPedido;
+      if (p._id) mapaPopularidad[p._id.toString()] = p.totalPedido;
     });
 
-    const productos = await Producto.find({ activo: true }).populate("local");
+    const productos = await Producto.find({ activo: true })
+      .populate({
+        path: "local",
+        match: { aprobado: true, activo: true },
+        select: "nombre descripcion direccion fotos aprobado activo",
+      })
+      .lean();
 
-    const productosConScore = productos.map((producto) => {
+    const productosPublicos = productos.filter((producto) => producto.local);
+
+    const productosConScore = productosPublicos.map((producto) => {
       const esFavorito = preferencias.includes(producto.categoria);
       const popularidadProducto = mapaPopularidad[producto._id.toString()] || 0;
-      // Bonus fuerte si coincide con preferencia + suma de popularidad real
+      // El bonus hace visible el onboarding; la popularidad desempata con datos reales.
       const score = (esFavorito ? 1000 : 0) + popularidadProducto;
-      return { producto, score };
+      return {
+        producto: {
+          ...producto,
+          recomendacion: {
+            score,
+            coincidePreferencias: esFavorito,
+            popularidad: popularidadProducto,
+          },
+        },
+        score,
+      };
     });
 
     productosConScore.sort((a, b) => b.score - a.score);

@@ -1,14 +1,17 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import "../../styles/estudiante/MenuLocales.css";
 import { getImageUrl } from "../../utils/imageUrl";
 import ImageWithFallback from "../../components/common/ImageWithFallback";
+import { AuthContext } from "../../context/AuthContext";
 
 function MenuLocales() {
   const [locales, setLocales] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [imagenActiva, setImagenActiva] = useState(0);
+  const [recomendados, setRecomendados] = useState([]);
+  const { usuario } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const cargar = async () => {
@@ -32,6 +35,24 @@ function MenuLocales() {
     const interval = setInterval(cargar, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (!usuario) {
+      setRecomendados([]);
+      return;
+    }
+
+    const cargarRecomendados = async () => {
+      try {
+        const res = await api.get("/productos/recomendados");
+        setRecomendados(res.data.slice(0, 8));
+      } catch {
+        setRecomendados([]);
+      }
+    };
+
+    cargarRecomendados();
+  }, [usuario]);
 
   const imagenesPromo = locales
     .filter((l) => l.promocionActiva && l.imagenesAnuncios?.length > 0)
@@ -75,7 +96,7 @@ function MenuLocales() {
 
       <div className="ml-inner">
 
-        {/* ── Header ── */}
+        {/* Header */}
         <div className="ml-header">
           <div className="ml-logo-icon">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -89,17 +110,17 @@ function MenuLocales() {
           </div>
         </div>
 
-        {/* ── Carrusel promociones ── */}
+        {/* Carrusel de promociones */}
         {imagenesPromo.length > 0 && (
           <div className="ml-carrusel">
             <div className="ml-carrusel-img-wrap">
               <ImageWithFallback
                 src={getImageUrl(imagenesPromo[imagenActiva].imagen)}
-                alt="Promoción"
+                alt="Promocion"
                 className="ml-carrusel-img"
               />
               <div className="ml-carrusel-overlay" />
-              {/* Puntos de navegación */}
+              {/* Puntos de navegacion */}
               {imagenesPromo.length > 1 && (
                 <div className="ml-carrusel-dots">
                   {imagenesPromo.map((_, i) => (
@@ -107,7 +128,7 @@ function MenuLocales() {
                       key={i}
                       onClick={() => setImagenActiva(i)}
                       className={`ml-dot${i === imagenActiva ? " ml-dot--active" : ""}`}
-                      aria-label={`Ir a promoción ${i + 1}`}
+                      aria-label={`Ir a promocion ${i + 1}`}
                     />
                   ))}
                 </div>
@@ -118,7 +139,7 @@ function MenuLocales() {
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12"/>
                 </svg>
-                Envío gratis
+                Envio gratis
               </div>
               <p className="ml-carrusel-nombre">
                 {imagenesPromo[imagenActiva].localNombre}
@@ -136,7 +157,51 @@ function MenuLocales() {
           </div>
         )}
 
-        {/* ── Lista de locales ── */}
+        {/* Recomendaciones personalizadas */}
+        {recomendados.length > 0 && (
+          <div className="ml-recomendados">
+            <div className="ml-recomendados-header">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FF5C0A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+              </svg>
+              <div>
+                <p>Recomendado para ti</p>
+                <span>Basado en tus gustos y en lo mas pedido</span>
+              </div>
+            </div>
+
+            <div className="ml-recomendados-scroll">
+              {recomendados.map((producto) => (
+                <button
+                  key={producto._id}
+                  type="button"
+                  className="ml-recomendado-card"
+                  onClick={() => producto.local?._id && navigate(`/local/${producto.local._id}`)}
+                >
+                  {producto.imagen ? (
+                    <ImageWithFallback
+                      src={getImageUrl(producto.imagen)}
+                      alt={producto.nombre}
+                      className="ml-recomendado-img"
+                    />
+                  ) : (
+                    <div className="ml-recomendado-img-placeholder">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" />
+                        <path d="M7 2v20" />
+                        <path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7" />
+                      </svg>
+                    </div>
+                  )}
+                  <p className="ml-recomendado-nombre">{producto.nombre}</p>
+                  <p className="ml-recomendado-local">{producto.local?.nombre || "Local disponible"}</p>
+                  <p className="ml-recomendado-precio">${producto.precio}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {locales.length === 0 ? (
           <div className="ml-empty">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -154,13 +219,13 @@ function MenuLocales() {
                 className={`ml-local-card${local.promocionActiva ? " ml-local-card--promo" : ""}`}
                 style={{ animationDelay: `${i * 0.07}s` }}
               >
-                {/* Badge promoción */}
+                {/* Badge promocion */}
                 {local.promocionActiva && (
                   <div className="ml-promo-badge">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="20 6 9 17 4 12"/>
                     </svg>
-                    Envío gratis +${local.montoMinimoPromocion}
+                    Envio gratis +${local.montoMinimoPromocion}
                   </div>
                 )}
 
