@@ -1,4 +1,5 @@
 import express from "express";
+import rateLimit from "express-rate-limit";
 import http from "http";
 import { Server } from "socket.io";
 import cors from "cors";
@@ -131,7 +132,15 @@ app.use(
   })
 );
 app.use(cors({ origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(",").map(x => x.trim()) : false }));
-app.use(express.json());
+app.use(express.json({ limit: "100kb" }));
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 30,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: { mensaje: "Demasiadas solicitudes. Intenta más tarde." },
+});
+app.use("/api/auth", authLimiter);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
