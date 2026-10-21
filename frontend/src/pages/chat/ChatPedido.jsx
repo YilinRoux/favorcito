@@ -43,6 +43,7 @@ export default function ChatPedido() {
         ]);
         setMensajes(mensajesRes.data);
         setPedido(pedidoRes.data);
+        await api.put(`/chat/${pedidoId}/leido`);
       } catch (error) {
         console.error("Error cargando chat:", error);
       }
@@ -54,9 +55,13 @@ export default function ChatPedido() {
     socket.emit("unirsePedido", pedidoId);
     if (usuario) socket.emit("registrarUsuario", usuario.id);
 
-    socket.on("nuevoMensaje", (msg) => {
+    const recibirMensaje = (msg) => {
       setMensajes((prev) => [...prev, msg]);
-    });
+      api.put(`/chat/${pedidoId}/leido`).catch((error) => {
+        console.error("Error marcando mensajes como leídos:", error);
+      });
+    };
+    socket.on("nuevoMensaje", recibirMensaje);
 
     socket.on("usuarioEscribiendo", () => {
       setEscribiendo("Alguien");
@@ -64,7 +69,7 @@ export default function ChatPedido() {
     });
 
     return () => {
-      socket.off("nuevoMensaje");
+      socket.off("nuevoMensaje", recibirMensaje);
       socket.off("usuarioEscribiendo");
     };
   }, [pedidoId, usuario]);
