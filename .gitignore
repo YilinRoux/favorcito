@@ -4,3 +4,14 @@ backend/uploads/
 ml-service/modelos/
 ml-service/venv/
 *.env
+
+# Never commit database dumps or exports
+backup/
+*.bson
+*.archive
+*.dump
+
+# Configuraciones privadas
+.env
+.env.*
+!.env.example

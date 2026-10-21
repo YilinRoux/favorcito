@@ -1,98 +1,33 @@
-import { google } from "googleapis";
-
-const {
-  EMAIL_USER,
-  GMAIL_CLIENT_ID,
-  GMAIL_CLIENT_SECRET,
-  GMAIL_REFRESH_TOKEN,
-} = process.env;
+import nodemailer from "nodemailer";
 
 const isDev = process.env.NODE_ENV !== "production";
 
-const base64Encode = (value) => Buffer.from(value).toString("base64");
-const base64UrlEncode = (value) =>
-  Buffer.from(value).toString("base64url").replace(/=+$/g, "");
+let transporter = null;
 
-const requireGmailOAuthConfig = () => {
-  const missing = [];
+const getTransporter = () => {
+  const user = process.env.EMAIL_USER?.trim();
+  const pass = process.env.EMAIL_PASS?.replace(/\s/g, "");
 
-  if (!EMAIL_USER) missing.push("EMAIL_USER");
-  if (!GMAIL_CLIENT_ID) missing.push("GMAIL_CLIENT_ID");
-  if (!GMAIL_CLIENT_SECRET) missing.push("GMAIL_CLIENT_SECRET");
-  if (!GMAIL_REFRESH_TOKEN) missing.push("GMAIL_REFRESH_TOKEN");
-
-  if (missing.length > 0) {
-    throw new Error(`Faltan variables de Gmail OAuth2: ${missing.join(", ")}`);
-  }
-};
-
-const crearGmailClient = () => {
-  requireGmailOAuthConfig();
-
-  const oauth2Client = new google.auth.OAuth2(
-    GMAIL_CLIENT_ID,
-    GMAIL_CLIENT_SECRET
-  );
-
-  oauth2Client.setCredentials({
-    refresh_token: GMAIL_REFRESH_TOKEN,
-  });
-
-  return google.gmail({ version: "v1", auth: oauth2Client });
-};
-
-let gmailClient = null;
-
-const getGmailClient = () => {
-  if (!gmailClient) {
-    gmailClient = crearGmailClient();
+  if (!user || !pass) {
+    throw new Error("Faltan variables SMTP: EMAIL_USER, EMAIL_PASS");
   }
 
-  return gmailClient;
-};
-
-const construirMensajeMime = ({ from, to, subject, text, html }) => {
-  const boundary = `favorcito_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-
-  return [
-    `From: ${from}`,
-    `To: ${to}`,
-    `Subject: =?UTF-8?B?${base64Encode(subject)}?=`,
-    "MIME-Version: 1.0",
-    `Content-Type: multipart/alternative; boundary="${boundary}"`,
-    "",
-    `--${boundary}`,
-    'Content-Type: text/plain; charset="UTF-8"',
-    "Content-Transfer-Encoding: 8bit",
-    "",
-    text,
-    "",
-    `--${boundary}`,
-    'Content-Type: text/html; charset="UTF-8"',
-    "Content-Transfer-Encoding: 8bit",
-    "",
-    html,
-    "",
-    `--${boundary}--`,
-    "",
-  ].join("\r\n");
+  if (!transporter) {
+    transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: { user, pass },
+    });
+  }
+  return transporter;
 };
 
 const enviarConGmailApi = async ({ to, subject, text, html }) => {
-  const message = construirMensajeMime({
-    from: EMAIL_USER,
+  await getTransporter().sendMail({
+    from: process.env.EMAIL_USER,
     to,
     subject,
     text,
     html,
-  });
-
-  const raw = base64UrlEncode(message);
-  const gmail = getGmailClient();
-
-  await gmail.users.messages.send({
-    userId: "me",
-    requestBody: { raw },
   });
 };
 

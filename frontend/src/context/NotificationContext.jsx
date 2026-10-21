@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect, useContext } from "react";
+import { AuthContext } from "./AuthContext";
 import socket from "../services/socket";
 import { getApiBaseUrl } from "../utils/runtimeUrls";
 
@@ -8,10 +9,13 @@ export const NotificationContext = createContext();
 export function NotificationProvider({ children }) {
   const [notificaciones, setNotificaciones] = useState({});
   const [chatActivo, setChatActivo] = useState(null);
+  const { usuario } = useContext(AuthContext);
 
   useEffect(() => {
-    const usuario = JSON.parse(localStorage.getItem("usuario"));
-    if (!usuario) return;
+    if (!usuario) {
+      socket.disconnect();
+      return;
+    }
 
     const registrarYUnirse = () => {
       socket.emit("registrarUsuario", usuario.id);
@@ -43,23 +47,21 @@ export function NotificationProvider({ children }) {
       unirseAPedidos();
     };
 
-    if (socket.connected) {
-      registrarYUnirse();
-    } else {
-      socket.connect();
-      socket.on("connect", registrarYUnirse);
-    }
+    socket.on("connect", registrarYUnirse);
+    if (socket.connected) registrarYUnirse();
+    else socket.connect();
 
     return () => {
       socket.off("connect", registrarYUnirse);
+      socket.disconnect();
     };
-  }, []);
+  }, [usuario]);
 
   useEffect(() => {
     const handler = ({ pedidoId, emisorId }) => {
-      const usuario = JSON.parse(localStorage.getItem("usuario"));
+      if (!usuario) return;
 
-      if (emisorId === usuario?.id) {
+      if (String(emisorId) === String(usuario.id || usuario._id)) {
         return;
       }
 
@@ -75,7 +77,68 @@ export function NotificationProvider({ children }) {
 
     socket.on("nuevaNotificacion", handler);
     return () => socket.off("nuevaNotificacion", handler);
-  }, [chatActivo]);
+  }, [chatActivo, usuario]);
+
+  // Reconciliar con la base de datos: los eventos de socket pueden perderse.
+  useEffect(() => {
+    if (!usuario || !["estudiante", "vendedor"].includes(usuario.rol)) {
+      setNotificaciones({});
+      return;
+    }
+
+    let activo = true;
+    const actualizarNoLeidos = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      const headers = { Authorization: `Bearer ${token}` };
+      const baseUrl = getApiBaseUrl();
+      const ruta = usuario.rol === "vendedor" ? "/pedidos/vendedor" : "/pedidos/mis-pedidos";
+
+      try {
+        const respuesta = await fetch(`${baseUrl}/api${ruta}`, { headers });
+        if (!respuesta.ok) return;
+        const pedidos = await respuesta.json();
+        if (!Array.isArray(pedidos)) return;
+
+        const conteos = await Promise.all(
+          pedidos.map(async (pedido) => {
+            try {
+              const res = await fetch(`${baseUrl}/api/chat/${pedido._id}/no-leidos`, { headers });
+              if (!res.ok) return null;
+              const data = await res.json();
+              return [pedido._id, Number(data.noLeidos) || 0];
+            } catch {
+              return null;
+            }
+          })
+        );
+
+        if (!activo) return;
+        setNotificaciones((prev) => {
+          const siguiente = {};
+          for (const item of conteos) {
+            if (item && item[1] > 0 && item[0] !== chatActivo) siguiente[item[0]] = item[1];
+          }
+          // Mantener valores anteriores si alguna consulta individual falló.
+          for (const pedido of pedidos) {
+            if (!conteos.some((item) => item?.[0] === pedido._id) && prev[pedido._id] && pedido._id !== chatActivo) {
+              siguiente[pedido._id] = prev[pedido._id];
+            }
+          }
+          return siguiente;
+        });
+      } catch (error) {
+        console.error("Error consultando mensajes no leídos:", error);
+      }
+    };
+
+    actualizarNoLeidos();
+    const intervalo = setInterval(actualizarNoLeidos, 10000);
+    return () => {
+      activo = false;
+      clearInterval(intervalo);
+    };
+  }, [usuario, chatActivo]);
 
   const entrarAlChat = (pedidoId) => {
     setChatActivo(pedidoId);

@@ -32,7 +32,8 @@ function DashboardVendedor() {
   const [local, setLocal] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [tab, setTab] = useState("nuevos");
-  const { notificaciones } = useContext(NotificationContext);
+  const [mostrarMensajes, setMostrarMensajes] = useState(false);
+  const { notificaciones, total } = useContext(NotificationContext);
   const navigate = useNavigate();
 
   const cargar = async () => {
@@ -126,7 +127,7 @@ function DashboardVendedor() {
 
       <div className="dv-pedido-header">
         <div>
-          <p className="dv-pedido-id">Pedido #{pedido._id.slice(-6)}</p>
+          <p className="dv-pedido-id">Pedido #{pedido._id.slice(-6).toUpperCase()}</p>
           <p className="dv-pedido-cliente">Cliente: {pedido.estudiante?.nombre_completo || "Desconocido"}</p>
           {pedido.estudiante?.cancelaciones > 0 && !pedido.estudiante?.sospechoso && (
             <p className="dv-pedido-warning">{pedido.estudiante.cancelaciones} cancelación(es) previa(s)</p>
@@ -262,6 +263,35 @@ function DashboardVendedor() {
               </Link>
             </div>
           </div>
+        )}
+
+        {total > 0 && (
+          <section className="dv-message-notice">
+            <div className="dv-message-notice-header">
+              <span className="dv-message-notice-icon">✉</span>
+              <div className="dv-message-notice-content">
+                <p className="dv-message-notice-title">{total} mensajes sin leer</p>
+                <p className="dv-message-notice-subtitle">Conversaciones de tus pedidos</p>
+              </div>
+              <button type="button" className="dv-message-notice-toggle" aria-expanded={mostrarMensajes} onClick={() => setMostrarMensajes(!mostrarMensajes)}>
+                {mostrarMensajes ? "Ocultar" : "Ver mensajes"}
+              </button>
+            </div>
+            {mostrarMensajes && (
+              <div className="dv-message-list">
+                {pedidos.filter(p => notificaciones[p._id] > 0).map(p => (
+                  <Link key={p._id} className="dv-message-list-item" to={`/chat/${p._id}`}>
+                    <span className="dv-message-list-info">
+                      <strong>Pedido #{p._id.slice(-6).toUpperCase()}</strong>
+                      <small>{p.estudiante?.nombre_completo || "Cliente"}</small>
+                    </span>
+                    <span className="dv-message-list-count">{notificaciones[p._id]} sin leer</span>
+                    <span aria-hidden="true">→</span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </section>
         )}
 
         <div className="dv-stats-grid">

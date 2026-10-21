@@ -7,8 +7,7 @@ const verificarAcceso = async (pedido, usuario) => {
 
   let esVendedor = false;
   if (usuario.rol === "vendedor") {
-    const local = await Local.findOne({ vendedor: usuario.id });
-    esVendedor = local && pedido.local.toString() === local._id.toString();
+    esVendedor = Boolean(await Local.exists({ _id: pedido.local, vendedor: usuario.id }));
   }
 
   const esRepartidor =
@@ -28,11 +27,13 @@ export const enviarMensaje = async (req, res) => {
     const tieneAcceso = await verificarAcceso(pedido, req.usuario);
     if (!tieneAcceso) return res.status(403).json({ mensaje: "No autorizado para este chat" });
 
+    if (typeof mensaje !== "string" || !mensaje.trim() || mensaje.length > 2000) return res.status(400).json({ mensaje: "Mensaje inválido (máximo 2000 caracteres)" });
+
     const nuevoMensaje = await Mensaje.create({
       pedido: pedidoId,
       emisor: req.usuario.id,
       rol: req.usuario.rol,
-      mensaje,
+      mensaje: mensaje.trim(),
       leidoPorEstudiante: req.usuario.rol === "estudiante",
       leidoPorVendedor: req.usuario.rol === "vendedor",
     });
@@ -76,6 +77,9 @@ export const obtenerMensajes = async (req, res) => {
 export const marcarComoLeido = async (req, res) => {
   try {
     const { pedidoId } = req.params;
+    const pedido = await Pedido.findById(pedidoId);
+    if (!pedido) return res.status(404).json({ mensaje: "Pedido no encontrado" });
+    if (!(await verificarAcceso(pedido, req.usuario))) return res.status(403).json({ mensaje: "No autorizado" });
     const rol = req.usuario.rol;
 
     if (rol === "estudiante") {
@@ -100,6 +104,9 @@ export const marcarComoLeido = async (req, res) => {
 export const contarNoLeidos = async (req, res) => {
   try {
     const { pedidoId } = req.params;
+    const pedido = await Pedido.findById(pedidoId);
+    if (!pedido) return res.status(404).json({ mensaje: "Pedido no encontrado" });
+    if (!(await verificarAcceso(pedido, req.usuario))) return res.status(403).json({ mensaje: "No autorizado" });
     const rol = req.usuario.rol;
 
     let filtro = { pedido: pedidoId };

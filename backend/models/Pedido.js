@@ -7,8 +7,8 @@ const productoPedidoSchema = new mongoose.Schema({
     required: true,
   },
   nombre: String,
-  precio: Number,
-  cantidad: Number,
+  precio: { type: Number, required: true, min: 0 },
+  cantidad: { type: Number, required: true, min: 1, validate: Number.isSafeInteger },
 });
 
 const historialEstadoSchema = new mongoose.Schema({
@@ -38,6 +38,7 @@ const pedidoSchema = new mongoose.Schema(
     total: {
       type: Number,
       required: true,
+      min: 0,
     },
 
     costoEnvio: {
@@ -75,11 +76,6 @@ const pedidoSchema = new mongoose.Schema(
     promocionAplicada: {
       type: Boolean,
       default: false,
-    },
-
-    costoEnvio: {
-      type: Number,
-      default: 0,
     },
 
     historialEstados: [historialEstadoSchema],

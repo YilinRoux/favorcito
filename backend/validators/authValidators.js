@@ -31,7 +31,7 @@ export const validarRegistro = [
   campoEmail,
   campoPassword,
   body("rol")
-    .isIn(["estudiante", "vendedor", "admin"])
+    .isIn(["estudiante", "vendedor"])
     .withMessage("El rol enviado no es válido"),
   body("año_academico")
     .optional({ nullable: true, checkFalsy: true })

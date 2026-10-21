@@ -1,11 +1,12 @@
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 
 const buildKey = (req) => {
   const email = typeof req.body?.email === "string"
     ? req.body.email.trim().toLowerCase()
     : "";
 
-  return email || req.ip || req.socket?.remoteAddress || "unknown";
+  const ip = ipKeyGenerator(req.ip || req.socket?.remoteAddress || "unknown");
+  return `${ip}:${email}`;
 };
 
 const buildLimiter = ({ windowMs, max, message }) =>

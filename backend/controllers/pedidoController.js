@@ -8,7 +8,7 @@ export const crearPedido = async (req, res) => {
     const { productos, tipoEntrega } = req.body;
     const estudianteId = req.usuario.id;
 
-    if (!productos || productos.length === 0) {
+    if (!Array.isArray(productos) || productos.length === 0 || productos.length > 50) {
       return res.status(400).json({ mensaje: "Debe agregar al menos un producto" });
     }
 
@@ -16,7 +16,10 @@ export const crearPedido = async (req, res) => {
     let productosFinal = [];
     let localId = null;
 
+    const idsUnicos = new Set();
     for (let item of productos) {
+      if (!item || !Number.isSafeInteger(item.cantidad) || item.cantidad <= 0 || !item.producto || idsUnicos.has(String(item.producto))) return res.status(400).json({ mensaje: "Productos o cantidades inválidos" });
+      idsUnicos.add(String(item.producto));
       const productoDB = await Producto.findById(item.producto);
 
       if (!productoDB || !productoDB.activo) {
@@ -44,6 +47,7 @@ export const crearPedido = async (req, res) => {
       });
     }
 
+    if (!["favorcito", "recoger"].includes(tipoEntrega)) return res.status(400).json({ mensaje: "Tipo de entrega inválido" });
     const local = await Local.findById(localId);
     if (!local || !local.aprobado) {
       return res.status(400).json({ mensaje: "Local no válido" });
@@ -64,27 +68,34 @@ const costoEnvio = tipoEntrega === "favorcito" ? 15 : 0;
 
 // 🔥 SUMAR ENVÍO AL TOTAL
 total += costoEnvio;
-    // Descontar stock
-    for (let item of productosFinal) {
-      await Producto.findByIdAndUpdate(item.producto, {
-        $inc: { stock: -item.cantidad }
+    // Una transacción impide ventas sin existencias y pedidos sin descuento de stock.
+    const session = await Pedido.startSession();
+    let nuevoPedido;
+    try {
+      await session.withTransaction(async () => {
+        for (const item of productosFinal) {
+          const resultado = await Producto.updateOne(
+            { _id: item.producto, activo: true, stock: { $gte: item.cantidad } },
+            { $inc: { stock: -item.cantidad } },
+            { session }
+          );
+          if (resultado.modifiedCount !== 1) throw new Error("STOCK_INSUFICIENTE");
+        }
+        const creados = await Pedido.create([{
+          estudiante: estudianteId, local: localId, productos: productosFinal,
+          total, costoEnvio, tipoEntrega, promocionAplicada,
+          historialEstados: [{ estado: "enviado" }],
+        }], { session });
+        nuevoPedido = creados[0];
       });
+    } finally {
+      await session.endSession();
     }
-
-   const nuevoPedido = await Pedido.create({
-  estudiante: estudianteId,
-  local: localId,
-  productos: productosFinal,
-  total,
-  costoEnvio,
-  tipoEntrega,
-  promocionAplicada,
-  historialEstados: [{ estado: "enviado" }],
-});
 
     res.status(201).json({ mensaje: "Pedido creado correctamente", pedido: nuevoPedido });
   } catch (error) {
-    res.status(500).json({ mensaje: "Error al crear pedido", error: error.message });
+    if (error.message === "STOCK_INSUFICIENTE") return res.status(409).json({ mensaje: "Stock insuficiente" });
+    res.status(500).json({ mensaje: "Error al crear pedido" });
   }
 };
 
@@ -121,15 +132,18 @@ export const aceptarPedido = async (req, res) => {
       return res.status(400).json({ mensaje: "El pedido ya fue procesado" });
     }
 
-    pedido.estado = "aceptado";
-    pedido.tiempoEstimado = tiempoEstimado;
-    pedido.historialEstados.push({ estado: "aceptado" });
-    await pedido.save();
+    if (tiempoEstimado !== undefined && (!Number.isSafeInteger(tiempoEstimado) || tiempoEstimado < 1 || tiempoEstimado > 240)) return res.status(400).json({ mensaje: "Tiempo estimado inválido" });
+    const actualizado = await Pedido.findOneAndUpdate(
+      { _id: pedidoId, estado: "enviado" },
+      { $set: { estado: "aceptado", ...(tiempoEstimado !== undefined ? { tiempoEstimado } : {}) }, $push: { historialEstados: { estado: "aceptado" } } },
+      { new: true }
+    );
+    if (!actualizado) return res.status(409).json({ mensaje: "El pedido ya fue procesado" });
 
     const io = req.app.get("io");
     io.to(pedidoId).emit("estadoActualizado", { estado: "aceptado" });
 
-    res.json({ mensaje: "Pedido aceptado correctamente", pedido });
+    res.json({ mensaje: "Pedido aceptado correctamente", pedido: actualizado });
   } catch (error) {
     res.status(500).json({ mensaje: "Error al aceptar pedido", error: error.message });
   }
@@ -156,18 +170,22 @@ export const cambiarEstadoPedido = async (req, res) => {
     const estadoActualIndex = flujo.indexOf(pedido.estado);
     const nuevoEstadoIndex = flujo.indexOf(nuevoEstado);
 
-    if (nuevoEstadoIndex <= estadoActualIndex) {
+    if (nuevoEstadoIndex === -1 || nuevoEstadoIndex !== estadoActualIndex + 1) {
       return res.status(400).json({ mensaje: "Transición de estado inválida" });
     }
 
-    pedido.estado = nuevoEstado;
-    pedido.historialEstados.push({ estado: nuevoEstado });
-    await pedido.save();
+    if (pedido.tipoEntrega === "favorcito" && nuevoEstado === "entregado") return res.status(400).json({ mensaje: "La entrega debe confirmarla el repartidor" });
+    const actualizado = await Pedido.findOneAndUpdate(
+      { _id: pedidoId, estado: pedido.estado },
+      { $set: { estado: nuevoEstado }, $push: { historialEstados: { estado: nuevoEstado } } },
+      { new: true }
+    );
+    if (!actualizado) return res.status(409).json({ mensaje: "El estado del pedido cambió; vuelve a intentarlo" });
 
     const io = req.app.get("io");
     io.to(pedidoId).emit("estadoActualizado", { estado: nuevoEstado });
 
-    res.json({ mensaje: "Estado actualizado", pedido });
+    res.json({ mensaje: "Estado actualizado", pedido: actualizado });
   } catch (error) {
     res.status(500).json({ mensaje: "Error al cambiar estado", error: error.message });
   }
@@ -194,17 +212,12 @@ export const aceptarFavorcito = async (req, res) => {
     const { pedidoId } = req.params;
     const estudianteId = req.usuario.id;
 
-    const pedido = await Pedido.findById(pedidoId);
-    if (!pedido) return res.status(404).json({ mensaje: "Pedido no encontrado" });
-
-    if (pedido.tipoEntrega !== "favorcito" || pedido.estado !== "listo" || pedido.repartidor) {
-      return res.status(400).json({ mensaje: "Este pedido no está disponible" });
-    }
-
-    pedido.repartidor = estudianteId;
-    pedido.estado = "en_camino";
-    pedido.historialEstados.push({ estado: "en_camino" });
-    await pedido.save();
+    const pedido = await Pedido.findOneAndUpdate(
+      { _id: pedidoId, tipoEntrega: "favorcito", estado: "listo", repartidor: null, estudiante: { $ne: estudianteId } },
+      { $set: { repartidor: estudianteId, estado: "en_camino" }, $push: { historialEstados: { estado: "en_camino" } } },
+      { new: true }
+    );
+    if (!pedido) return res.status(409).json({ mensaje: "Este pedido ya no está disponible" });
 
     const io = req.app.get("io");
     io.to(pedidoId).emit("estadoActualizado", { estado: "en_camino" });
@@ -220,16 +233,12 @@ export const confirmarEntrega = async (req, res) => {
     const { pedidoId } = req.params;
     const estudianteId = req.usuario.id;
 
-    const pedido = await Pedido.findById(pedidoId);
-    if (!pedido) return res.status(404).json({ mensaje: "Pedido no encontrado" });
-
-    if (pedido.repartidor?.toString() !== estudianteId || pedido.estado !== "en_camino") {
-      return res.status(403).json({ mensaje: "No autorizado" });
-    }
-
-    pedido.estado = "entregado";
-    pedido.historialEstados.push({ estado: "entregado" });
-    await pedido.save();
+    const pedido = await Pedido.findOneAndUpdate(
+      { _id: pedidoId, repartidor: estudianteId, estado: "en_camino" },
+      { $set: { estado: "entregado" }, $push: { historialEstados: { estado: "entregado" } } },
+      { new: true }
+    );
+    if (!pedido) return res.status(409).json({ mensaje: "El pedido no está disponible para confirmar entrega" });
 
     const io = req.app.get("io");
     io.to(pedidoId.toString()).emit("estadoActualizado", { estado: "entregado" });
@@ -258,22 +267,31 @@ export const cancelarPedido = async (req, res) => {
       });
     }
 
-    pedido.estado = "cancelado";
-    pedido.historialEstados.push({ estado: "cancelado" });
-    pedido.canceladoPor = "estudiante";
-    await pedido.save();
-
-    // Regresar stock
-    for (let item of pedido.productos) {
-      await Producto.findByIdAndUpdate(item.producto, {
-        $inc: { stock: item.cantidad }
+    const session = await Pedido.startSession();
+    let usuario;
+    try {
+      await session.withTransaction(async () => {
+        const actualizado = await Pedido.findOneAndUpdate(
+          { _id: pedidoId, estudiante: estudianteId, estado: "enviado" },
+          { $set: { estado: "cancelado", canceladoPor: "estudiante" },
+            $push: { historialEstados: { estado: "cancelado" } } },
+          { new: true, session }
+        );
+        if (!actualizado) throw new Error("CANCELACION_NO_DISPONIBLE");
+        for (const item of actualizado.productos) {
+          await Producto.updateOne({ _id: item.producto }, { $inc: { stock: item.cantidad } }, { session });
+        }
+        usuario = await Usuario.findByIdAndUpdate(
+          estudianteId, { $inc: { cancelaciones: 1 } }, { new: true, session }
+        );
+        if (usuario.cancelaciones >= 3) {
+          await Usuario.updateOne({ _id: estudianteId }, { $set: { sospechoso: true } }, { session });
+          usuario.sospechoso = true;
+        }
       });
+    } finally {
+      await session.endSession();
     }
-
-    const usuario = await Usuario.findById(estudianteId);
-    usuario.cancelaciones += 1;
-    if (usuario.cancelaciones >= 3) usuario.sospechoso = true;
-    await usuario.save();
 
     const io = req.app.get("io");
     io.to(pedidoId).emit("estadoActualizado", { estado: "cancelado" });
@@ -284,7 +302,8 @@ export const cancelarPedido = async (req, res) => {
       sospechoso: usuario.sospechoso,
     });
   } catch (error) {
-    res.status(500).json({ mensaje: "Error al cancelar pedido", error: error.message });
+    if (error.message === "CANCELACION_NO_DISPONIBLE") return res.status(409).json({ mensaje: "El pedido ya no se puede cancelar" });
+    res.status(500).json({ mensaje: "Error al cancelar pedido" });
   }
 };
 
@@ -322,6 +341,12 @@ export const obtenerPedidoPorId = async (req, res) => {
 
     if (!pedido) return res.status(404).json({ mensaje: "Pedido no encontrado" });
 
+    const id = String(req.usuario._id);
+    const esEstudiante = String(pedido.estudiante?._id || pedido.estudiante) === id;
+    const esRepartidor = pedido.repartidor && String(pedido.repartidor) === id;
+    const local = await Local.findById(pedido.local?._id || pedido.local).select("vendedor");
+    const esVendedor = local && String(local.vendedor) === id;
+    if (!esEstudiante && !esRepartidor && !esVendedor && req.usuario.rol !== "admin") return res.status(403).json({ mensaje: "No autorizado" });
     res.json(pedido);
   } catch (error) {
     res.status(500).json({ mensaje: "Error al obtener pedido", error: error.message });
@@ -332,40 +357,41 @@ export const cancelarPedidoVendedor = async (req, res) => {
   try {
     const { pedidoId } = req.params;
     const vendedorId = req.usuario.id;
-
     const pedido = await Pedido.findById(pedidoId).populate("local");
     if (!pedido) return res.status(404).json({ mensaje: "Pedido no encontrado" });
+    if (!pedido.local || String(pedido.local.vendedor) !== vendedorId) return res.status(403).json({ mensaje: "No autorizado" });
+    if (["cancelado", "entregado"].includes(pedido.estado)) return res.status(400).json({ mensaje: "No se puede cancelar este pedido" });
 
-    if (pedido.local.vendedor.toString() !== vendedorId) {
-      return res.status(403).json({ mensaje: "No autorizado" });
-    }
-
-    if (["cancelado", "entregado"].includes(pedido.estado)) {
-      return res.status(400).json({ mensaje: "No se puede cancelar este pedido" });
-    }
-
-    pedido.estado = "cancelado";
-    pedido.historialEstados.push({ estado: "cancelado" });
-    pedido.canceladoPor = "vendedor";
-    await pedido.save();
-
-    // Regresar stock
-    for (let item of pedido.productos) {
-      await Producto.findByIdAndUpdate(item.producto, {
-        $inc: { stock: item.cantidad }
+    const session = await Pedido.startSession();
+    let actualizado;
+    try {
+      await session.withTransaction(async () => {
+        actualizado = await Pedido.findOneAndUpdate(
+          { _id: pedidoId, estado: { $nin: ["cancelado", "entregado"] } },
+          { $set: { estado: "cancelado", canceladoPor: "vendedor" }, $push: { historialEstados: { estado: "cancelado" } } },
+          { new: true, session }
+        );
+        if (!actualizado) throw new Error("CANCELACION_NO_DISPONIBLE");
+        for (const item of actualizado.productos) {
+          await Producto.updateOne({ _id: item.producto }, { $inc: { stock: item.cantidad } }, { session });
+        }
+        const usuario = await Usuario.findByIdAndUpdate(
+          actualizado.estudiante,
+          { $inc: { cancelaciones: 1 } },
+          { new: true, session }
+        );
+        if (usuario && usuario.cancelaciones >= 3) {
+          await Usuario.updateOne({ _id: actualizado.estudiante }, { $set: { sospechoso: true } }, { session });
+        }
       });
+    } finally {
+      await session.endSession();
     }
 
-    const usuario = await Usuario.findById(pedido.estudiante);
-    usuario.cancelaciones += 1;
-    if (usuario.cancelaciones >= 3) usuario.sospechoso = true;
-    await usuario.save();
-
-    const io = req.app.get("io");
-    io.to(pedidoId).emit("estadoActualizado", { estado: "cancelado" });
-
-    res.json({ mensaje: "Pedido cancelado por vendedor", pedido });
+    req.app.get("io").to(pedidoId).emit("estadoActualizado", { estado: "cancelado" });
+    res.json({ mensaje: "Pedido cancelado por vendedor", pedido: actualizado });
   } catch (error) {
-    res.status(500).json({ mensaje: "Error al cancelar pedido", error: error.message });
+    if (error.message === "CANCELACION_NO_DISPONIBLE") return res.status(409).json({ mensaje: "El pedido ya no se puede cancelar" });
+    res.status(500).json({ mensaje: "Error al cancelar pedido" });
   }
 };

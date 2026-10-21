@@ -3,6 +3,21 @@ import path from "path";
 import { Readable } from "stream";
 import { cloudinary, hasCloudinaryConfig } from "../config/cloudinary.js";
 
+const validarFirmaImagen = async (file) => {
+  const bytes = file.buffer ?? await fs.readFile(file.path);
+  const b = bytes.subarray(0, 12);
+  const jpeg = b.length >= 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff;
+  const png = b.length >= 8 && b.subarray(0, 8).equals(Buffer.from([137,80,78,71,13,10,26,10]));
+  const webp = b.length >= 12 && b.toString("ascii", 0, 4) === "RIFF" && b.toString("ascii", 8, 12) === "WEBP";
+  const mime = jpeg ? "image/jpeg" : png ? "image/png" : webp ? "image/webp" : null;
+  if (!mime || mime !== file.mimetype) {
+    if (file.path) await fs.unlink(file.path).catch(() => {});
+    const error = new Error("El archivo no es una imagen válida");
+    error.status = 400;
+    throw error;
+  }
+};
+
 const normalizeLocalPath = (url) => {
   if (!url) return "";
   if (url.startsWith("http://") || url.startsWith("https://")) return url;
@@ -40,6 +55,7 @@ const extractCloudinaryPublicId = (url) => {
 
 export const guardarImagen = async (file, folder) => {
   if (!file) return "";
+  await validarFirmaImagen(file);
 
   if (hasCloudinaryConfig) {
     return uploadToCloudinary(file, folder);

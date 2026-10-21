@@ -1,4 +1,5 @@
 import express from "express";
+import rateLimit from "express-rate-limit";
 import http from "http";
 import { Server } from "socket.io";
 import cors from "cors";
@@ -18,6 +19,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { existsSync } from "fs";
 import Usuario from "./models/Usuario.js";
+import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 import Pedido from "./models/Pedido.js";
 import Local from "./models/Local.js";
 import apelacionRoutes from "./routes/apelacionRoutes.js";
@@ -34,75 +37,91 @@ app.set("trust proxy", 1);
 const server = http.createServer(app);
 
 const io = new Server(server, {
-  cors: { origin: "*" },
+  cors: { origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(",").map(x => x.trim()) : false },
 });
 
 app.set("io", io);
 
 const usuariosOnline = new Map();
+const publicarUsuariosOnline = () => io.emit("usuariosOnline", Array.from(usuariosOnline.keys()));
+
+io.use(async (socket, next) => {
+  try {
+    const token = socket.handshake.auth?.token;
+    if (!token) return next(new Error("Autenticación requerida"));
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ["HS256"] });
+    const usuario = await Usuario.findById(decoded.id).select("_id rol activo verificado");
+    if (!usuario || !usuario.activo || !usuario.verificado) return next(new Error("No autorizado"));
+    socket.data.usuario = usuario;
+    next();
+  } catch {
+    next(new Error("No autorizado"));
+  }
+});
 
 io.on("connection", (socket) => {
+  const joinPedidoAutorizado = async (pedidoId) => {
+    try {
+      if (!mongoose.isValidObjectId(pedidoId)) return;
+      const pedido = await Pedido.findById(pedidoId).select("estudiante local repartidor").populate("local", "vendedor");
+      if (!pedido) return;
+      const userId = String(socket.data.usuario._id);
+      const autorizado = String(pedido.estudiante) === userId ||
+        String(pedido.repartidor) === userId ||
+        String(pedido.local?.vendedor) === userId ||
+        socket.data.usuario.rol === "admin";
+      if (autorizado) socket.join(String(pedido._id));
+    } catch (err) {
+      if (isDev) console.error("Error validando sala de pedido", err);
+    }
+  };
   if (isDev) {
     console.log("Usuario conectado:", socket.id);
   }
 
-  socket.on("unirsePedido", (pedidoId) => {
-    socket.join(pedidoId);
+  socket.on("unirsePedido", async (pedidoId) => {
+    await joinPedidoAutorizado(pedidoId);
 
     if (isDev) {
       console.log(`Socket ${socket.id} se unio al pedido ${pedidoId}`);
     }
   });
 
-  socket.on("join_pedido", (pedidoId) => {
-    socket.join(pedidoId);
+  socket.on("join_pedido", async (pedidoId) => {
+    await joinPedidoAutorizado(pedidoId);
   });
 
-  socket.on("escribiendo", ({ pedidoId, usuario }) => {
-    socket.to(pedidoId).emit("usuarioEscribiendo", usuario);
+  socket.on("escribiendo", ({ pedidoId } = {}) => {
+    if (typeof pedidoId === "string" && socket.rooms.has(pedidoId)) socket.to(pedidoId).emit("usuarioEscribiendo", { id: String(socket.data.usuario._id) });
   });
 
-  socket.on("registrarUsuario", async (usuarioId) => {
-    usuariosOnline.set(usuarioId, socket.id);
-    io.emit("usuariosOnline", Array.from(usuariosOnline.keys()));
-
-    try {
-      const usuario = await Usuario.findById(usuarioId);
-      if (!usuario) return;
-
-      let pedidos = [];
-
-      if (usuario.rol === "estudiante") {
-        pedidos = await Pedido.find({ estudiante: usuarioId });
-      }
-
-      if (usuario.rol === "vendedor") {
-        const locales = await Local.find({ vendedor: usuarioId });
-        const localesIds = locales.map((l) => l._id);
-        pedidos = await Pedido.find({ local: { $in: localesIds } });
-      }
-
-      pedidos.forEach((p) => {
-        socket.join(p._id.toString());
-      });
-
-      if (isDev) {
-        console.log(`Usuario ${usuarioId} (${usuario.rol}) unido a ${pedidos.length} pedidos`);
-      }
-    } catch (err) {
-      console.error("Error uniendo usuario a pedidos:", err);
+  socket.on("registrarUsuario", async () => {
+    const usuarioId = String(socket.data.usuario._id);
+    const conexiones = usuariosOnline.get(usuarioId) || new Set();
+    conexiones.add(socket.id);
+    usuariosOnline.set(usuarioId, conexiones);
+    publicarUsuariosOnline();
+    const usuario = socket.data.usuario;
+    let pedidos = [];
+    if (usuario.rol === "estudiante") pedidos = await Pedido.find({ estudiante: usuarioId }).select("_id");
+    if (usuario.rol === "vendedor") {
+      const locales = await Local.find({ vendedor: usuarioId }).select("_id");
+      pedidos = await Pedido.find({ local: { $in: locales.map(l => l._id) } }).select("_id");
     }
+    if (usuario.rol === "estudiante") {
+      pedidos.push(...await Pedido.find({ repartidor: usuarioId }).select("_id"));
+    }
+    for (const pedido of pedidos) await joinPedidoAutorizado(String(pedido._id));
   });
 
   socket.on("disconnect", () => {
-    for (const [userId, socketId] of usuariosOnline.entries()) {
-      if (socketId === socket.id) {
-        usuariosOnline.delete(userId);
-        break;
-      }
+    const usuarioId = String(socket.data.usuario._id);
+    const conexiones = usuariosOnline.get(usuarioId);
+    if (conexiones) {
+      conexiones.delete(socket.id);
+      if (conexiones.size === 0) usuariosOnline.delete(usuarioId);
     }
-
-    io.emit("usuariosOnline", Array.from(usuariosOnline.keys()));
+    publicarUsuariosOnline();
   });
 });
 
@@ -117,8 +136,16 @@ app.use(
     },
   })
 );
-app.use(cors());
-app.use(express.json());
+app.use(cors({ origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(",").map(x => x.trim()) : false }));
+app.use(express.json({ limit: "100kb" }));
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 30,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: { mensaje: "Demasiadas solicitudes. Intenta más tarde." },
+});
+app.use("/api/auth", authLimiter);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
