@@ -23,7 +23,8 @@ const storage = useCloudinaryStorage
 
 const fileFilter = (req, file, cb) => {
   const ext = path.extname(file.originalname).toLowerCase();
-  if ([".jpg", ".jpeg", ".png", ".webp"].includes(ext)) {
+  const mimeByExtension = { ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".webp": "image/webp" };
+  if (mimeByExtension[ext] === file.mimetype) {
     cb(null, true);
   } else {
     cb(new Error("Solo se permiten imágenes"));
