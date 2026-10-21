@@ -62,6 +62,11 @@ export const registro = async (req, res) => {
       año_academico,
     } = req.body;
 
+    // El registro público nunca puede crear administradores.
+    if (!["estudiante", "vendedor"].includes(rol)) {
+      return res.status(400).json({ mensaje: "Rol de registro no permitido" });
+    }
+
     const emailNormalizado = normalizarEmail(email);
     const nombreNormalizado = String(nombre_completo || "").trim();
 
