@@ -43,12 +43,13 @@ const io = new Server(server, {
 app.set("io", io);
 
 const usuariosOnline = new Map();
+const publicarUsuariosOnline = () => io.emit("usuariosOnline", Array.from(usuariosOnline.keys()));
 
 io.use(async (socket, next) => {
   try {
     const token = socket.handshake.auth?.token;
     if (!token) return next(new Error("Autenticación requerida"));
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ["HS256"] });
     const usuario = await Usuario.findById(decoded.id).select("_id rol activo verificado");
     if (!usuario || !usuario.activo || !usuario.verificado) return next(new Error("No autorizado"));
     socket.data.usuario = usuario;
@@ -96,8 +97,10 @@ io.on("connection", (socket) => {
 
   socket.on("registrarUsuario", async () => {
     const usuarioId = String(socket.data.usuario._id);
-    usuariosOnline.set(usuarioId, socket.id);
-    io.emit("usuariosOnline", Array.from(usuariosOnline.keys()));
+    const conexiones = usuariosOnline.get(usuarioId) || new Set();
+    conexiones.add(socket.id);
+    usuariosOnline.set(usuarioId, conexiones);
+    publicarUsuariosOnline();
     const usuario = socket.data.usuario;
     let pedidos = [];
     if (usuario.rol === "estudiante") pedidos = await Pedido.find({ estudiante: usuarioId }).select("_id");
@@ -112,14 +115,13 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    for (const [userId, socketId] of usuariosOnline.entries()) {
-      if (socketId === socket.id) {
-        usuariosOnline.delete(userId);
-        break;
-      }
+    const usuarioId = String(socket.data.usuario._id);
+    const conexiones = usuariosOnline.get(usuarioId);
+    if (conexiones) {
+      conexiones.delete(socket.id);
+      if (conexiones.size === 0) usuariosOnline.delete(usuarioId);
     }
-
-    io.emit("usuariosOnline", Array.from(usuariosOnline.keys()));
+    publicarUsuariosOnline();
   });
 });
 
