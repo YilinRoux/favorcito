@@ -14,7 +14,7 @@ const protegerRuta = async (req, res, next) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
       req.usuario = await Usuario.findById(decoded.id).select("-password");
-
+      if (!req.usuario || !req.usuario.activo || !req.usuario.verificado) return res.status(401).json({ mensaje: "Cuenta no autorizada" });
       next();
     } catch (error) {
       return res.status(401).json({ mensaje: "Token inválido" });
