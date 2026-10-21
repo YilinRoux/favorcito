@@ -18,6 +18,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { existsSync } from "fs";
 import Usuario from "./models/Usuario.js";
+import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 import Pedido from "./models/Pedido.js";
 import Local from "./models/Local.js";
 import apelacionRoutes from "./routes/apelacionRoutes.js";
@@ -34,64 +36,75 @@ app.set("trust proxy", 1);
 const server = http.createServer(app);
 
 const io = new Server(server, {
-  cors: { origin: "*" },
+  cors: { origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(",").map(x => x.trim()) : false },
 });
 
 app.set("io", io);
 
 const usuariosOnline = new Map();
 
+io.use(async (socket, next) => {
+  try {
+    const token = socket.handshake.auth?.token;
+    if (!token) return next(new Error("Autenticación requerida"));
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const usuario = await Usuario.findById(decoded.id).select("_id rol activo verificado");
+    if (!usuario || !usuario.activo || !usuario.verificado) return next(new Error("No autorizado"));
+    socket.data.usuario = usuario;
+    next();
+  } catch {
+    next(new Error("No autorizado"));
+  }
+});
+
 io.on("connection", (socket) => {
+  const joinPedidoAutorizado = async (pedidoId) => {
+    try {
+      if (!mongoose.isValidObjectId(pedidoId)) return;
+      const pedido = await Pedido.findById(pedidoId).select("estudiante local repartidor").populate("local", "vendedor");
+      if (!pedido) return;
+      const userId = String(socket.data.usuario._id);
+      const autorizado = String(pedido.estudiante) === userId ||
+        String(pedido.repartidor) === userId ||
+        String(pedido.local?.vendedor) === userId ||
+        socket.data.usuario.rol === "admin";
+      if (autorizado) socket.join(String(pedido._id));
+    } catch (err) {
+      if (isDev) console.error("Error validando sala de pedido", err);
+    }
+  };
   if (isDev) {
     console.log("Usuario conectado:", socket.id);
   }
 
-  socket.on("unirsePedido", (pedidoId) => {
-    socket.join(pedidoId);
+  socket.on("unirsePedido", async (pedidoId) => {
+    await joinPedidoAutorizado(pedidoId);
 
     if (isDev) {
       console.log(`Socket ${socket.id} se unio al pedido ${pedidoId}`);
     }
   });
 
-  socket.on("join_pedido", (pedidoId) => {
-    socket.join(pedidoId);
+  socket.on("join_pedido", async (pedidoId) => {
+    await joinPedidoAutorizado(pedidoId);
   });
 
-  socket.on("escribiendo", ({ pedidoId, usuario }) => {
-    socket.to(pedidoId).emit("usuarioEscribiendo", usuario);
+  socket.on("escribiendo", ({ pedidoId } = {}) => {
+    if (typeof pedidoId === "string" && socket.rooms.has(pedidoId)) socket.to(pedidoId).emit("usuarioEscribiendo", { id: String(socket.data.usuario._id) });
   });
 
-  socket.on("registrarUsuario", async (usuarioId) => {
+  socket.on("registrarUsuario", async () => {
+    const usuarioId = String(socket.data.usuario._id);
     usuariosOnline.set(usuarioId, socket.id);
     io.emit("usuariosOnline", Array.from(usuariosOnline.keys()));
-
-    try {
-      const usuario = await Usuario.findById(usuarioId);
-      if (!usuario) return;
-
-      let pedidos = [];
-
-      if (usuario.rol === "estudiante") {
-        pedidos = await Pedido.find({ estudiante: usuarioId });
-      }
-
-      if (usuario.rol === "vendedor") {
-        const locales = await Local.find({ vendedor: usuarioId });
-        const localesIds = locales.map((l) => l._id);
-        pedidos = await Pedido.find({ local: { $in: localesIds } });
-      }
-
-      pedidos.forEach((p) => {
-        socket.join(p._id.toString());
-      });
-
-      if (isDev) {
-        console.log(`Usuario ${usuarioId} (${usuario.rol}) unido a ${pedidos.length} pedidos`);
-      }
-    } catch (err) {
-      console.error("Error uniendo usuario a pedidos:", err);
+    const usuario = socket.data.usuario;
+    let pedidos = [];
+    if (usuario.rol === "estudiante") pedidos = await Pedido.find({ estudiante: usuarioId }).select("_id");
+    if (usuario.rol === "vendedor") {
+      const locales = await Local.find({ vendedor: usuarioId }).select("_id");
+      pedidos = await Pedido.find({ local: { $in: locales.map(l => l._id) } }).select("_id");
     }
+    for (const pedido of pedidos) socket.join(String(pedido._id));
   });
 
   socket.on("disconnect", () => {
@@ -117,7 +130,7 @@ app.use(
     },
   })
 );
-app.use(cors());
+app.use(cors({ origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(",").map(x => x.trim()) : false }));
 app.use(express.json());
 
 const __filename = fileURLToPath(import.meta.url);
