@@ -105,7 +105,10 @@ io.on("connection", (socket) => {
       const locales = await Local.find({ vendedor: usuarioId }).select("_id");
       pedidos = await Pedido.find({ local: { $in: locales.map(l => l._id) } }).select("_id");
     }
-    for (const pedido of pedidos) socket.join(String(pedido._id));
+    if (usuario.rol === "estudiante") {
+      pedidos.push(...await Pedido.find({ repartidor: usuarioId }).select("_id"));
+    }
+    for (const pedido of pedidos) await joinPedidoAutorizado(String(pedido._id));
   });
 
   socket.on("disconnect", () => {
