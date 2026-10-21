@@ -226,16 +226,12 @@ export const confirmarEntrega = async (req, res) => {
     const { pedidoId } = req.params;
     const estudianteId = req.usuario.id;
 
-    const pedido = await Pedido.findById(pedidoId);
-    if (!pedido) return res.status(404).json({ mensaje: "Pedido no encontrado" });
-
-    if (pedido.repartidor?.toString() !== estudianteId || pedido.estado !== "en_camino") {
-      return res.status(403).json({ mensaje: "No autorizado" });
-    }
-
-    pedido.estado = "entregado";
-    pedido.historialEstados.push({ estado: "entregado" });
-    await pedido.save();
+    const pedido = await Pedido.findOneAndUpdate(
+      { _id: pedidoId, repartidor: estudianteId, estado: "en_camino" },
+      { $set: { estado: "entregado" }, $push: { historialEstados: { estado: "entregado" } } },
+      { new: true }
+    );
+    if (!pedido) return res.status(409).json({ mensaje: "El pedido no está disponible para confirmar entrega" });
 
     const io = req.app.get("io");
     io.to(pedidoId.toString()).emit("estadoActualizado", { estado: "entregado" });
