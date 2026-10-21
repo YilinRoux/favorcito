@@ -58,8 +58,8 @@ export default function ChatPedido() {
       setMensajes((prev) => [...prev, msg]);
     });
 
-    socket.on("usuarioEscribiendo", (nombre) => {
-      setEscribiendo(nombre);
+    socket.on("usuarioEscribiendo", () => {
+      setEscribiendo("Alguien");
       setTimeout(() => setEscribiendo(""), 2000);
     });
 
