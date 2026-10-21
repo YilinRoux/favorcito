@@ -322,6 +322,12 @@ export const obtenerPedidoPorId = async (req, res) => {
 
     if (!pedido) return res.status(404).json({ mensaje: "Pedido no encontrado" });
 
+    const id = String(req.usuario._id);
+    const esEstudiante = String(pedido.estudiante?._id || pedido.estudiante) === id;
+    const esRepartidor = pedido.repartidor && String(pedido.repartidor) === id;
+    const local = await Local.findById(pedido.local?._id || pedido.local).select("vendedor");
+    const esVendedor = local && String(local.vendedor) === id;
+    if (!esEstudiante && !esRepartidor && !esVendedor && req.usuario.rol !== "admin") return res.status(403).json({ mensaje: "No autorizado" });
     res.json(pedido);
   } catch (error) {
     res.status(500).json({ mensaje: "Error al obtener pedido", error: error.message });
