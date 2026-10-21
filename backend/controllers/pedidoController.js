@@ -8,7 +8,7 @@ export const crearPedido = async (req, res) => {
     const { productos, tipoEntrega } = req.body;
     const estudianteId = req.usuario.id;
 
-    if (!productos || productos.length === 0) {
+    if (!Array.isArray(productos) || productos.length === 0 || productos.length > 50) {
       return res.status(400).json({ mensaje: "Debe agregar al menos un producto" });
     }
 
@@ -16,7 +16,10 @@ export const crearPedido = async (req, res) => {
     let productosFinal = [];
     let localId = null;
 
+    const idsUnicos = new Set();
     for (let item of productos) {
+      if (!item || !Number.isSafeInteger(item.cantidad) || item.cantidad <= 0 || !item.producto || idsUnicos.has(String(item.producto))) return res.status(400).json({ mensaje: "Productos o cantidades inválidos" });
+      idsUnicos.add(String(item.producto));
       const productoDB = await Producto.findById(item.producto);
 
       if (!productoDB || !productoDB.activo) {
@@ -44,6 +47,7 @@ export const crearPedido = async (req, res) => {
       });
     }
 
+    if (!["favorcito", "recoger"].includes(tipoEntrega)) return res.status(400).json({ mensaje: "Tipo de entrega inválido" });
     const local = await Local.findById(localId);
     if (!local || !local.aprobado) {
       return res.status(400).json({ mensaje: "Local no válido" });
@@ -156,7 +160,7 @@ export const cambiarEstadoPedido = async (req, res) => {
     const estadoActualIndex = flujo.indexOf(pedido.estado);
     const nuevoEstadoIndex = flujo.indexOf(nuevoEstado);
 
-    if (nuevoEstadoIndex <= estadoActualIndex) {
+    if (nuevoEstadoIndex === -1 || nuevoEstadoIndex !== estadoActualIndex + 1) {
       return res.status(400).json({ mensaje: "Transición de estado inválida" });
     }
 
@@ -194,17 +198,12 @@ export const aceptarFavorcito = async (req, res) => {
     const { pedidoId } = req.params;
     const estudianteId = req.usuario.id;
 
-    const pedido = await Pedido.findById(pedidoId);
-    if (!pedido) return res.status(404).json({ mensaje: "Pedido no encontrado" });
-
-    if (pedido.tipoEntrega !== "favorcito" || pedido.estado !== "listo" || pedido.repartidor) {
-      return res.status(400).json({ mensaje: "Este pedido no está disponible" });
-    }
-
-    pedido.repartidor = estudianteId;
-    pedido.estado = "en_camino";
-    pedido.historialEstados.push({ estado: "en_camino" });
-    await pedido.save();
+    const pedido = await Pedido.findOneAndUpdate(
+      { _id: pedidoId, tipoEntrega: "favorcito", estado: "listo", repartidor: null, estudiante: { $ne: estudianteId } },
+      { $set: { repartidor: estudianteId, estado: "en_camino" }, $push: { historialEstados: { estado: "en_camino" } } },
+      { new: true }
+    );
+    if (!pedido) return res.status(409).json({ mensaje: "Este pedido ya no está disponible" });
 
     const io = req.app.get("io");
     io.to(pedidoId).emit("estadoActualizado", { estado: "en_camino" });
