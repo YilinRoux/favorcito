@@ -11,7 +11,7 @@ const normalizarEmail = (email) => String(email || "").trim().toLowerCase();
 const generarCodigo = () => randomInt(100000, 1000000).toString();
 const esHashBcrypt = (value) => typeof value === "string" && /^\$2[aby]\$\d{2}\$/.test(value);
 
-const hasExpired = (fecha) => Boolean(fecha) && new Date() > new Date(fecha);
+const hasExpired = (fecha) => !fecha || !Number.isFinite(new Date(fecha).getTime()) || new Date() > new Date(fecha);
 
 const logError = (contexto, error) => {
   if (process.env.NODE_ENV !== "production") {
@@ -290,7 +290,7 @@ export const solicitarRecuperacion = async (req, res) => {
 
     const usuario = await Usuario.findOne({ email: emailNormalizado });
     if (!usuario) {
-      return res.status(404).json({ mensaje: "No existe una cuenta con ese correo" });
+      return res.json({ mensaje: "Si existe una cuenta asociada a ese correo, recibirás instrucciones de recuperación." });
     }
 
     const codigo = generarCodigo();
@@ -303,7 +303,7 @@ export const solicitarRecuperacion = async (req, res) => {
 
     enviarCodigoEnSegundoPlano(emailNormalizado, codigo, "recuperacion");
 
-    res.json({ mensaje: "Código enviado al correo" });
+    res.json({ mensaje: "Si existe una cuenta asociada a ese correo, recibirás instrucciones de recuperación." });
   } catch (error) {
     logError("ERROR recuperacion", error);
 
@@ -380,6 +380,14 @@ export const resetearContrasena = async (req, res) => {
       limpiarCodigoRecuperacion(usuario);
       await usuario.save();
       return res.status(400).json({ mensaje: "El código ha expirado" });
+    }
+
+    if ((usuario.codigoRecuperacionIntentos || 0) >= LIMITE_INTENTOS_CODIGO) {
+      limpiarCodigoRecuperacion(usuario);
+      await usuario.save();
+      return res.status(429).json({
+        mensaje: "Has excedido los intentos permitidos. Solicita un nuevo código.",
+      });
     }
 
     const codigoValido = await codigoCoincide(codigo, usuario.codigoRecuperacion);
