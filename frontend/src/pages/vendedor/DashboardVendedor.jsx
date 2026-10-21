@@ -32,7 +32,7 @@ function DashboardVendedor() {
   const [local, setLocal] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [tab, setTab] = useState("nuevos");
-  const { notificaciones } = useContext(NotificationContext);
+  const { notificaciones, total } = useContext(NotificationContext);
   const navigate = useNavigate();
 
   const cargar = async () => {
@@ -262,6 +262,30 @@ function DashboardVendedor() {
               </Link>
             </div>
           </div>
+        )}
+
+        {total > 0 && (
+          <section
+            role="status"
+            aria-live="polite"
+            style={{ padding: "18px 20px", marginBottom: "20px", borderRadius: "16px", background: "#f3edff", border: "1px solid #d8c5ff", color: "#432178" }}
+          >
+            <p style={{ fontWeight: 800, margin: "0 0 8px" }}>
+              🔔 Tienes {total} {total === 1 ? "mensaje sin leer" : "mensajes sin leer"}
+            </p>
+            <p style={{ margin: "0 0 12px" }}>Revisa los mensajes de tus pedidos.</p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+              {pedidos.filter((pedido) => notificaciones[pedido._id] > 0).map((pedido) => (
+                <Link
+                  key={pedido._id}
+                  to={`/chat/${pedido._id}`}
+                  style={{ display: "inline-block", padding: "9px 13px", borderRadius: "10px", background: "#5b21b6", color: "#fff", fontWeight: 700, textDecoration: "none" }}
+                >
+                  Abrir chat #{pedido._id.slice(-6)} ({notificaciones[pedido._id]})
+                </Link>
+              ))}
+            </div>
+          </section>
         )}
 
         <div className="dv-stats-grid">
