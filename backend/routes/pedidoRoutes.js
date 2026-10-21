@@ -20,10 +20,10 @@ import { soloEstudiante, soloVendedor } from "../middlewares/roleMiddleware.js";
 const router = express.Router();
 
 // FAVORCITO — primero para que no los atrape /:id
-router.get("/favorcito/disponibles", protegerRuta, verPedidosDisponiblesFavorcito);
-router.get("/favorcito/mis-entregas", protegerRuta, obtenerPedidosFavorcito);
-router.put("/favorcito/:pedidoId/aceptar", protegerRuta, aceptarFavorcito);
-router.put("/favorcito/:pedidoId/entregar", protegerRuta, confirmarEntrega);
+router.get("/favorcito/disponibles", protegerRuta, soloEstudiante, verPedidosDisponiblesFavorcito);
+router.get("/favorcito/mis-entregas", protegerRuta, soloEstudiante, obtenerPedidosFavorcito);
+router.put("/favorcito/:pedidoId/aceptar", protegerRuta, soloEstudiante, aceptarFavorcito);
+router.put("/favorcito/:pedidoId/entregar", protegerRuta, soloEstudiante, confirmarEntrega);
 
 // ESTUDIANTE
 router.post("/", protegerRuta, soloEstudiante, crearPedido);
