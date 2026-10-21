@@ -76,7 +76,7 @@ function Navbar() {
               <span className="nb-link-icon">{link.icon}</span>
               {link.label}
               {total > 0 && ((usuario?.rol === "vendedor" && link.to === "/vendedor/dashboard") || (usuario?.rol === "estudiante" && link.to === "/mis-pedidos")) && (
-                <span aria-label={`${total} mensajes sin leer`} style={{ marginLeft: 6, background: "#6d28d9", color: "white", padding: "2px 7px", borderRadius: 999, fontSize: 12, fontWeight: 800 }}>{total > 99 ? "99+" : total}</span>
+                <span className="nb-unread-count" aria-label={`${total} mensajes sin leer`}>{total > 99 ? "99+" : total}</span>
               )}
             </Link>
           ))}
@@ -123,7 +123,7 @@ function Navbar() {
               <span className="nb-mobile-link-icon">{link.icon}</span>
               {link.label}
               {total > 0 && ((usuario?.rol === "vendedor" && link.to === "/vendedor/dashboard") || (usuario?.rol === "estudiante" && link.to === "/mis-pedidos")) && (
-                <span aria-label={`${total} mensajes sin leer`} style={{ marginLeft: 6, background: "#6d28d9", color: "white", padding: "2px 7px", borderRadius: 999, fontSize: 12, fontWeight: 800 }}>{total > 99 ? "99+" : total}</span>
+                <span className="nb-unread-count" aria-label={`${total} mensajes sin leer`}>{total > 99 ? "99+" : total}</span>
               )}
             </Link>
           ))}
