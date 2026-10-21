@@ -132,15 +132,18 @@ export const aceptarPedido = async (req, res) => {
       return res.status(400).json({ mensaje: "El pedido ya fue procesado" });
     }
 
-    pedido.estado = "aceptado";
-    pedido.tiempoEstimado = tiempoEstimado;
-    pedido.historialEstados.push({ estado: "aceptado" });
-    await pedido.save();
+    if (tiempoEstimado !== undefined && (!Number.isSafeInteger(tiempoEstimado) || tiempoEstimado < 1 || tiempoEstimado > 240)) return res.status(400).json({ mensaje: "Tiempo estimado inválido" });
+    const actualizado = await Pedido.findOneAndUpdate(
+      { _id: pedidoId, estado: "enviado" },
+      { $set: { estado: "aceptado", ...(tiempoEstimado !== undefined ? { tiempoEstimado } : {}) }, $push: { historialEstados: { estado: "aceptado" } } },
+      { new: true }
+    );
+    if (!actualizado) return res.status(409).json({ mensaje: "El pedido ya fue procesado" });
 
     const io = req.app.get("io");
     io.to(pedidoId).emit("estadoActualizado", { estado: "aceptado" });
 
-    res.json({ mensaje: "Pedido aceptado correctamente", pedido });
+    res.json({ mensaje: "Pedido aceptado correctamente", pedido: actualizado });
   } catch (error) {
     res.status(500).json({ mensaje: "Error al aceptar pedido", error: error.message });
   }
@@ -171,14 +174,18 @@ export const cambiarEstadoPedido = async (req, res) => {
       return res.status(400).json({ mensaje: "Transición de estado inválida" });
     }
 
-    pedido.estado = nuevoEstado;
-    pedido.historialEstados.push({ estado: nuevoEstado });
-    await pedido.save();
+    if (pedido.tipoEntrega === "favorcito" && nuevoEstado === "entregado") return res.status(400).json({ mensaje: "La entrega debe confirmarla el repartidor" });
+    const actualizado = await Pedido.findOneAndUpdate(
+      { _id: pedidoId, estado: pedido.estado },
+      { $set: { estado: nuevoEstado }, $push: { historialEstados: { estado: nuevoEstado } } },
+      { new: true }
+    );
+    if (!actualizado) return res.status(409).json({ mensaje: "El estado del pedido cambió; vuelve a intentarlo" });
 
     const io = req.app.get("io");
     io.to(pedidoId).emit("estadoActualizado", { estado: nuevoEstado });
 
-    res.json({ mensaje: "Estado actualizado", pedido });
+    res.json({ mensaje: "Estado actualizado", pedido: actualizado });
   } catch (error) {
     res.status(500).json({ mensaje: "Error al cambiar estado", error: error.message });
   }
@@ -350,40 +357,41 @@ export const cancelarPedidoVendedor = async (req, res) => {
   try {
     const { pedidoId } = req.params;
     const vendedorId = req.usuario.id;
-
     const pedido = await Pedido.findById(pedidoId).populate("local");
     if (!pedido) return res.status(404).json({ mensaje: "Pedido no encontrado" });
+    if (!pedido.local || String(pedido.local.vendedor) !== vendedorId) return res.status(403).json({ mensaje: "No autorizado" });
+    if (["cancelado", "entregado"].includes(pedido.estado)) return res.status(400).json({ mensaje: "No se puede cancelar este pedido" });
 
-    if (pedido.local.vendedor.toString() !== vendedorId) {
-      return res.status(403).json({ mensaje: "No autorizado" });
-    }
-
-    if (["cancelado", "entregado"].includes(pedido.estado)) {
-      return res.status(400).json({ mensaje: "No se puede cancelar este pedido" });
-    }
-
-    pedido.estado = "cancelado";
-    pedido.historialEstados.push({ estado: "cancelado" });
-    pedido.canceladoPor = "vendedor";
-    await pedido.save();
-
-    // Regresar stock
-    for (let item of pedido.productos) {
-      await Producto.findByIdAndUpdate(item.producto, {
-        $inc: { stock: item.cantidad }
+    const session = await Pedido.startSession();
+    let actualizado;
+    try {
+      await session.withTransaction(async () => {
+        actualizado = await Pedido.findOneAndUpdate(
+          { _id: pedidoId, estado: { $nin: ["cancelado", "entregado"] } },
+          { $set: { estado: "cancelado", canceladoPor: "vendedor" }, $push: { historialEstados: { estado: "cancelado" } } },
+          { new: true, session }
+        );
+        if (!actualizado) throw new Error("CANCELACION_NO_DISPONIBLE");
+        for (const item of actualizado.productos) {
+          await Producto.updateOne({ _id: item.producto }, { $inc: { stock: item.cantidad } }, { session });
+        }
+        const usuario = await Usuario.findByIdAndUpdate(
+          actualizado.estudiante,
+          { $inc: { cancelaciones: 1 } },
+          { new: true, session }
+        );
+        if (usuario && usuario.cancelaciones >= 3) {
+          await Usuario.updateOne({ _id: actualizado.estudiante }, { $set: { sospechoso: true } }, { session });
+        }
       });
+    } finally {
+      await session.endSession();
     }
 
-    const usuario = await Usuario.findById(pedido.estudiante);
-    usuario.cancelaciones += 1;
-    if (usuario.cancelaciones >= 3) usuario.sospechoso = true;
-    await usuario.save();
-
-    const io = req.app.get("io");
-    io.to(pedidoId).emit("estadoActualizado", { estado: "cancelado" });
-
-    res.json({ mensaje: "Pedido cancelado por vendedor", pedido });
+    req.app.get("io").to(pedidoId).emit("estadoActualizado", { estado: "cancelado" });
+    res.json({ mensaje: "Pedido cancelado por vendedor", pedido: actualizado });
   } catch (error) {
-    res.status(500).json({ mensaje: "Error al cancelar pedido", error: error.message });
+    if (error.message === "CANCELACION_NO_DISPONIBLE") return res.status(409).json({ mensaje: "El pedido ya no se puede cancelar" });
+    res.status(500).json({ mensaje: "Error al cancelar pedido" });
   }
 };
