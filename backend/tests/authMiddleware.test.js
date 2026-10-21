@@ -1,10 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import jwt from "jsonwebtoken";
-import Usuario from "../models/Usuario.js";
 import { protegerRuta, soloAdmin } from "../middlewares/authMiddleware.js";
 
 const testSecret = "test-only-secret-not-for-production";
+process.env.JWT_SECRET = testSecret;
 
 const run = async (authorization) => {
   const req = { headers: authorization === undefined ? {} : { authorization } };
@@ -14,7 +14,6 @@ const run = async (authorization) => {
     json(body) { this.body = body; return this; },
   };
   let nextCalled = false;
-  process.env.JWT_SECRET = testSecret;
   await protegerRuta(req, res, () => { nextCalled = true; });
   return { req, res, nextCalled };
 };
