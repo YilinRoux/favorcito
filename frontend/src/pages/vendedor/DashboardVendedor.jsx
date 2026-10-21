@@ -265,26 +265,15 @@ function DashboardVendedor() {
         )}
 
         {total > 0 && (
-          <section
-            role="status"
-            aria-live="polite"
-            style={{ padding: "18px 20px", marginBottom: "20px", borderRadius: "16px", background: "#f3edff", border: "1px solid #d8c5ff", color: "#432178" }}
-          >
-            <p style={{ fontWeight: 800, margin: "0 0 8px" }}>
-              🔔 Tienes {total} {total === 1 ? "mensaje sin leer" : "mensajes sin leer"}
-            </p>
-            <p style={{ margin: "0 0 12px" }}>Revisa los mensajes de tus pedidos.</p>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-              {pedidos.filter((pedido) => notificaciones[pedido._id] > 0).map((pedido) => (
-                <Link
-                  key={pedido._id}
-                  to={`/chat/${pedido._id}`}
-                  style={{ display: "inline-block", padding: "9px 13px", borderRadius: "10px", background: "#5b21b6", color: "#fff", fontWeight: 700, textDecoration: "none" }}
-                >
-                  Abrir chat #{pedido._id.slice(-6)} ({notificaciones[pedido._id]})
-                </Link>
-              ))}
+          <section className="dv-message-notice" aria-label="Mensajes sin leer">
+            <span className="dv-message-notice-icon" aria-hidden="true">✉</span>
+            <div className="dv-message-notice-content">
+              <p className="dv-message-notice-title">{total === 1 ? "1 mensaje sin leer" : `${total} mensajes sin leer`}</p>
+              <p className="dv-message-notice-subtitle">Tienes mensajes pendientes en tus pedidos</p>
             </div>
+            {pedidos.filter(p => notificaciones[p._id] > 0).slice(0, 1).map(p => (
+              <Link key={p._id} className="dv-message-notice-link" to={`/chat/${p._id}`}>Ver chat →</Link>
+            ))}
           </section>
         )}
 
