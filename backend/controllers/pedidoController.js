@@ -68,27 +68,34 @@ const costoEnvio = tipoEntrega === "favorcito" ? 15 : 0;
 
 // 🔥 SUMAR ENVÍO AL TOTAL
 total += costoEnvio;
-    // Descontar stock
-    for (let item of productosFinal) {
-      await Producto.findByIdAndUpdate(item.producto, {
-        $inc: { stock: -item.cantidad }
+    // Una transacción impide ventas sin existencias y pedidos sin descuento de stock.
+    const session = await Pedido.startSession();
+    let nuevoPedido;
+    try {
+      await session.withTransaction(async () => {
+        for (const item of productosFinal) {
+          const resultado = await Producto.updateOne(
+            { _id: item.producto, activo: true, stock: { $gte: item.cantidad } },
+            { $inc: { stock: -item.cantidad } },
+            { session }
+          );
+          if (resultado.modifiedCount !== 1) throw new Error("STOCK_INSUFICIENTE");
+        }
+        const creados = await Pedido.create([{
+          estudiante: estudianteId, local: localId, productos: productosFinal,
+          total, costoEnvio, tipoEntrega, promocionAplicada,
+          historialEstados: [{ estado: "enviado" }],
+        }], { session });
+        nuevoPedido = creados[0];
       });
+    } finally {
+      await session.endSession();
     }
-
-   const nuevoPedido = await Pedido.create({
-  estudiante: estudianteId,
-  local: localId,
-  productos: productosFinal,
-  total,
-  costoEnvio,
-  tipoEntrega,
-  promocionAplicada,
-  historialEstados: [{ estado: "enviado" }],
-});
 
     res.status(201).json({ mensaje: "Pedido creado correctamente", pedido: nuevoPedido });
   } catch (error) {
-    res.status(500).json({ mensaje: "Error al crear pedido", error: error.message });
+    if (error.message === "STOCK_INSUFICIENTE") return res.status(409).json({ mensaje: "Stock insuficiente" });
+    res.status(500).json({ mensaje: "Error al crear pedido" });
   }
 };
 
@@ -257,22 +264,31 @@ export const cancelarPedido = async (req, res) => {
       });
     }
 
-    pedido.estado = "cancelado";
-    pedido.historialEstados.push({ estado: "cancelado" });
-    pedido.canceladoPor = "estudiante";
-    await pedido.save();
-
-    // Regresar stock
-    for (let item of pedido.productos) {
-      await Producto.findByIdAndUpdate(item.producto, {
-        $inc: { stock: item.cantidad }
+    const session = await Pedido.startSession();
+    let usuario;
+    try {
+      await session.withTransaction(async () => {
+        const actualizado = await Pedido.findOneAndUpdate(
+          { _id: pedidoId, estudiante: estudianteId, estado: "enviado" },
+          { $set: { estado: "cancelado", canceladoPor: "estudiante" },
+            $push: { historialEstados: { estado: "cancelado" } } },
+          { new: true, session }
+        );
+        if (!actualizado) throw new Error("CANCELACION_NO_DISPONIBLE");
+        for (const item of actualizado.productos) {
+          await Producto.updateOne({ _id: item.producto }, { $inc: { stock: item.cantidad } }, { session });
+        }
+        usuario = await Usuario.findByIdAndUpdate(
+          estudianteId, { $inc: { cancelaciones: 1 } }, { new: true, session }
+        );
+        if (usuario.cancelaciones >= 3) {
+          await Usuario.updateOne({ _id: estudianteId }, { $set: { sospechoso: true } }, { session });
+          usuario.sospechoso = true;
+        }
       });
+    } finally {
+      await session.endSession();
     }
-
-    const usuario = await Usuario.findById(estudianteId);
-    usuario.cancelaciones += 1;
-    if (usuario.cancelaciones >= 3) usuario.sospechoso = true;
-    await usuario.save();
 
     const io = req.app.get("io");
     io.to(pedidoId).emit("estadoActualizado", { estado: "cancelado" });
@@ -283,7 +299,8 @@ export const cancelarPedido = async (req, res) => {
       sospechoso: usuario.sospechoso,
     });
   } catch (error) {
-    res.status(500).json({ mensaje: "Error al cancelar pedido", error: error.message });
+    if (error.message === "CANCELACION_NO_DISPONIBLE") return res.status(409).json({ mensaje: "El pedido ya no se puede cancelar" });
+    res.status(500).json({ mensaje: "Error al cancelar pedido" });
   }
 };
 
