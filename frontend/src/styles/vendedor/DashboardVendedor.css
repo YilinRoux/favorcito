@@ -426,3 +426,42 @@
   font-family: 'Plus Jakarta Sans', sans-serif !important;
   position: relative !important;
 }
+
+/* Aviso de mensajes: integrado con las tarjetas oscuras del dashboard */
+.dv-message-notice {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 15px 18px;
+  background: #111;
+  border: 1px solid #252525;
+  border-radius: 16px;
+}
+.dv-message-notice-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 36px;
+  height: 36px;
+  border-radius: 10px;
+  color: #ff8a4c;
+  background: rgba(255,92,10,.09);
+  font-size: 20px;
+}
+.dv-message-notice-content { flex: 1; min-width: 0; }
+.dv-message-notice-title { margin: 0 0 3px; color: #eaeaea; font-size: 13px; font-weight: 700; }
+.dv-message-notice-subtitle { margin: 0; color: #777; font-size: 12px; }
+.dv-message-notice-link {
+  flex-shrink: 0;
+  color: #ff925d;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 10px;
+  border-radius: 8px;
+}
+.dv-message-notice-link:hover { background: rgba(255,92,10,.08); color: #ffb18c; }
+@media (max-width: 520px) {
+  .dv-message-notice { flex-wrap: wrap; gap: 10px; padding: 14px; }
+  .dv-message-notice-link { margin-left: 46px; padding: 3px 0; }
+}
