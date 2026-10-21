@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect, useContext } from "react";
+import { AuthContext } from "./AuthContext";
 import socket from "../services/socket";
 import { getApiBaseUrl } from "../utils/runtimeUrls";
 
@@ -8,10 +9,13 @@ export const NotificationContext = createContext();
 export function NotificationProvider({ children }) {
   const [notificaciones, setNotificaciones] = useState({});
   const [chatActivo, setChatActivo] = useState(null);
+  const { usuario } = useContext(AuthContext);
 
   useEffect(() => {
-    const usuario = JSON.parse(localStorage.getItem("usuario"));
-    if (!usuario) return;
+    if (!usuario) {
+      socket.disconnect();
+      return;
+    }
 
     const registrarYUnirse = () => {
       socket.emit("registrarUsuario", usuario.id);
@@ -43,23 +47,21 @@ export function NotificationProvider({ children }) {
       unirseAPedidos();
     };
 
-    if (socket.connected) {
-      registrarYUnirse();
-    } else {
-      socket.connect();
-      socket.on("connect", registrarYUnirse);
-    }
+    socket.on("connect", registrarYUnirse);
+    if (socket.connected) registrarYUnirse();
+    else socket.connect();
 
     return () => {
       socket.off("connect", registrarYUnirse);
+      socket.disconnect();
     };
-  }, []);
+  }, [usuario]);
 
   useEffect(() => {
     const handler = ({ pedidoId, emisorId }) => {
-      const usuario = JSON.parse(localStorage.getItem("usuario"));
+      if (!usuario) return;
 
-      if (emisorId === usuario?.id) {
+      if (String(emisorId) === String(usuario.id || usuario._id)) {
         return;
       }
 
@@ -75,7 +77,7 @@ export function NotificationProvider({ children }) {
 
     socket.on("nuevaNotificacion", handler);
     return () => socket.off("nuevaNotificacion", handler);
-  }, [chatActivo]);
+  }, [chatActivo, usuario]);
 
   const entrarAlChat = (pedidoId) => {
     setChatActivo(pedidoId);
