@@ -10,3 +10,8 @@ backup/
 *.bson
 *.archive
 *.dump
+
+# Configuraciones privadas
+.env
+.env.*
+!.env.example
