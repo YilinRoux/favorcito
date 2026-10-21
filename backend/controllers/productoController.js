@@ -28,6 +28,8 @@ export const crearProducto = async (req, res) => {
 
     const imagen = req.file ? await guardarImagen(req.file, "favorcito/productos") : "";
 
+    if (!Number.isFinite(Number(precio)) || Number(precio) < 0 || !Number.isSafeInteger(Number(stock)) || Number(stock) < 0) return res.status(400).json({ mensaje: "Precio o stock inválido" });
+
     const nuevoProducto = new Producto({
       nombre,
       descripcion,
@@ -86,8 +88,14 @@ export const editarProducto = async (req, res) => {
 
     if (nombre) producto.nombre = nombre;
     if (descripcion) producto.descripcion = descripcion;
-    if (precio) producto.precio = precio;
-    if (stock) producto.stock = stock;
+    if (precio !== undefined) {
+      if (!Number.isFinite(Number(precio)) || Number(precio) < 0) return res.status(400).json({ mensaje: "Precio inválido" });
+      producto.precio = Number(precio);
+    }
+    if (stock !== undefined) {
+      if (!Number.isSafeInteger(Number(stock)) || Number(stock) < 0) return res.status(400).json({ mensaje: "Stock inválido" });
+      producto.stock = Number(stock);
+    }
     if (req.file) {
       if (producto.imagen) {
         await eliminarImagenGuardada(producto.imagen);
