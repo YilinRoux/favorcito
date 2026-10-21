@@ -4,8 +4,7 @@ import jwt from "jsonwebtoken";
 import Usuario from "../models/Usuario.js";
 import { protegerRuta, soloAdmin } from "../middlewares/authMiddleware.js";
 
-const secret = process.env.JWT_SECRET;
-process.env.JWT_SECRET = "test-only-secret-not-for-production";
+const testSecret = "test-only-secret-not-for-production";
 
 const run = async (authorization) => {
   const req = { headers: authorization === undefined ? {} : { authorization } };
@@ -15,6 +14,7 @@ const run = async (authorization) => {
     json(body) { this.body = body; return this; },
   };
   let nextCalled = false;
+  process.env.JWT_SECRET = testSecret;
   await protegerRuta(req, res, () => { nextCalled = true; });
   return { req, res, nextCalled };
 };
@@ -36,7 +36,7 @@ test("rechaza JWT inválido o con algoritmo distinto", async () => {
 });
 
 test("rechaza tokens sin identificador", async () => {
-  const token = jwt.sign({ scope: "test" }, process.env.JWT_SECRET);
+  const token = jwt.sign({ scope: "test" }, testSecret);
   assert.equal((await run("Bearer " + token)).res.statusCode, 401);
 });
 
@@ -55,4 +55,3 @@ test("soloAdmin permite administradores", () => {
   assert.equal(allowed, true);
 });
 
-process.env.JWT_SECRET = secret;
