@@ -1,4 +1,5 @@
 import multer from "multer";
+import crypto from "node:crypto";
 import fs from "fs";
 import path from "path";
 import { hasCloudinaryConfig } from "./cloudinary.js";
@@ -16,7 +17,7 @@ const storage = useCloudinaryStorage
         cb(null, "uploads/");
       },
       filename: (req, file, cb) => {
-        cb(null, `${Date.now()}-${file.originalname}`);
+        cb(null, `${Date.now()}-${crypto.randomUUID()}${path.extname(file.originalname).toLowerCase()}`);
       },
     });
 
@@ -29,4 +30,4 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-export const upload = multer({ storage, fileFilter });
+export const upload = multer({ storage, fileFilter, limits: { fileSize: 5 * 1024 * 1024, files: 5 } });
