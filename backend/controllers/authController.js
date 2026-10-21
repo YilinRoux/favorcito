@@ -1,3 +1,4 @@
+import { randomInt } from "node:crypto";
 import Usuario from "../models/Usuario.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -7,7 +8,7 @@ const LIMITE_INTENTOS_CODIGO = 5;
 const SALT_ROUNDS = 12;
 
 const normalizarEmail = (email) => String(email || "").trim().toLowerCase();
-const generarCodigo = () => Math.floor(100000 + Math.random() * 900000).toString();
+const generarCodigo = () => randomInt(100000, 1000000).toString();
 const esHashBcrypt = (value) => typeof value === "string" && /^\$2[aby]\$\d{2}\$/.test(value);
 
 const hasExpired = (fecha) => Boolean(fecha) && new Date() > new Date(fecha);
