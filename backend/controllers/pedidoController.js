@@ -375,14 +375,6 @@ export const cancelarPedidoVendedor = async (req, res) => {
         for (const item of actualizado.productos) {
           await Producto.updateOne({ _id: item.producto }, { $inc: { stock: item.cantidad } }, { session });
         }
-        const usuario = await Usuario.findByIdAndUpdate(
-          actualizado.estudiante,
-          { $inc: { cancelaciones: 1 } },
-          { new: true, session }
-        );
-        if (usuario && usuario.cancelaciones >= 3) {
-          await Usuario.updateOne({ _id: actualizado.estudiante }, { $set: { sospechoso: true } }, { session });
-        }
       });
     } finally {
       await session.endSession();
