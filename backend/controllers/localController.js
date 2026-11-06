@@ -34,7 +34,7 @@ export const calificarLocal = async (req, res) => {
   try {
     const { estrellas } = req.body;
 
-    if (estrellas < 1 || estrellas > 5) {
+    if (!Number.isInteger(estrellas) || estrellas < 1 || estrellas > 5) {
       return res.status(400).json({ mensaje: "Las estrellas deben estar entre 1 y 5" });
     }
 
@@ -77,8 +77,8 @@ export const comentarLocal = async (req, res) => {
   try {
     const { texto } = req.body;
 
-    if (!texto || texto.trim() === "") {
-      return res.status(400).json({ mensaje: "El comentario no puede estar vacío" });
+    if (typeof texto !== "string" || !texto.trim() || texto.trim().length > 1000) {
+      return res.status(400).json({ mensaje: "El comentario debe tener entre 1 y 1000 caracteres" });
     }
 
     const local = await Local.findById(req.params.id);
@@ -86,7 +86,7 @@ export const comentarLocal = async (req, res) => {
 
     local.comentarios.push({
       usuario: req.usuario.id,
-      texto,
+      texto: texto.trim(),
     });
 
     await local.save();
