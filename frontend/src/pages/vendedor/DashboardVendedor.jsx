@@ -78,11 +78,15 @@ function DashboardVendedor() {
   };
 
   const cancelarPorVendedor = async (pedidoId) => {
-    if (!confirm("¿Cancelar este pedido? Se registrará como cancelación del estudiante.")) return;
+    if (!window.confirm("¿Cancelar este pedido? Esta acción no penalizará al estudiante.")) return;
     try {
-      await api.put(`/pedidos/${pedidoId}/cancelar-vendedor`);
-      setPedidos((prev) => prev.map((p) => p._id === pedidoId ? { ...p, estado: "cancelado" } : p));
-    } catch { alert("Error al cancelar pedido"); }
+      const res = await api.put(`/pedidos/${pedidoId}/cancelar-vendedor`);
+      setPedidos((prev) => prev.map((p) => p._id === pedidoId ? res.data.pedido : p));
+    } catch (error) {
+      const mensaje = error.response?.data?.mensaje || "Error al cancelar pedido";
+      window.alert(mensaje);
+      console.error("Error al cancelar pedido:", error);
+    }
   };
 
   const reportarEstudiante = async (estudianteId) => {
@@ -179,7 +183,7 @@ function DashboardVendedor() {
         )}
 
         {["aceptado", "en_preparacion"].includes(pedido.estado) && (
-          <button onClick={() => cancelarPorVendedor(pedido._id)} className="dv-btn-cancelar">
+          <button type="button" onClick={() => cancelarPorVendedor(pedido._id)} className="dv-btn-cancelar">
             <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
               <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
             </svg>
