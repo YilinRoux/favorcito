@@ -480,3 +480,63 @@
 .dv-message-list-info small { font-size: 11px; color: #888; }
 .dv-message-list-count { font-size: 11px; color: #ff995e; white-space: nowrap; }
 @media (max-width: 520px) { .dv-message-notice-header { gap: 9px; } .dv-message-notice-toggle { padding: 7px 9px; } }
+
+
+/* Paginación visual de pedidos: usa los datos ya cargados, no cambia la lógica del backend */
+.dv-pagination{
+  margin-top:8px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  padding:10px 2px 0;
+}
+.dv-page-numbers{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.dv-page-number,
+.dv-page-arrow{
+  min-width:34px;
+  height:34px;
+  padding:0 10px;
+  border-radius:10px;
+  border:1px solid #263247;
+  background:#121d2f;
+  color:#aab5c4;
+  font-size:12px;
+  font-weight:700;
+  cursor:pointer;
+  transition:background .18s,border-color .18s,color .18s,transform .18s;
+}
+.dv-page-number:hover:not(:disabled),
+.dv-page-arrow:hover:not(:disabled){
+  border-color:#d87935;
+  color:#fff;
+  transform:translateY(-1px);
+}
+.dv-page-number.is-active{
+  background:linear-gradient(180deg,#e88a45,#d87431);
+  border-color:#e88a45;
+  color:#fff;
+  box-shadow:0 6px 14px rgba(216,116,49,.2);
+}
+.dv-page-arrow:disabled{
+  opacity:.35;
+  cursor:not-allowed;
+}
+.dv-page-summary{
+  margin-left:auto;
+  color:#768396;
+  font-size:11px;
+  font-weight:600;
+}
+@media(max-width:560px){
+  .dv-pagination{justify-content:center}
+  .dv-page-summary{
+    width:100%;
+    margin-left:0;
+    text-align:center;
+  }
+}
