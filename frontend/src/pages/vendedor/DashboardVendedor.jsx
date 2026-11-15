@@ -3,7 +3,7 @@ import api from "../../services/api";
 import { NotificationContext } from "../../context/NotificationContext";
 import { Link, useNavigate } from "react-router-dom";
 import socket from "../../services/socket";
-import tacosLogin from "../../assets/login/tacos-login.png";
+import { getImageUrl } from "../../utils/imageUrl";
 import "../../styles/vendedor/DashboardVendedor.css";
 
 const estadoLabel = {
@@ -36,8 +36,15 @@ function DashboardVendedor() {
   const [pagina, setPagina] = useState(1);
   const pedidosPorPagina = 5;
   const [mostrarMensajes, setMostrarMensajes] = useState(false);
+  const [tema, setTema] = useState(() => localStorage.getItem("favorcito-tema") || "claro");
   const { notificaciones, total } = useContext(NotificationContext);
   const navigate = useNavigate();
+
+  const cambiarTema = () => {
+    const siguiente = tema === "claro" ? "oscuro" : "claro";
+    setTema(siguiente);
+    localStorage.setItem("favorcito-tema", siguiente);
+  };
 
   const cargar = async () => {
     try {
@@ -131,7 +138,7 @@ function DashboardVendedor() {
   const ventasHoy = pedidosHoy.filter((p) => p.estado === "entregado").reduce((acc, p) => acc + p.total, 0);
 
   if (cargando) return (
-    <div className="dv-wrap">
+    <div className={`dv-wrap dv-theme-${tema}`}>
       <div className="dv-orbe dv-orbe-1" /><div className="dv-orbe dv-orbe-2" />
       <p className="dv-loading">Cargando...</p>
     </div>
@@ -257,13 +264,20 @@ function DashboardVendedor() {
 
       <div className="dv-container">
         <section className="dv-heading">
-          <span className="dv-eyebrow">Panel del vendedor</span>
-          <h1>Bienvenido a <strong>Favorcito</strong></h1>
-          <p>Gestiona tu local, pedidos, menú y promociones desde un solo lugar.</p>
+          <div>
+            <span className="dv-eyebrow">Panel del vendedor</span>
+            <h1>Bienvenido a <strong>Favorcito</strong></h1>
+            <p>Gestiona tu local, pedidos, menú y promociones desde un solo lugar.</p>
+          </div>
+          <button type="button" className="dv-theme-toggle" onClick={cambiarTema} aria-label="Cambiar tema">
+            <span>☾</span>
+            <span className="dv-theme-track"><i /></span>
+            <span>☀</span>
+          </button>
         </section>
 
         {local && (
-          <div className="dv-local-card">
+          <div className={`dv-local-card ${local.promocionActiva && local.imagenesAnuncios?.length ? "has-promo" : "no-promo"}`}>
             <div className="dv-local-copy">
               <div className="dv-local-header">
                 <div>
@@ -293,11 +307,16 @@ function DashboardVendedor() {
               </Link>
               </div>
             </div>
-            <div className="dv-hero-visual" aria-hidden="true">
-              <span className="dv-hero-orb dv-hero-orb-one" />
-              <span className="dv-hero-orb dv-hero-orb-two" />
-              <img src={tacosLogin} className="dv-hero-food" alt="" />
-            </div>
+            {local.promocionActiva && local.imagenesAnuncios?.length > 0 && (
+              <div className="dv-promo-visual">
+                <img
+                  src={getImageUrl(local.imagenesAnuncios[0])}
+                  className="dv-promo-image"
+                  alt={local.anuncio || "Promoción activa"}
+                />
+                {local.anuncio && <span className="dv-promo-caption">{local.anuncio}</span>}
+              </div>
+            )}
           </div>
         )}
 
