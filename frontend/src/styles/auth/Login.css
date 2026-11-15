@@ -854,3 +854,103 @@
     bottom:-58px;
   }
 }
+
+
+/* Precise decorative pass: corner foliage + elongated orange strokes */
+.lg-leaves-left{
+  left:-92px!important;
+  top:205px!important;
+  width:118px!important;
+  transform:rotate(-28deg)!important;
+  opacity:.22!important;
+}
+.lg-leaves-right{
+  right:-88px!important;
+  top:18px!important;
+  width:110px!important;
+  transform:scaleX(-1) rotate(-18deg)!important;
+  opacity:.14!important;
+}
+.lg-theme-claro .lg-leaves{
+  filter:saturate(.5) brightness(.82)!important;
+}
+.lg-theme-oscuro .lg-leaves{
+  filter:saturate(.38) brightness(.62)!important;
+}
+
+.lg-brand-panel::before{
+  left:-54px!important;
+  top:-54px!important;
+  width:330px!important;
+  height:118px!important;
+  border-radius:62% 38% 58% 42% / 72% 56% 44% 28%!important;
+  transform:rotate(-18deg)!important;
+  background:#ea8646!important;
+  opacity:.98!important;
+}
+.lg-brand-panel::after{
+  right:-130px!important;
+  bottom:-74px!important;
+  width:470px!important;
+  height:132px!important;
+  border-radius:60% 40% 0 0 / 88% 60% 0 0!important;
+  transform:rotate(8deg)!important;
+  background:#263d5d!important;
+}
+.lg-theme-oscuro .lg-brand-panel::before{
+  background:#d07943!important;
+}
+.lg-theme-oscuro .lg-brand-panel::after{
+  background:#203550!important;
+}
+
+.lg-brand-panel .lg-wave-one{
+  left:-150px!important;
+  bottom:-86px!important;
+  width:610px!important;
+  height:132px!important;
+  border-radius:64% 36% 0 0 / 90% 54% 0 0!important;
+  transform:rotate(-8deg)!important;
+  background:#ef9a61!important;
+  opacity:.96!important;
+}
+.lg-brand-panel .lg-wave-two{
+  left:230px!important;
+  bottom:-104px!important;
+  width:620px!important;
+  height:146px!important;
+  border-radius:66% 34% 0 0 / 90% 58% 0 0!important;
+  transform:rotate(7deg)!important;
+  background:#2a405f!important;
+}
+.lg-theme-oscuro .lg-wave-one{background:#84583f!important}
+.lg-theme-oscuro .lg-wave-two{background:#203550!important}
+
+@media(max-width:820px){
+  .lg-leaves-left{
+    left:-82px!important;
+    top:130px!important;
+    width:100px!important;
+  }
+  .lg-leaves-right{
+    right:-80px!important;
+    top:14px!important;
+    width:92px!important;
+  }
+  .lg-brand-panel::before{
+    left:-76px!important;
+    top:-48px!important;
+    width:285px!important;
+    height:104px!important;
+  }
+  .lg-brand-panel .lg-wave-one{
+    left:-170px!important;
+    width:500px!important;
+    height:116px!important;
+  }
+  .lg-brand-panel .lg-wave-two{
+    left:45%!important;
+    width:420px!important;
+    height:128px!important;
+  }
+}
