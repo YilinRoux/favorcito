@@ -20,7 +20,7 @@ function Navbar() {
   const toggleMenu = () => setMenuOpen(p => !p);
   const closeMenu = () => setMenuOpen(false);
 
-  if (usuario?.rol === "admin") return null;
+  if (usuario?.rol === "admin" || location.pathname === "/login") return null;
 
   const estudianteLinks = [
     { to: "/menu",         label: "Locales",   icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> },
