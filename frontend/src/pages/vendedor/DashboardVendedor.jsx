@@ -3,6 +3,7 @@ import api from "../../services/api";
 import { NotificationContext } from "../../context/NotificationContext";
 import { Link, useNavigate } from "react-router-dom";
 import socket from "../../services/socket";
+import tacosLogin from "../../assets/login/tacos-login.png";
 import "../../styles/vendedor/DashboardVendedor.css";
 
 const estadoLabel = {
@@ -255,12 +256,17 @@ function DashboardVendedor() {
       <div className="dv-orbe dv-orbe-2" />
 
       <div className="dv-container">
+        <section className="dv-heading">
+          <span className="dv-eyebrow">Panel del vendedor</span>
+          <h1>Bienvenido a <strong>Favorcito</strong></h1>
+          <p>Gestiona tu local, pedidos, menú y promociones desde un solo lugar.</p>
+        </section>
 
         {local && (
           <div className="dv-local-card">
-            <div className="dv-card-top-border" />
-            <div className="dv-local-header">
-              <div>
+            <div className="dv-local-copy">
+              <div className="dv-local-header">
+                <div>
                 <h2 className="dv-local-nombre">{local.nombre}</h2>
                 <p className="dv-local-desc">{local.descripcion}</p>
                 <p className="dv-local-dir">
@@ -270,9 +276,9 @@ function DashboardVendedor() {
                   {local.direccion}
                 </p>
               </div>
-              <span className="dv-local-badge">Aprobado</span>
-            </div>
-            <div className="dv-local-links">
+                <span className="dv-local-badge">Aprobado</span>
+              </div>
+              <div className="dv-local-links">
               <Link to="/vendedor/menu" className="dv-link-blue">
                 <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
                   <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -285,6 +291,12 @@ function DashboardVendedor() {
                 </svg>
                 Promoción y Anuncios
               </Link>
+              </div>
+            </div>
+            <div className="dv-hero-visual" aria-hidden="true">
+              <span className="dv-hero-orb dv-hero-orb-one" />
+              <span className="dv-hero-orb dv-hero-orb-two" />
+              <img src={tacosLogin} className="dv-hero-food" alt="" />
             </div>
           </div>
         )}
@@ -336,7 +348,17 @@ function DashboardVendedor() {
           </div>
         </div>
 
-        <div className="dv-tabs">
+        <section className="dv-orders-layout">
+          <div className="dv-orders-panel">
+            <div className="dv-orders-heading">
+              <div>
+                <span className="dv-panel-kicker">Pedidos recientes</span>
+                <h2>Actividad de pedidos</h2>
+              </div>
+              <span className="dv-orders-total">{pedidosActivos.length} en esta vista</span>
+            </div>
+
+            <div className="dv-tabs">
           <button onClick={() => cambiarTab("nuevos")} className={`dv-tab ${tab === "nuevos" ? "dv-tab-active-yellow" : ""}`}>
             <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
               <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -414,7 +436,29 @@ function DashboardVendedor() {
               )}
             </>
           )}
-        </div>
+            </div>
+          </div>
+
+          <aside className="dv-summary-card">
+            <span className="dv-panel-kicker">Resumen del día</span>
+            <h2>Tu operación de hoy</h2>
+            <div className="dv-summary-list">
+              <div className="dv-summary-row">
+                <span>Pedidos de hoy</span>
+                <strong>{pedidosHoy.length}</strong>
+              </div>
+              <div className="dv-summary-row">
+                <span>En proceso</span>
+                <strong>{pedidosEnProceso.length}</strong>
+              </div>
+              <div className="dv-summary-row">
+                <span>Ventas de hoy</span>
+                <strong>{`${ventasHoy}`}</strong>
+              </div>
+            </div>
+            <div className="dv-summary-accent" />
+          </aside>
+        </section>
 
       </div>
     </div>
