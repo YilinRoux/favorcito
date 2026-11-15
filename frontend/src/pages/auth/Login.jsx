@@ -116,19 +116,51 @@ export default function Login() {
       <section className="lg-shell">
         <aside className="lg-brand-panel">
           <div className="lg-brand-mark">
-            <span className="lg-chef" aria-hidden="true">♨</span>
+            <svg className="lg-brand-symbol" viewBox="0 0 48 48" aria-hidden="true">
+              <path d="M13 28c-4.4 0-8-3.6-8-8s3.6-8 8-8c1.4 0 2.7.4 3.8 1C18.8 8.3 23.3 5 28.5 5 35.4 5 41 10.6 41 17.5c0 .8-.1 1.6-.2 2.3 2.7 1.2 4.7 4 4.7 7.2 0 4.4-3.6 8-8 8H22l-9 5v-12Z"/>
+            </svg>
             <strong>Favorcito</strong>
           </div>
+
           <div className="lg-brand-copy">
             <h1>Tu comida <em>favorita</em>,<br />más cerca de ti</h1>
-            <p>Conecta con los locales de tu escuela y encuentra algo rico sin complicarte.</p>
+            <p>Conecta con los locales de tu escuela, explora sus platillos y pide de forma rápida y sencilla.</p>
           </div>
-          <div className="lg-food-art" aria-hidden="true"><span>🌮</span><span>🌮</span><span>🍋</span></div>
+
+          <div className="lg-food-scene" aria-hidden="true">
+            <svg viewBox="0 0 620 280" preserveAspectRatio="xMidYMax meet">
+              <ellipse className="lg-plate-shadow" cx="305" cy="238" rx="230" ry="28"/>
+              <ellipse className="lg-plate" cx="305" cy="218" rx="220" ry="44"/>
+              <g className="lg-taco lg-taco-1" transform="translate(130 62) rotate(-7 95 90)">
+                <path className="lg-shell-shape" d="M20 142C31 61 78 18 147 29c52 9 86 49 91 112H20Z"/>
+                <path className="lg-filling" d="M34 116c24-21 44-27 70-20 17-22 42-28 69-15 17-7 34-4 50 10 6 7 11 15 14 25H34Z"/>
+                <circle className="lg-garnish-a" cx="92" cy="91" r="8"/>
+                <circle className="lg-garnish-b" cx="131" cy="82" r="7"/>
+                <circle className="lg-garnish-c" cx="171" cy="99" r="7"/>
+                <path className="lg-leaf" d="M69 87c10-14 21-15 31-5-9 12-19 14-31 5Z"/>
+                <path className="lg-leaf" d="M148 72c9-13 20-14 29-5-8 12-18 14-29 5Z"/>
+              </g>
+              <g className="lg-taco lg-taco-2" transform="translate(300 76) rotate(8 90 82)">
+                <path className="lg-shell-shape" d="M20 132C31 57 75 18 137 28c47 8 78 45 83 103H20Z"/>
+                <path className="lg-filling" d="M32 108c21-18 39-24 62-18 15-20 38-25 62-13 16-7 31-4 46 8 6 6 10 14 13 23H32Z"/>
+                <circle className="lg-garnish-a" cx="82" cy="84" r="7"/>
+                <circle className="lg-garnish-b" cx="117" cy="76" r="6"/>
+                <circle className="lg-garnish-c" cx="153" cy="91" r="6"/>
+                <path className="lg-leaf" d="M63 80c9-12 19-13 28-4-8 11-18 12-28 4Z"/>
+              </g>
+              <g className="lg-lime" transform="translate(472 174) rotate(-12)">
+                <path d="M0 0c42 3 69 23 82 58-33 7-64 2-89-15L0 0Z"/>
+                <path d="M10 8c27 7 47 21 59 42M28 12 16 43M48 22 34 49"/>
+              </g>
+            </svg>
+          </div>
         </aside>
 
         <div className="lg-card">
           <button type="button" className="lg-theme-toggle" onClick={cambiarTema} aria-label={`Cambiar a modo ${tema === "claro" ? "oscuro" : "claro"}`}>
-            <span>☀</span><span className="lg-theme-knob">{tema === "claro" ? "☀" : "☾"}</span><span>☾</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.41M17.66 6.34l1.41-1.41"/></svg>
+            <span className="lg-theme-track"><span className="lg-theme-knob" /></span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8Z"/></svg>
           </button>
         <div className="lg-logo">
           <div className="lg-logo-icon">
