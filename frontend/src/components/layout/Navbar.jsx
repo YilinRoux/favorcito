@@ -39,8 +39,10 @@ function Navbar() {
   const activeLinks = usuario?.rol === "estudiante" ? estudianteLinks
     : usuario?.rol === "vendedor" ? vendedorLinks : [];
 
+  const vendedorDashboard = usuario?.rol === "vendedor" && location.pathname === "/vendedor/dashboard";
+
   return (
-    <nav className="nb-bar">
+    <nav className={`nb-bar ${vendedorDashboard ? "nb-bar--vendor-dashboard" : ""}`}>
       <div className="nb-inner">
 
         {/* Logo */}
