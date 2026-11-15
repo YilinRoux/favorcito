@@ -453,7 +453,7 @@ function DashboardVendedor() {
               </div>
               <div className="dv-summary-row">
                 <span>Ventas de hoy</span>
-                <strong>{`${ventasHoy}`}</strong>
+                <strong>${ventasHoy}</strong>
               </div>
             </div>
             <div className="dv-summary-accent" />
