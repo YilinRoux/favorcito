@@ -44,6 +44,7 @@ function DashboardVendedor() {
     const siguiente = tema === "claro" ? "oscuro" : "claro";
     setTema(siguiente);
     localStorage.setItem("favorcito-tema", siguiente);
+    window.dispatchEvent(new Event("favorcito-theme-change"));
   };
 
   const cargar = async () => {
