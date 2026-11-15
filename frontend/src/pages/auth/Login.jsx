@@ -15,9 +15,9 @@ export default function Login() {
   const [mostrarApelacion, setMostrarApelacion] = useState(false);
   const [apelacion, setApelacion] = useState({ nombre: "", email: "", motivo: "" });
   const [enviandoApelacion, setEnviandoApelacion] = useState(false);
-  const [apelacionEnviada, setApelacionEnviada] = useState(false);
+  const [apelacionEnviada, setApelacionEnviada] = useState(false);\n  const [tema, setTema] = useState(() => localStorage.getItem("favorcito-tema") || "claro");
 
-  const { login } = useContext(AuthContext);
+  const cambiarTema = () => {\n    const siguiente = tema === "claro" ? "oscuro" : "claro";\n    setTema(siguiente);\n    localStorage.setItem("favorcito-tema", siguiente);\n  };\n\n  const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -99,14 +99,14 @@ export default function Login() {
   };
 
   return (
-    <div className="lg-wrap">
+    <div className={`lg-wrap lg-theme-${tema}`}>
       <div className="lg-particles">
         {[...Array(7)].map((_, i) => <div key={i} className="lg-p" />)}
       </div>
       <div className="lg-orb lg-orb-1" />
       <div className="lg-orb lg-orb-2" />
 
-      <div className="lg-card">
+      <section className="lg-shell">\n        <aside className="lg-brand-panel">\n          <div className="lg-brand-mark">\n            <span className="lg-chef" aria-hidden="true">♨</span>\n            <strong>Favorcito</strong>\n          </div>\n          <div className="lg-brand-copy">\n            <h1>Tu comida <em>favorita</em>,<br />más cerca de ti</h1>\n            <p>Conecta con los locales de tu escuela y encuentra algo rico sin complicarte.</p>\n          </div>\n          <div className="lg-food-art" aria-hidden="true"><span>🌮</span><span>🌮</span><span>🍋</span></div>\n        </aside>\n\n        <div className="lg-card">\n          <button type="button" className="lg-theme-toggle" onClick={cambiarTema} aria-label={`Cambiar a modo ${tema === "claro" ? "oscuro" : "claro"}`}>\n            <span>☀</span><span className="lg-theme-knob">{tema === "claro" ? "☀" : "☾"}</span><span>☾</span>\n          </button>
         <div className="lg-logo">
           <div className="lg-logo-icon">
             <svg className="lg-logo-icon-svg" viewBox="0 0 24 24">
