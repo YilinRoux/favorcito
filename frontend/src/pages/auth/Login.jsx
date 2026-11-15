@@ -142,8 +142,8 @@ export default function Login() {
           <span className="lg-logo-text">Favorcito</span>
         </div>
 
-        <h2 className="lg-title">Bienvenido de vuelta</h2>
-        <p className="lg-subtitle">Ingresa a tu cuenta para continuar</p>
+        <h2 className="lg-title">Inicia sesión</h2>
+        <p className="lg-subtitle">Accede a tu cuenta y continúa con tu pedido.</p>
 
         <form className="lg-form" onSubmit={handleSubmit}>
           {error && (
@@ -265,7 +265,8 @@ export default function Login() {
             </Link>
           </p>
         </form>
-      </div>
+        </div>
+      </section>
 
       {mostrarApelacion && (
         <div className="lg-overlay">
