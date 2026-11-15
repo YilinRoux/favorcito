@@ -109,3 +109,35 @@
   .nb-bar--vendor-dashboard .nb-links{display:none!important}
   .nb-bar--vendor-dashboard .nb-hamburger{display:block!important}
 }
+
+
+/* Warm, matte seller sidebar */
+.nb-bar--vendor-dashboard{
+  background:linear-gradient(180deg,#17304f 0%,#1e3857 100%)!important;
+  box-shadow:0 16px 36px rgba(20,39,62,.14)!important;
+}
+.nb-bar--vendor-dashboard .nb-link--active{
+  background:#c77b43!important;
+  color:#fff6ee!important;
+  box-shadow:none!important;
+}
+.nb-bar--vendor-dashboard .nb-link:hover{
+  background:rgba(255,255,255,.055)!important;
+}
+.nb-bar--vendor-dashboard .nb-logout{
+  margin-top:auto!important;
+  margin-bottom:10px!important;
+  background:#26394f!important;
+  border:1px solid #3a5068!important;
+  color:#d8d0c8!important;
+  box-shadow:none!important;
+}
+.nb-bar--vendor-dashboard .nb-logout:hover{
+  background:#2d4259!important;
+  color:#f1ebe4!important;
+}
+.nb-bar--vendor-dashboard .nb-unread-count{
+  background:#c77b43!important;
+  color:#fff6ee!important;
+  box-shadow:none!important;
+}
