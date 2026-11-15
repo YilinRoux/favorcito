@@ -22,10 +22,9 @@ export default function Login() {
   const [apelacionEnviada, setApelacionEnviada] = useState(false);
   const [tema, setTema] = useState(() => localStorage.getItem("favorcito-tema") || "claro");
 
-  const cambiarTema = () => {
-    const siguiente = tema === "claro" ? "oscuro" : "claro";
-    setTema(siguiente);
-    localStorage.setItem("favorcito-tema", siguiente);
+  const aplicarTema = (nuevo) => {
+    setTema(nuevo);
+    localStorage.setItem("favorcito-tema", nuevo);
   };
 
   const { login } = useContext(AuthContext);
@@ -111,195 +110,195 @@ export default function Login() {
 
   return (
     <div className={`lg-wrap lg-theme-${tema}`}>
-      <div className="lg-particles">
-        {[...Array(7)].map((_, i) => <div key={i} className="lg-p" />)}
-      </div>
-      <div className="lg-orb lg-orb-1" />
-      <div className="lg-orb lg-orb-2" />
+      {/* Decoración de fondo */}
+      <svg className="lg-swoosh-top" viewBox="0 0 300 300" aria-hidden="true">
+        <path className="lg-sw-soft" d="M0 0H250C190 40 120 100 80 175C55 220 25 255 0 285Z" />
+        <path className="lg-sw-orange" d="M0 150C40 105 105 55 215 12C140 62 88 112 52 190C32 232 14 262 0 280Z" />
+      </svg>
+      <svg className="lg-waves" viewBox="0 0 1440 320" preserveAspectRatio="none" aria-hidden="true">
+        <path className="lg-wv-soft" d="M0 130C190 40 400 40 610 118C800 188 1010 230 1200 205C1300 192 1380 170 1440 140V320H0Z" />
+        <path className="lg-wv-navy" d="M330 320C470 215 640 190 820 235C960 270 1090 275 1215 245C1300 225 1370 255 1440 285V320Z" />
+        <path className="lg-wv-orange" d="M820 320C1010 250 1200 215 1440 150V320Z" />
+      </svg>
+      <img className="lg-leaves lg-leaves-left" src={hojasLogin} alt="" aria-hidden="true" />
+      <img className="lg-leaves lg-leaves-right" src={hojasLogin} alt="" aria-hidden="true" />
+      <img className="lg-tacos" src={tacosLogin} alt="" aria-hidden="true" />
 
-      <section className="lg-shell">
-        <aside className="lg-brand-panel">
-          <div className="lg-brand-top">
-            <div className="lg-brand-mark">
-              <img
-                className="lg-brand-logo-image"
-                src={tema === "claro" ? logoClaro : logoOscuro}
-                alt=""
-                aria-hidden="true"
-              />
-              <strong>Favorcito</strong>
-            </div>
-            <div className="lg-mini-nav" aria-hidden="true">
-              <span className="lg-mini-active">Inicio</span>
-              <span>Acerca de</span>
-            </div>
+      <div className="lg-page">
+        <header className="lg-top">
+          <Link to="/" className="lg-brand" aria-label="Favorcito, ir al inicio">
+            <img
+              className="lg-brand-logo"
+              src={tema === "claro" ? logoClaro : logoOscuro}
+              alt=""
+              aria-hidden="true"
+            />
+            <span className="lg-brand-name">Favorcito</span>
+          </Link>
+
+          <nav className="lg-nav" aria-label="Principal">
+            <Link to="/" className="lg-nav-active">Inicio</Link>
+            <span className="lg-nav-link">Acerca de</span>
+          </nav>
+
+          <div className="lg-toggle" role="group" aria-label="Tema de la página">
+            <button
+              type="button"
+              className={`lg-toggle-opt${tema === "claro" ? " is-on" : ""}`}
+              aria-pressed={tema === "claro"}
+              aria-label="Modo claro"
+              onClick={() => aplicarTema("claro")}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.41M17.66 6.34l1.41-1.41" /></svg>
+            </button>
+            <button
+              type="button"
+              className={`lg-toggle-opt${tema === "oscuro" ? " is-on" : ""}`}
+              aria-pressed={tema === "oscuro"}
+              aria-label="Modo oscuro"
+              onClick={() => aplicarTema("oscuro")}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8Z" /></svg>
+            </button>
           </div>
+        </header>
 
-          <div className="lg-brand-copy">
+        <main className="lg-main">
+          <section className="lg-hero">
             <h1>Tu comida <em>favorita</em>,<br />más cerca de ti</h1>
             <p>Conecta con los locales de tu escuela, explora sus platillos y haz tus pedidos de forma rápida y sencilla.</p>
-          </div>
+          </section>
 
-          <img className="lg-leaves lg-leaves-left" src={hojasLogin} alt="" aria-hidden="true" />
-          <svg className="lg-brush lg-brush-top" viewBox="0 0 420 150" aria-hidden="true">
-            <path d="M-28 88C54 14 161 1 274 28c67 16 116 45 162 83-119-24-231-17-334 16C49 144 5 144-28 136Z" />
-          </svg>
-          <img
-            className="lg-tacos-photo"
-            src={tacosLogin}
-            alt=""
-            aria-hidden="true"
-          />
-          <svg className="lg-brush lg-brush-bottom" viewBox="0 0 640 180" aria-hidden="true">
-            <path className="lg-brush-orange" d="M-40 160C69 59 213 26 366 60c91 20 168 60 251 108-168-43-321-39-462-4C73 184 7 187-40 180Z" />
-            <path className="lg-brush-navy" d="M212 170c92-71 194-97 310-74 62 12 113 35 164 67-122-25-240-16-354 23-44 15-83 18-120 14Z" />
-          </svg>
-        </aside>
+          <div className="lg-card">
+            <h2 className="lg-title">Inicia sesión</h2>
 
-        <div className="lg-card">
-          <img className="lg-leaves lg-leaves-right" src={hojasLogin} alt="" aria-hidden="true" />
-          <button type="button" className="lg-theme-toggle" onClick={cambiarTema} aria-label={`Cambiar a modo ${tema === "claro" ? "oscuro" : "claro"}`}>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.41M17.66 6.34l1.41-1.41"/></svg>
-            <span className="lg-theme-track"><span className="lg-theme-knob" /></span>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8Z"/></svg>
-          </button>
-        <div className="lg-logo">
-          <div className="lg-logo-icon">
-            <svg className="lg-logo-icon-svg" viewBox="0 0 24 24">
-              <circle cx="5.5" cy="17.5" r="2.5" />
-              <circle cx="18.5" cy="17.5" r="2.5" />
-              <path d="M3 5h11l2 7H5L3 5z" />
-              <path d="M15 12h4l2 5" />
-            </svg>
-          </div>
-          <span className="lg-logo-text">Favorcito</span>
-        </div>
-
-        <h2 className="lg-title">Inicia sesión</h2>
-        <p className="lg-subtitle">Accede a tu cuenta y continúa con tu pedido.</p>
-
-        <form className="lg-form" onSubmit={handleSubmit}>
-          {error && (
-            error === "SUSPENDIDO" ? (
-              <div className="lg-suspended">
-                <p className="lg-suspended-title">
-                  <svg className="lg-suspended-svg" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
-                  </svg>
-                  Cuenta suspendida
-                </p>
-                <span className="lg-suspended-text">
-                  Tu cuenta ha sido suspendida por el administrador.
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setMostrarApelacion(true)}
-                  className="lg-suspended-btn"
-                >
-                  <svg className="lg-suspended-btn-svg" viewBox="0 0 24 24">
-                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
-                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-                  </svg>
-                  Enviar apelación
-                </button>
-              </div>
-            ) : (
-              <div className="lg-error-block">
-                <div className="lg-error">
-                  <svg className="lg-error-svg" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="8" x2="12" y2="12" />
-                    <line x1="12" y1="16" x2="12.01" y2="16" />
-                  </svg>
-                  {error}
-                </div>
-
-                {verificacionPendiente && (
-                  <div className="lg-verification-actions">
+            <form className="lg-form" onSubmit={handleSubmit}>
+              {error && (
+                error === "SUSPENDIDO" ? (
+                  <div className="lg-suspended">
+                    <p className="lg-suspended-title">
+                      <svg className="lg-suspended-svg" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+                      </svg>
+                      Cuenta suspendida
+                    </p>
+                    <span className="lg-suspended-text">
+                      Tu cuenta ha sido suspendida por el administrador.
+                    </span>
                     <button
                       type="button"
-                      onClick={reenviarVerificacion}
-                      disabled={reenviandoVerificacion || cargando}
-                      className="lg-reverify-btn"
+                      onClick={() => setMostrarApelacion(true)}
+                      className="lg-suspended-btn"
                     >
-                      {reenviandoVerificacion ? "Reenviando..." : "Reenviar verificación"}
+                      Enviar apelación
                     </button>
-                    <Link
-                      to="/verificar-codigo"
-                      state={{ email: email.trim() }}
-                      className="lg-reverify-link"
-                    >
-                      Ya tengo mi código
-                    </Link>
                   </div>
-                )}
-              </div>
-            )
-          )}
-
-          <div className="lg-field">
-            <label className="lg-label">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="lg-input"
-              placeholder="tu@email.com"
-            />
-          </div>
-
-          <div className="lg-field">
-            <label className="lg-label">Contraseña</label>
-            <div className="lg-input-wrap">
-              <input
-                type={verContrasena ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="lg-input lg-input--pr"
-                placeholder="Tu contraseña"
-              />
-              <button
-                type="button"
-                onClick={() => setVerContrasena(!verContrasena)}
-                className="lg-pw-toggle"
-              >
-                {verContrasena ? (
-                  <svg className="lg-pw-toggle-svg" viewBox="0 0 24 24">
-                    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94" />
-                    <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19" />
-                    <line x1="1" y1="1" x2="23" y2="23" />
-                  </svg>
                 ) : (
-                  <svg className="lg-pw-toggle-svg" viewBox="0 0 24 24">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                    <circle cx="12" cy="12" r="3" />
-                  </svg>
-                )}
+                  <div className="lg-error-block">
+                    <div className="lg-error" role="alert">
+                      <svg className="lg-error-svg" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="12" />
+                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                      </svg>
+                      {error}
+                    </div>
+
+                    {verificacionPendiente && (
+                      <div className="lg-verification-actions">
+                        <button
+                          type="button"
+                          onClick={reenviarVerificacion}
+                          disabled={reenviandoVerificacion || cargando}
+                          className="lg-reverify-btn"
+                        >
+                          {reenviandoVerificacion ? "Reenviando..." : "Reenviar verificación"}
+                        </button>
+                        <Link
+                          to="/verificar-codigo"
+                          state={{ email: email.trim() }}
+                          className="lg-reverify-link"
+                        >
+                          Ya tengo mi código
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                )
+              )}
+
+              <div className="lg-input-wrap">
+                <svg className="lg-field-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="3" y="5" width="18" height="14" rx="2" />
+                  <path d="M3.5 6.5 12 13l8.5-6.5" />
+                </svg>
+                <input
+                  type="email"
+                  name="email"
+                  autoComplete="email"
+                  aria-label="Correo electrónico"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="lg-input lg-input--icon"
+                  placeholder="Correo electrónico"
+                />
+              </div>
+
+              <div className="lg-input-wrap">
+                <svg className="lg-field-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="5" y="11" width="14" height="10" rx="2" />
+                  <path d="M8 11V8a4 4 0 018 0v3" />
+                </svg>
+                <input
+                  type={verContrasena ? "text" : "password"}
+                  name="password"
+                  autoComplete="current-password"
+                  aria-label="Contraseña"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="lg-input lg-input--icon lg-input--pr"
+                  placeholder="Contraseña"
+                />
+                <button
+                  type="button"
+                  onClick={() => setVerContrasena(!verContrasena)}
+                  className="lg-pw-toggle"
+                  aria-label={verContrasena ? "Ocultar contraseña" : "Mostrar contraseña"}
+                >
+                  {verContrasena ? (
+                    <svg className="lg-pw-toggle-svg" viewBox="0 0 24 24">
+                      <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94" />
+                      <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19" />
+                      <line x1="1" y1="1" x2="23" y2="23" />
+                    </svg>
+                  ) : (
+                    <svg className="lg-pw-toggle-svg" viewBox="0 0 24 24">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+
+              <div className="lg-forgot-row">
+                <Link to="/recuperar-contrasena" className="lg-forgot">
+                  ¿Olvidaste tu contraseña?
+                </Link>
+              </div>
+
+              <button type="submit" disabled={cargando} className="lg-btn">
+                {cargando ? "Ingresando..." : "Iniciar sesión"}
               </button>
-            </div>
+
+              <p className="lg-footer">
+                ¿Aún no tienes cuenta?{" "}
+                <Link to="/registro" className="lg-link">Regístrate</Link>
+              </p>
+            </form>
           </div>
-
-          <div className="lg-forgot-row">
-            <Link to="/recuperar-contrasena" className="lg-forgot">
-              ¿Olvidaste tu contraseña?
-            </Link>
-          </div>
-
-          <button type="submit" disabled={cargando} className="lg-btn">
-            {cargando ? "Ingresando..." : "Iniciar Sesión"}
-          </button>
-
-          <p className="lg-footer">
-            ¿No tienes cuenta?
-            <Link to="/registro" className="lg-link">
-              {" "}
-              Regístrate aquí
-            </Link>
-          </p>
-        </form>
-        </div>
-      </section>
+        </main>
+      </div>
 
       {mostrarApelacion && (
         <div className="lg-overlay">
