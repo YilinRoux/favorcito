@@ -5,6 +5,7 @@ import { AuthContext } from "../../context/AuthContext";
 import tacosLogin from "../../assets/login/tacos-login.png";
 import logoClaro from "../../assets/login/login-light-bg.png";
 import logoOscuro from "../../assets/login/login-dark-bg.png";
+import hojasLogin from "../../assets/login/hojas-login.png";
 import "../../styles/auth/Login.css";
 
 export default function Login() {
@@ -139,6 +140,8 @@ export default function Login() {
             <p>Conecta con los locales de tu escuela, explora sus platillos y haz tus pedidos de forma rápida y sencilla.</p>
           </div>
 
+          <img className="lg-leaves lg-leaves-left" src={hojasLogin} alt="" aria-hidden="true" />
+          <img className="lg-leaves lg-leaves-right" src={hojasLogin} alt="" aria-hidden="true" />
           <img
             className="lg-tacos-photo"
             src={tacosLogin}
