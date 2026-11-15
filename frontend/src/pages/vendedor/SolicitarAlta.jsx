@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
+import MarcoAuth from "../../components/auth/MarcoAuth";
 import "../../styles/vendedor/SolicitarAlta.css";
 import ImageWithFallback from "../../components/common/ImageWithFallback";
 import { prepareImageFiles } from "../../utils/filePreviews";
@@ -13,7 +14,13 @@ function SolicitarAlta() {
   const [previews, setPreviews] = useState([]);
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
+  const [tema, setTema] = useState(() => localStorage.getItem("favorcito-tema") || "claro");
   const navigate = useNavigate();
+
+  const aplicarTema = (nuevo) => {
+    setTema(nuevo);
+    localStorage.setItem("favorcito-tema", nuevo);
+  };
 
   const handleFotos = async (e) => {
     const { files, previews } = await prepareImageFiles(e.target.files, 3);
@@ -53,111 +60,56 @@ function SolicitarAlta() {
   };
 
   return (
-    <div className="sa-wrap">
-      <div className="sa-orbe sa-orbe-1" />
-      <div className="sa-orbe sa-orbe-2" />
+    <MarcoAuth
+      tema={tema}
+      aplicarTema={aplicarTema}
+      titulo={<>Dale un lugar a tu <em>local</em><br />dentro de Favorcito</>}
+      descripcion="Cuéntanos sobre tu negocio. Un administrador revisará la información antes de publicarlo."
+    >
+      <span className="sa-chip">Alta de local</span>
+      <h2 className="rg-title">Registra tu local</h2>
+      <p className="sa-subtitle">Completa los datos básicos y agrega hasta 3 fotografías.</p>
 
-      <div className="sa-card">
-        <div className="sa-card-top-border" />
+      {error && <div className="sa-error">{error}</div>}
 
-        <div className="sa-logo-wrap">
-          <div className="sa-logo-icon">
-            <svg viewBox="0 0 24 24" fill="none" className="sa-logo-svg">
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#FF5C0A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
-          <span className="sa-logo-text">Favorcito</span>
+      <form onSubmit={handleSubmit} className="sa-form">
+        <div className="sa-field">
+          <label className="sa-label">Nombre del local</label>
+          <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} className="rg-input" placeholder="Ej. Tacos El Güero" />
         </div>
 
-        <div className="sa-badge">
-          <svg viewBox="0 0 16 16" fill="none" width="13" height="13">
-            <path d="M8 1.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13zM0 8a8 8 0 1116 0A8 8 0 010 8z" fill="#22C55E"/>
-          </svg>
-          Alta de Local
+        <div className="sa-field">
+          <label className="sa-label">Descripción</label>
+          <textarea value={descripcion} onChange={(e) => setDescripcion(e.target.value)} className="rg-textarea" rows={3} placeholder="¿Qué vendes y qué hace especial a tu local?" />
         </div>
 
-        <h2 className="sa-title">Registra tu local</h2>
-        <p className="sa-subtitle">Un administrador revisará tu solicitud antes de publicarla</p>
+        <div className="sa-field">
+          <label className="sa-label">Dirección</label>
+          <input type="text" value={direccion} onChange={(e) => setDireccion(e.target.value)} className="rg-input" placeholder="Ej. Edificio A, planta baja" />
+        </div>
 
-        {error && (
-          <div className="sa-error">
-            <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
-            </svg>
-            {error}
-          </div>
-        )}
+        <div className="sa-field">
+          <label className="sa-label">Fotos del local <span>máx. 3</span></label>
+          <label className="sa-file">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+            <span>{fotos.length ? `${fotos.length} imagen(es) seleccionada(s)` : "Seleccionar imágenes"}</span>
+            <input type="file" accept="image/*" multiple onChange={handleFotos} />
+          </label>
 
-        <form onSubmit={handleSubmit} className="sa-form">
-          <div className="sa-field">
-            <label className="sa-label">NOMBRE DEL LOCAL</label>
-            <input
-              type="text"
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              className="sa-input"
-              placeholder="Ej: Tacos El Güero"
-            />
-          </div>
+          {previews.length > 0 && (
+            <div className="sa-previews">
+              {previews.map((preview, i) => (
+                <ImageWithFallback key={`${preview.name}-${i}`} src={preview.src} className="sa-preview-img" alt={preview.name || `preview-${i}`} />
+              ))}
+            </div>
+          )}
+        </div>
 
-          <div className="sa-field">
-            <label className="sa-label">DESCRIPCIÓN</label>
-            <textarea
-              value={descripcion}
-              onChange={(e) => setDescripcion(e.target.value)}
-              className="sa-input sa-textarea"
-              rows={3}
-              placeholder="¿Qué vendes?"
-            />
-          </div>
-
-          <div className="sa-field">
-            <label className="sa-label">DIRECCIÓN</label>
-            <input
-              type="text"
-              value={direccion}
-              onChange={(e) => setDireccion(e.target.value)}
-              className="sa-input"
-              placeholder="Ej: Edificio A, planta baja"
-            />
-          </div>
-
-          <div className="sa-field">
-            <label className="sa-label">FOTOS DEL LOCAL (MÁX. 3)</label>
-            <label className="sa-file-label">
-              <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
-                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="#FF5C0A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              Seleccionar imágenes
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleFotos}
-                className="sa-file-input"
-              />
-            </label>
-            {previews.length > 0 && (
-              <div className="sa-previews">
-                {previews.map((preview, i) => (
-                  <ImageWithFallback
-                    key={`${preview.name}-${i}`}
-                    src={preview.src}
-                    className="sa-preview-img"
-                    alt={preview.name || `preview-${i}`}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-
-          <button type="submit" disabled={cargando} className="sa-btn">
-            <span className="sa-btn-shimmer" />
-            {cargando ? "Enviando..." : "Enviar Solicitud"}
-          </button>
-        </form>
-      </div>
-    </div>
+        <button type="submit" disabled={cargando} className="rg-btn">
+          {cargando ? "Enviando..." : "Enviar solicitud"}
+        </button>
+      </form>
+    </MarcoAuth>
   );
 }
 
