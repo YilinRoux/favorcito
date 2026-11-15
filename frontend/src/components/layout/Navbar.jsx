@@ -1,7 +1,9 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { NotificationContext } from "../../context/NotificationContext";
 import { AuthContext } from "../../context/AuthContext";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import logoClaro from "../../assets/login/login-light-bg.png";
+import logoOscuro from "../../assets/login/login-dark-bg.png";
 import "../../styles/layout/Navbar.css";
 
 function Navbar() {
@@ -10,6 +12,7 @@ function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [temaActual, setTemaActual] = useState(() => localStorage.getItem("favorcito-tema") || "claro");
 
   const handleLogout = () => {
     logout();
@@ -19,6 +22,19 @@ function Navbar() {
   const isActive = (path) => location.pathname === path;
   const toggleMenu = () => setMenuOpen(p => !p);
   const closeMenu = () => setMenuOpen(false);
+
+  useEffect(() => {
+    const sincronizarTema = () => {
+      setTemaActual(localStorage.getItem("favorcito-tema") || "claro");
+    };
+
+    window.addEventListener("storage", sincronizarTema);
+    window.addEventListener("favorcito-theme-change", sincronizarTema);
+    return () => {
+      window.removeEventListener("storage", sincronizarTema);
+      window.removeEventListener("favorcito-theme-change", sincronizarTema);
+    };
+  }, []);
 
   if (usuario?.rol === "admin" || ["/", "/login", "/registro", "/verificar-codigo", "/recuperar-contrasena", "/vendedor/solicitar", "/vendedor/estado"].includes(location.pathname)) return null;
 
@@ -42,18 +58,27 @@ function Navbar() {
   const vendedorDashboard = usuario?.rol === "vendedor" && location.pathname === "/vendedor/dashboard";
 
   return (
-    <nav className={`nb-bar ${vendedorDashboard ? "nb-bar--vendor-dashboard" : ""}`}>
+    <nav className={`nb-bar ${vendedorDashboard ? `nb-bar--vendor-dashboard nb-bar--${temaActual}` : ""}`}>
       <div className="nb-inner">
 
         {/* Logo */}
         <Link to="/" className="nb-logo" onClick={closeMenu}>
           <div className="nb-logo-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18" style={{position:"relative",zIndex:1}}>
-              <circle cx="5.5" cy="17.5" r="2.5"/>
-              <circle cx="18.5" cy="17.5" r="2.5"/>
-              <path d="M3 5h11l2 7H5L3 5z"/>
-              <path d="M15 12h4l2 5"/>
-            </svg>
+            {vendedorDashboard ? (
+              <img
+                src={temaActual === "claro" ? logoClaro : logoOscuro}
+                alt=""
+                aria-hidden="true"
+                className="nb-logo-image"
+              />
+            ) : (
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18" style={{position:"relative",zIndex:1}}>
+                <circle cx="5.5" cy="17.5" r="2.5"/>
+                <circle cx="18.5" cy="17.5" r="2.5"/>
+                <path d="M3 5h11l2 7H5L3 5z"/>
+                <path d="M15 12h4l2 5"/>
+              </svg>
+            )}
           </div>
           <span className="nb-logo-text">Favorcito</span>
         </Link>
