@@ -141,18 +141,23 @@ export default function Login() {
           </div>
 
           <img className="lg-leaves lg-leaves-left" src={hojasLogin} alt="" aria-hidden="true" />
-          <img className="lg-leaves lg-leaves-right" src={hojasLogin} alt="" aria-hidden="true" />
+          <svg className="lg-brush lg-brush-top" viewBox="0 0 420 150" aria-hidden="true">
+            <path d="M-28 88C54 14 161 1 274 28c67 16 116 45 162 83-119-24-231-17-334 16C49 144 5 144-28 136Z" />
+          </svg>
           <img
             className="lg-tacos-photo"
             src={tacosLogin}
             alt=""
             aria-hidden="true"
           />
-          <div className="lg-wave lg-wave-one" aria-hidden="true" />
-          <div className="lg-wave lg-wave-two" aria-hidden="true" />
+          <svg className="lg-brush lg-brush-bottom" viewBox="0 0 640 180" aria-hidden="true">
+            <path className="lg-brush-orange" d="M-40 160C69 59 213 26 366 60c91 20 168 60 251 108-168-43-321-39-462-4C73 184 7 187-40 180Z" />
+            <path className="lg-brush-navy" d="M212 170c92-71 194-97 310-74 62 12 113 35 164 67-122-25-240-16-354 23-44 15-83 18-120 14Z" />
+          </svg>
         </aside>
 
         <div className="lg-card">
+          <img className="lg-leaves lg-leaves-right" src={hojasLogin} alt="" aria-hidden="true" />
           <button type="button" className="lg-theme-toggle" onClick={cambiarTema} aria-label={`Cambiar a modo ${tema === "claro" ? "oscuro" : "claro"}`}>
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.41M17.66 6.34l1.41-1.41"/></svg>
             <span className="lg-theme-track"><span className="lg-theme-knob" /></span>
