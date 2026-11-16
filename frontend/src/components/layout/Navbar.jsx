@@ -4,6 +4,7 @@ import { AuthContext } from "../../context/AuthContext";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import logoClaro from "../../assets/login/login-light-bg.png";
 import logoOscuro from "../../assets/login/login-dark-bg.png";
+import hojasLogin from "../../assets/login/hojas-login.png";
 import "../../styles/layout/Navbar.css";
 
 function Navbar() {
@@ -47,9 +48,9 @@ function Navbar() {
   ];
 
   const vendedorLinks = [
-    { to: "/vendedor/dashboard", label: "Dashboard", icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> },
+    { to: "/vendedor/dashboard", label: "Inicio", icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> },
     { to: "/vendedor/menu",      label: "Menú",      icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><path d="M7 2v20M21 15V2l-3 5-3-5v13"/><path d="M21 22H3"/></svg> },
-    { to: "/vendedor/promocion", label: "Promoción", icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> },
+    { to: "/vendedor/promocion", label: "Promociones", icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> },
   ];
 
   const activeLinks = usuario?.rol === "estudiante" ? estudianteLinks
@@ -60,6 +61,8 @@ function Navbar() {
   return (
     <nav className={`nb-bar ${vendedorDashboard ? `nb-bar--vendor-dashboard nb-bar--${temaActual}` : ""}`}>
       <div className="nb-inner">
+        {vendedorDashboard && <img src={hojasLogin} alt="" aria-hidden="true" className="nb-vendor-leaf" />}
+        {vendedorDashboard && <span className="nb-vendor-wave" aria-hidden="true" />}
 
         {/* Logo */}
         <Link to="/" className="nb-logo" onClick={closeMenu}>
@@ -116,7 +119,7 @@ function Navbar() {
                 <polyline points="16 17 21 12 16 7"/>
                 <line x1="21" y1="12" x2="9" y2="12"/>
               </svg>
-              Salir
+              Cerrar sesión
             </button>
           )}
         </div>
