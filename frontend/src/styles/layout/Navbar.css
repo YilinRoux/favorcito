@@ -196,3 +196,66 @@
 .nb-bar--vendor-dashboard.nb-bar--claro{
   background:linear-gradient(180deg,#17304f 0%,#203b5c 100%)!important;
 }
+
+
+/* Final organic seller sidebar details */
+.nb-bar--vendor-dashboard{
+  isolation:isolate!important;
+}
+.nb-bar--vendor-dashboard .nb-inner{
+  position:relative!important;
+  z-index:2!important;
+}
+.nb-vendor-leaf{
+  position:absolute!important;
+  left:-34px!important;
+  bottom:112px!important;
+  width:105px!important;
+  opacity:.18!important;
+  filter:saturate(.48) brightness(.7)!important;
+  transform:rotate(-18deg)!important;
+  pointer-events:none!important;
+  z-index:0!important;
+}
+.nb-vendor-wave{
+  position:absolute!important;
+  left:-48px!important;
+  right:-34px!important;
+  bottom:-54px!important;
+  height:116px!important;
+  border-radius:58% 42% 0 0 / 72% 48% 0 0!important;
+  background:#8f5739!important;
+  transform:rotate(6deg)!important;
+  opacity:.72!important;
+  pointer-events:none!important;
+  z-index:0!important;
+}
+.nb-bar--vendor-dashboard .nb-logo,
+.nb-bar--vendor-dashboard .nb-links{
+  position:relative!important;
+  z-index:2!important;
+}
+.nb-bar--vendor-dashboard .nb-logout{
+  position:relative!important;
+  z-index:2!important;
+  margin-top:26px!important;
+  min-height:44px!important;
+  justify-content:center!important;
+  border-radius:999px!important;
+  background:#2a3039!important;
+  border:1px solid #685342!important;
+  color:#e5ddd3!important;
+}
+.nb-bar--vendor-dashboard .nb-logout:hover{
+  background:#34333a!important;
+  border-color:#8a6448!important;
+}
+.nb-bar--vendor-dashboard .nb-link--active{
+  background:#c9793f!important;
+  color:#fff4e9!important;
+  border-radius:14px!important;
+}
+@media(max-width:820px){
+  .nb-vendor-leaf,.nb-vendor-wave{display:none!important}
+  .nb-bar--vendor-dashboard .nb-logout{justify-content:flex-start!important}
+}
