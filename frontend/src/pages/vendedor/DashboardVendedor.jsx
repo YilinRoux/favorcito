@@ -4,6 +4,7 @@ import { NotificationContext } from "../../context/NotificationContext";
 import { Link, useNavigate } from "react-router-dom";
 import socket from "../../services/socket";
 import { getImageUrl } from "../../utils/imageUrl";
+import hojasLogin from "../../assets/login/hojas-login.png";
 import "../../styles/vendedor/DashboardVendedor.css";
 
 const estadoLabel = {
@@ -259,9 +260,13 @@ function DashboardVendedor() {
   );
 
   return (
-    <div className="dv-wrap">
-      <div className="dv-orbe dv-orbe-1" />
-      <div className="dv-orbe dv-orbe-2" />
+    <div className={`dv-wrap dv-theme-${tema}`}>
+      <svg className="dv-bg-waves" viewBox="0 0 1440 260" preserveAspectRatio="none" aria-hidden="true">
+        <path className="dv-bg-wave-one" d="M0 150C205 80 405 88 605 155C800 220 1010 235 1210 185C1310 160 1385 145 1440 152V260H0Z" />
+        <path className="dv-bg-wave-two" d="M420 260C590 190 760 195 920 228C1090 262 1260 225 1440 170V260Z" />
+      </svg>
+      <img className="dv-leaf dv-leaf-left" src={hojasLogin} alt="" aria-hidden="true" />
+      <img className="dv-leaf dv-leaf-right" src={hojasLogin} alt="" aria-hidden="true" />
 
       <div className="dv-container">
         <section className="dv-heading">
@@ -460,8 +465,13 @@ function DashboardVendedor() {
           </div>
 
           <aside className="dv-summary-card">
-            <span className="dv-panel-kicker">Resumen del día</span>
-            <h2>Tu operación de hoy</h2>
+            <div className="dv-summary-head">
+              <div>
+                <span className="dv-panel-kicker">Resumen del día</span>
+                <h2>Lo importante de hoy</h2>
+              </div>
+            </div>
+
             <div className="dv-summary-list">
               <div className="dv-summary-row">
                 <span>Pedidos de hoy</span>
@@ -476,7 +486,24 @@ function DashboardVendedor() {
                 <strong>${ventasHoy}</strong>
               </div>
             </div>
-            <div className="dv-summary-accent" />
+
+            <div className="dv-quick">
+              <p className="dv-quick-title">Acciones rápidas</p>
+              <div className="dv-quick-grid">
+                <Link to="/vendedor/menu" className="dv-quick-action">
+                  <span className="dv-quick-icon">☰</span>
+                  <span>Editar menú</span>
+                </Link>
+                <Link to="/vendedor/promocion" className="dv-quick-action">
+                  <span className="dv-quick-icon">✦</span>
+                  <span>Crear promoción</span>
+                </Link>
+                <button type="button" className="dv-quick-action" onClick={() => cambiarTab("nuevos")}>
+                  <span className="dv-quick-icon">◫</span>
+                  <span>Ver pedidos</span>
+                </button>
+              </div>
+            </div>
           </aside>
         </section>
 
