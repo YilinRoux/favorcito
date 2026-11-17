@@ -1,3 +1,4 @@
+import MarcoVendedor from "../../components/vendedor/MarcoVendedor";
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import "../../styles/vendedor/PromocionAnuncios.css";
@@ -76,27 +77,13 @@ function PromocionAnuncios() {
     }
   };
 
-  if (cargando) return (
-    <div className="pa-wrap">
-      <div className="pa-orbe pa-orbe-1" />
-      <div className="pa-orbe pa-orbe-2" />
-      <p className="pa-loading">Cargando...</p>
-    </div>
-  );
+  if (cargando) return <MarcoVendedor titulo="Promoción y anuncios" descripcion="Comparte lo que ofreces y configura la promoción de envío Favorcito." className="pa-wrap"><p className="pa-loading">Cargando…</p></MarcoVendedor>;
 
   return (
-    <div className="pa-wrap">
-      <div className="pa-orbe pa-orbe-1" />
-      <div className="pa-orbe pa-orbe-2" />
-
+    <MarcoVendedor titulo="Promoción y anuncios" descripcion="Comparte lo que ofreces y configura la promoción de envío Favorcito." className="pa-wrap">
       <div className="pa-container">
 
-        <h2 className="pa-page-title">
-          <svg viewBox="0 0 24 24" fill="none" width="26" height="26">
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="#FF5C0A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          Promoción y Anuncios
-        </h2>
+
 
         {error && (
           <div className="pa-error">
@@ -120,7 +107,7 @@ function PromocionAnuncios() {
           <div className="pa-card-top-border" />
           <h3 className="pa-card-title">
             <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke="#FF5C0A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             Anuncio del local
           </h3>
@@ -128,7 +115,7 @@ function PromocionAnuncios() {
           <textarea
             value={anuncio}
             onChange={(e) => setAnuncio(e.target.value)}
-            className="pa-textarea"
+            className="pa-textarea" aria-label="Anuncio del local"
             rows={3}
             placeholder="Ej: 🔥 2x1 en tacos hoy de 12 a 2pm"
             maxLength={150}
@@ -141,9 +128,9 @@ function PromocionAnuncios() {
           <div className="pa-card-top-border" />
           <h3 className="pa-card-title">
             <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
-              <rect x="3" y="3" width="18" height="18" rx="2" stroke="#FF5C0A" strokeWidth="2"/>
-              <circle cx="8.5" cy="8.5" r="1.5" stroke="#FF5C0A" strokeWidth="2"/>
-              <path d="M21 15l-5-5L5 21" stroke="#FF5C0A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5" stroke="currentColor" strokeWidth="2"/>
+              <path d="M21 15l-5-5L5 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             Imágenes del local
           </h3>
@@ -155,7 +142,7 @@ function PromocionAnuncios() {
                 <div key={i} className="pa-img-wrap">
                   {/* ✅ Cambiado: usa BASE_URL en lugar de localhost hardcodeado */}
                   <ImageWithFallback src={getImageUrl(img)} className="pa-img" alt={`imagen-${i}`} />
-                  <button onClick={() => eliminarImagen(img)} className="pa-img-delete">
+                  <button onClick={() => eliminarImagen(img)} className="pa-img-delete" aria-label={`Eliminar imagen ${i + 1}`}>
                     <svg viewBox="0 0 12 12" fill="currentColor" width="10" height="10">
                       <path d="M1 1l10 10M11 1L1 11" stroke="white" strokeWidth="2" strokeLinecap="round"/>
                     </svg>
@@ -167,7 +154,7 @@ function PromocionAnuncios() {
 
           <label className="pa-file-label">
             <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="#FF5C0A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             Subir imágenes
             <input type="file" accept="image/*" multiple onChange={handleImagenes} className="pa-file-input" />
@@ -188,11 +175,11 @@ function PromocionAnuncios() {
         </div>
 
         {/* Promoción Favorcito */}
-        <div className="pa-card">
+        <div className="pa-card pa-card-promo">
           <div className="pa-card-top-border" />
           <h3 className="pa-card-title">
             <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
-              <path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3m-4 12a2 2 0 100-4 2 2 0 000 4zm6 0a2 2 0 100-4 2 2 0 000 4zm1-10H9a2 2 0 00-2 2v6h12v-6a2 2 0 00-2-2z" stroke="#FF5C0A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3m-4 12a2 2 0 100-4 2 2 0 000 4zm6 0a2 2 0 100-4 2 2 0 000 4zm1-10H9a2 2 0 00-2 2v6h12v-6a2 2 0 00-2-2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             Promoción Favorcito
           </h3>
@@ -214,10 +201,10 @@ function PromocionAnuncios() {
           </div>
 
           <div className="pa-field">
-            <label className="pa-label">MONTO MÍNIMO PARA PROMOCIÓN ($)</label>
+            <label className="pa-label" htmlFor="pa-minimo">Monto mínimo para promoción ($)</label>
             <input
               type="number"
-              value={montoMinimo}
+              id="pa-minimo" value={montoMinimo}
               onChange={(e) => setMontoMinimo(e.target.value)}
               className={`pa-input ${!promocionActiva ? "pa-input-disabled" : ""}`}
               min="0"
@@ -237,7 +224,7 @@ function PromocionAnuncios() {
         </button>
 
       </div>
-    </div>
+    </MarcoVendedor>
   );
 }
 

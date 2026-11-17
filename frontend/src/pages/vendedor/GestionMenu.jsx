@@ -1,3 +1,4 @@
+import MarcoVendedor from "../../components/vendedor/MarcoVendedor";
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import "../../styles/vendedor/GestionMenu.css";
@@ -148,25 +149,12 @@ function GestionMenu() {
     setImagen(null); setPreview(null);
   };
 
-  if (cargando) return (
-    <div className="gm-wrap">
-      <div className="gm-orbe gm-orbe-1" /><div className="gm-orbe gm-orbe-2" />
-      <p className="gm-loading">Cargando...</p>
-    </div>
-  );
+  if (cargando) return <MarcoVendedor titulo="Tu menú" descripcion="Agrega productos y mantén al día precios y disponibilidad." className="gm-wrap"><p className="gm-loading">Cargando…</p></MarcoVendedor>;
 
   return (
-    <div className="gm-wrap">
-      <div className="gm-orbe gm-orbe-1" />
-      <div className="gm-orbe gm-orbe-2" />
-
+    <MarcoVendedor titulo="Tu menú" descripcion="Agrega productos y mantén al día precios y disponibilidad." className="gm-wrap">
       <div className="gm-container">
-        <h2 className="gm-page-title">
-          <svg viewBox="0 0 24 24" fill="none" width="26" height="26">
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="#FF5C0A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          Gestión de Menú
-        </h2>
+
 
         {/* Formulario */}
         <div className="gm-card">
@@ -175,15 +163,15 @@ function GestionMenu() {
             {editando ? (
               <>
                 <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
-                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="#FF5C0A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
                 Editar Producto
               </>
             ) : (
               <>
                 <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
-                  <circle cx="12" cy="12" r="10" stroke="#FF5C0A" strokeWidth="2"/>
-                  <path d="M12 8v8M8 12h8" stroke="#FF5C0A" strokeWidth="2" strokeLinecap="round"/>
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+                  <path d="M12 8v8M8 12h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
                 Agregar Producto
               </>
@@ -209,16 +197,16 @@ function GestionMenu() {
 
           <form onSubmit={editando ? handleEditar : handleCrearProducto} className="gm-form">
             <div className="gm-field">
-              <label className="gm-label">NOMBRE</label>
-              <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} className="gm-input" placeholder="Ej: Taco de pastor"/>
+              <label className="gm-label" htmlFor="gm-nombre">Nombre</label>
+              <input type="text" id="gm-nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} className="gm-input" placeholder="Ej: Taco de pastor"/>
             </div>
             <div className="gm-field">
-              <label className="gm-label">DESCRIPCIÓN</label>
-              <input type="text" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} className="gm-input" placeholder="Opcional"/>
+              <label className="gm-label" htmlFor="gm-descripcion">Descripción</label>
+              <input type="text" id="gm-descripcion" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} className="gm-input" placeholder="Opcional"/>
             </div>
             <div className="gm-field">
-              <label className="gm-label">CATEGORÍA</label>
-              <select value={categoria} onChange={(e) => setCategoria(e.target.value)} className="gm-input">
+              <label className="gm-label" htmlFor="gm-categoria">Categoría</label>
+              <select id="gm-categoria" value={categoria} onChange={(e) => setCategoria(e.target.value)} className="gm-input">
                 {categorias.length > 0 ? (
                   categorias.map((cat) => (
                     <option key={cat} value={cat}>{cat}</option>
@@ -230,24 +218,24 @@ function GestionMenu() {
             </div>
             <div className="gm-row">
               <div className="gm-field">
-                <label className="gm-label">PRECIO ($)</label>
-                <input type="number" value={precio} onChange={(e) => setPrecio(e.target.value)} className="gm-input" placeholder="0.00" min="0"/>
+                <label className="gm-label" htmlFor="gm-precio">Precio ($)</label>
+                <input type="number" id="gm-precio" value={precio} onChange={(e) => setPrecio(e.target.value)} className="gm-input" placeholder="0.00" min="0"/>
               </div>
               <div className="gm-field">
-                <label className="gm-label">STOCK</label>
-                <input type="number" value={stock} onChange={(e) => setStock(e.target.value)} className="gm-input" placeholder="0" min="0"/>
+                <label className="gm-label" htmlFor="gm-stock">Stock</label>
+                <input type="number" id="gm-stock" value={stock} onChange={(e) => setStock(e.target.value)} className="gm-input" placeholder="0" min="0"/>
               </div>
             </div>
             <div className="gm-field">
               <label className="gm-label">IMAGEN</label>
               <label className="gm-file-label">
                 <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
-                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="#FF5C0A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
                 Seleccionar imagen
                 <input type="file" accept="image/*" onChange={handleImagen} className="gm-file-input"/>
               </label>
-              {preview && <img src={preview} className="gm-preview"/>}
+              {preview && <img src={preview} className="gm-preview" alt="Vista previa del producto"/>}
             </div>
             <div className="gm-btn-row">
               <button type="submit" className="gm-btn-primary">
@@ -269,7 +257,7 @@ function GestionMenu() {
         {productos.length === 0 ? (
           <div className="gm-empty">
             <svg viewBox="0 0 24 24" fill="none" width="36" height="36">
-              <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" stroke="#444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             <p>No tienes productos aún. ¡Agrega el primero!</p>
           </div>
@@ -283,7 +271,7 @@ function GestionMenu() {
                 ) : (
                   <div className="gm-producto-img-placeholder">
                     <svg viewBox="0 0 24 24" fill="none" width="28" height="28">
-                      <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" stroke="#444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   </div>
                 )}
@@ -298,7 +286,7 @@ function GestionMenu() {
                   <p className="gm-producto-stock">Stock: {producto.stock}</p>
                 </div>
                 <div className="gm-menu-wrap">
-                  <button onClick={() => setMenuAbierto(menuAbierto === producto._id ? null : producto._id)} className="gm-menu-btn">
+                  <button onClick={() => setMenuAbierto(menuAbierto === producto._id ? null : producto._id)} className="gm-menu-btn" aria-label={`Opciones de ${producto.nombre}`} aria-expanded={menuAbierto === producto._id}>
                     <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
                       <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
                     </svg>
@@ -333,7 +321,7 @@ function GestionMenu() {
           </div>
         )}
       </div>
-    </div>
+    </MarcoVendedor>
   );
 }
 

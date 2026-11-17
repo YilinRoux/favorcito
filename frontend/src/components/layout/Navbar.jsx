@@ -62,7 +62,7 @@ function Navbar() {
   const activeLinks = usuario?.rol === "estudiante" ? estudianteLinks
     : usuario?.rol === "vendedor" ? vendedorLinks : [];
 
-  const vendedorDashboard = usuario?.rol === "vendedor" && location.pathname === "/vendedor/dashboard";
+  const vendedorDashboard = usuario?.rol === "vendedor" && location.pathname.startsWith("/vendedor/");
 
   return (
     <nav className={`nb-bar ${vendedorDashboard ? `nb-bar--vendor-dashboard nb-bar--${temaActual}` : ""}`}>
