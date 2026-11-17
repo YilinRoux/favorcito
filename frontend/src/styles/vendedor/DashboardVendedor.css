@@ -301,3 +301,46 @@
   .dv-stat-value{font-size:1.65rem}
   .dv-stat-hint{font-size:.68rem;line-height:1.35;overflow-wrap:anywhere}
 }
+
+/* Cocina: guía breve, tres pasos y seguimiento separado del trabajo pendiente. */
+.dv-cocina-bar .dv-atiende{margin-left:0}
+.dv-help-toggle{min-height:40px;padding:8px 14px;border:1px solid var(--row-line);border-radius:12px;background:transparent;color:var(--ink);font:600 .85rem 'DM Sans',sans-serif;cursor:pointer}
+.dv-help-toggle:focus-visible,.dv-k-transit summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.dv-k-help{padding:18px 20px;border-radius:18px;background:var(--card);border:1px solid var(--card-line)}
+.dv-k-help h2{margin:0 0 14px;font:800 1.05rem 'Manrope',sans-serif}
+.dv-k-help ol{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;list-style:none;margin:0;padding:0}
+.dv-k-help li{display:flex;flex-direction:column;gap:6px;font-size:.88rem;line-height:1.5}
+.dv-k-help li strong{color:var(--accent-text)}
+.dv-k-help li span,.dv-k-help p{color:var(--muted)}
+.dv-k-help p{font-size:.8rem;line-height:1.5;margin:16px 0 0}
+.dv-cocina-cols{height:auto;min-height:0;align-items:start}
+.dv-col{overflow:visible;min-width:0;padding:0 12px 12px}
+.dv-col-titulo{position:static;background:transparent}
+.dv-k-head{flex-wrap:wrap}
+.dv-k-alias{font-size:1.5rem;overflow-wrap:anywhere}
+.dv-k-time{flex-basis:100%;margin-left:0;line-height:1.5;font-weight:500}
+.dv-k-items{display:flex;flex-direction:column;gap:6px;font-size:1rem;line-height:1.45;overflow-wrap:anywhere}
+.dv-k-card{padding:14px;gap:10px}
+.dv-k-notas{padding:10px 12px;border-left:3px solid var(--amber);font-size:.95rem;line-height:1.45;overflow-wrap:anywhere}
+.dv-k-acciones{flex-wrap:wrap}
+.dv-k-btn{min-height:46px;line-height:1.3;padding:10px 12px}
+.dv-k-btn:disabled{opacity:.55;cursor:wait}
+.dv-k-nota{line-height:1.4}
+.dv-k-transit{padding:16px 18px;border-radius:18px;background:var(--card);border:1px solid var(--card-line)}
+.dv-k-transit summary{font-weight:700;cursor:pointer;min-height:28px}
+.dv-k-transit>p{font-size:.85rem;color:var(--muted);margin:12px 0}
+.dv-k-transit-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media(max-width:820px){
+  .dv-k-help ol{grid-template-columns:minmax(0,1fr);gap:14px}
+  .dv-k-help{padding:16px}
+  .dv-cocina-bar{gap:8px}
+  .dv-cocina-bar .dv-atiende{flex:1;justify-content:flex-start;flex-wrap:wrap;padding:10px 12px}
+  .dv-cocina-tabs{position:sticky;top:74px;z-index:4;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:8px 0;background:var(--bg-1)}
+  .dv-cocina-tabs .dv-tab{min-height:62px;border-radius:12px;white-space:normal;flex-direction:column;gap:4px;padding:8px 4px;text-align:center;font-size:.78rem;line-height:1.25}
+  .dv-k-transit-list{grid-template-columns:minmax(0,1fr)}
+  .dv-col{padding:0}
+}
+@media(min-width:821px){
+  .dv-cocina-cols .dv-col{max-height:65vh;overflow-y:auto;overscroll-behavior:contain}
+  .dv-cocina-cols .dv-col-titulo{position:sticky;top:0;background:var(--col-bg);padding-bottom:12px}
+}

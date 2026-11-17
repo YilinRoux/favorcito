@@ -4,6 +4,7 @@ import { NotificationContext } from "../../context/NotificationContext";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import socket from "../../services/socket";
 import { activarSonido, desactivarSonido, reanudarEnPrimerToque, sonar, sonidoActivado } from "../../utils/avisoPedidos";
+import { agruparCocina, tiempoCocina } from "../../utils/cocina";
 import hojas from "../../assets/dashboard/hojas-dashboard.png";
 import "../../styles/vendedor/DashboardVendedor.css";
 
@@ -60,24 +61,16 @@ const Fondo = () => (
   </>
 );
 
-const HORAS_COCINA = 12;
-
-const minutosDesde = (fecha) => Math.max(0, Math.floor((new Date() - new Date(fecha)) / 60000));
-const urgenciaPedido = (pedido) => {
-  if (!["enviado", "aceptado", "en_preparacion"].includes(pedido.estado)) return "";
-  const minutos = minutosDesde(pedido.createdAt);
-  return minutos >= 20 ? " is-rojo" : minutos >= 10 ? " is-ambar" : "";
-};
-
 /* Tarjeta de la vista de cocina: letra grande y un solo botón por pedido. */
-function TarjetaCocina({ pedido, resaltado, mensajes, onAceptar, onAvanzar }) {
+function TarjetaCocina({ pedido, resaltado, mensajes, onAceptar, onAvanzar, ocupado }) {
+  const tiempo = tiempoCocina(pedido);
   const alias = pedido.alias || `#${pedido._id.slice(-6).toUpperCase()}`;
   return (
-    <article className={`dv-k-card${urgenciaPedido(pedido)}${resaltado ? " is-nueva" : ""}`}>
+    <article className={`dv-k-card${tiempo.clase}${resaltado ? " is-nueva" : ""}`}>
       <header className="dv-k-head">
         <strong className="dv-k-alias">{alias}</strong>
         <span className={`dv-k-tipo dv-k-tipo--${pedido.tipoEntrega}`}>{pedido.tipoEntrega === "favorcito" ? "Favorcito" : "Recoger"}</span>
-        <span className="dv-k-time">{hace(pedido.createdAt)}</span>
+        <span className="dv-k-time">{tiempo.etiqueta}: {tiempo.texto}</span>
       </header>
       {!pedido.alias && <p className="dv-k-cliente">{pedido.estudiante?.nombre_completo || "Cliente"}</p>}
       <ul className="dv-k-items">
@@ -85,19 +78,19 @@ function TarjetaCocina({ pedido, resaltado, mensajes, onAceptar, onAvanzar }) {
           <li key={i}><b>{item.cantidad}×</b> {item.nombre}</li>
         ))}
       </ul>
-      {pedido.notas && <p className="dv-k-notas">⚠ {pedido.notas}</p>}
+      {pedido.notas && <p className="dv-k-notas"><strong>Notas:</strong> {pedido.notas}</p>}
       {pedido.atendidoPor && <p className="dv-k-atiende">Prepara: {pedido.atendidoPor}</p>}
       <div className="dv-k-acciones">
         {pedido.estado === "enviado" && (
-          <button type="button" className="dv-k-btn" onClick={() => onAceptar(pedido._id)}>Aceptar y preparar</button>
+          <button type="button" className="dv-k-btn" disabled={ocupado} onClick={() => onAceptar(pedido._id)}>Aceptar y preparar</button>
         )}
         {["aceptado", "en_preparacion"].includes(pedido.estado) && (
-          <button type="button" className="dv-k-btn" onClick={() => onAvanzar(pedido._id, pedido.estado)}>
-            {pedido.estado === "aceptado" ? "Marcar en preparación" : "Listo"}
+          <button type="button" className="dv-k-btn" disabled={ocupado} onClick={() => onAvanzar(pedido._id, pedido.estado)}>
+            {pedido.estado === "aceptado" ? "Marcar en preparación" : "Marcar listo"}
           </button>
         )}
         {pedido.estado === "listo" && pedido.tipoEntrega === "recoger" && (
-          <button type="button" className="dv-k-btn" onClick={() => onAvanzar(pedido._id, "listo")}>Entregado</button>
+          <button type="button" className="dv-k-btn" disabled={ocupado} onClick={() => onAvanzar(pedido._id, "listo")}>Cliente recogió</button>
         )}
         {pedido.estado === "listo" && pedido.tipoEntrega === "favorcito" && <p className="dv-k-nota">Esperando repartidor…</p>}
         {pedido.estado === "en_camino" && <p className="dv-k-nota">En camino con el repartidor</p>}
@@ -122,7 +115,10 @@ function DashboardVendedor() {
   const [sonido, setSonido] = useState(sonidoActivado);
   const [resaltados, setResaltados] = useState([]);
   const [modoCocina, setModoCocina] = useState(() => localStorage.getItem("favorcito-cocina") === "1");
-  const [colCocina, setColCocina] = useState("nuevos");
+  const [colElegida, setColCocina] = useState(null);
+  const [ayudaCocina, setAyudaCocina] = useState(() => localStorage.getItem("favorcito-ayuda-cocina") !== "oculta");
+  const [ocupados, setOcupados] = useState([]);
+  const bloqueosCocina = useRef(new Set());
   const [atiende, setAtiende] = useState(() => localStorage.getItem("favorcito-atiende") || "");
   const [aviso, setAviso] = useState("");
   // Equipos modestos (pocos núcleos o poca memoria): se quitan decoraciones y sombras.
@@ -315,17 +311,25 @@ function DashboardVendedor() {
   const hoy = new Date().toDateString();
   const pedidosHoy = pedidos.filter((p) => new Date(p.createdAt).toDateString() === hoy);
   const ventasHoy = pedidosHoy.filter((p) => p.estado === "entregado").reduce((acc, p) => acc + p.total, 0);
-  // La cocina solo muestra lo de las últimas 12 horas. Lo abierto de días anteriores se avisa aparte
-  // y sigue disponible en el panel normal, para que no se quede amontonado arriba de todo.
-  const esReciente = (p) => new Date() - new Date(p.createdAt) < HORAS_COCINA * 36e5;
-  const activosAnteriores = pedidosEnProceso.concat(pedidosNuevos).filter((p) => !esReciente(p));
-  const cocinaPreparando = pedidos.filter((p) => ["aceptado", "en_preparacion"].includes(p.estado) && esReciente(p));
-  const cocinaListos = pedidos.filter((p) => ["listo", "en_camino"].includes(p.estado) && esReciente(p));
-  const columnasCocina = [
-    ["nuevos", "Nuevos", pedidosNuevos.filter(esReciente)],
-    ["preparando", "Preparando", cocinaPreparando],
-    ["listos", "Listos", cocinaListos],
-  ];
+  const columnasCocina = agruparCocina(pedidos);
+  const colCocina = columnasCocina.some(([clave, , lista]) => clave === colElegida && lista.length)
+    ? colElegida : columnasCocina.find(([, , lista]) => lista.length)?.[0] || colElegida || "nuevos";
+  const pedidosEnCamino = pedidos.filter((p) => p.estado === "en_camino");
+
+  const alternarAyuda = () => {
+    setAyudaCocina(!ayudaCocina);
+    localStorage.setItem("favorcito-ayuda-cocina", ayudaCocina ? "oculta" : "visible");
+  };
+  const accionCocina = async (id, accion) => {
+    if (bloqueosCocina.current.has(id)) return;
+    bloqueosCocina.current.add(id);
+    setOcupados([...bloqueosCocina.current]);
+    try { await accion(); }
+    finally {
+      bloqueosCocina.current.delete(id);
+      setOcupados([...bloqueosCocina.current]);
+    }
+  };
 
   useEffect(() => {
     const original = document.title;
@@ -451,14 +455,14 @@ function DashboardVendedor() {
         <header className="dv-top">
           <div className="dv-heading">
             <span className="dv-eyebrow">Panel del vendedor</span>
-            <h1>Pedidos de <strong>tu local</strong></h1>
-            <p>Acepta los nuevos pedidos y da seguimiento a los que estás preparando.</p>
+            <h1>{modoCocina ? "Vista de cocina" : <>Pedidos de <strong>tu local</strong></>}</h1>
+            <p>{modoCocina ? local?.nombre : "Acepta los nuevos pedidos y da seguimiento a los que estás preparando."}</p>
           </div>
 
           <div className="dv-top-actions">
             <button type="button" className={`dv-modo${modoCocina ? " is-on" : ""}`} onClick={alternarCocina} aria-pressed={modoCocina}>
               <Ic size={18}><path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 9.18 0A4 4 0 0 1 18 13.87V21H6zM6 17h12" /></Ic>
-              Cocina
+              {modoCocina ? "Volver al panel" : "Vista de cocina"}
             </button>
 
             <button
@@ -508,23 +512,29 @@ function DashboardVendedor() {
 
         {modoCocina ? (
           <section className="dv-cocina" id="pedidos">
-            {activosAnteriores.length > 0 && (
-              <p className="dv-aviso dv-aviso--anteriores">
-                {activosAnteriores.length} pedido(s) de días anteriores sin cerrar.
-                <button type="button" onClick={alternarCocina}>Revisarlos en el panel</button>
-              </p>
-            )}
             <div className="dv-cocina-bar">
-              <div className="dv-cocina-tabs" role="tablist">
-                {columnasCocina.map(([clave, titulo, lista]) => (
-                  <button key={clave} role="tab" aria-selected={colCocina === clave} className={`dv-tab${colCocina === clave ? " is-active" : ""}`} onClick={() => setColCocina(clave)}>
-                    {titulo}<span className="dv-tab-badge">{lista.length}</span>
-                  </button>
-                ))}
-              </div>
               <button type="button" className="dv-atiende" onClick={cambiarAtiende}>
-                Atiendes como: <strong>{atiende || "elige tu nombre"}</strong>
+                Quién prepara: <strong>{atiende || "indica tu nombre"}</strong>
               </button>
+              <button type="button" className="dv-help-toggle" aria-expanded={ayudaCocina} aria-controls="guia-cocina" onClick={alternarAyuda}>{ayudaCocina ? "Ocultar ayuda" : "Cómo funciona"}</button>
+            </div>
+            {ayudaCocina && (
+              <aside className="dv-k-help" id="guia-cocina" aria-label="Cómo usar la vista de cocina">
+                <h2>Del pedido a la entrega</h2>
+                <ol>
+                  <li><strong>1. Acepta</strong><span>Revisa productos y notas. Pulsa «Aceptar y preparar».</span></li>
+                  <li><strong>2. Prepara</strong><span>Al terminar, pulsa «Marcar listo».</span></li>
+                  <li><strong>3. Entrega</strong><span>En el local, confirma «Cliente recogió». En Favorcito, espera al repartidor.</span></li>
+                </ol>
+                <p>Indica quién prepara antes de aceptar: su nombre quedará en el pedido. Amarillo: 10 min; rojo: 20 min en espera o preparación. Sin historial, se muestra el tiempo desde el pedido.</p>
+              </aside>
+            )}
+            <div className="dv-cocina-tabs" aria-label="Secciones de cocina">
+              {columnasCocina.map(([clave, titulo, lista], i) => (
+                <button key={clave} type="button" aria-pressed={colCocina === clave} className={`dv-tab${colCocina === clave ? " is-active" : ""}`} onClick={() => setColCocina(clave)}>
+                  <span>{i + 1}. {titulo}</span><span className="dv-tab-badge">{lista.length}</span>
+                </button>
+              ))}
             </div>
             <div className="dv-cocina-cols">
               {columnasCocina.map(([clave, titulo, lista]) => (
@@ -534,12 +544,19 @@ function DashboardVendedor() {
                     <p className="dv-col-vacia">Sin pedidos</p>
                   ) : (
                     [...lista].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)).map((p) => (
-                      <TarjetaCocina key={p._id} pedido={p} resaltado={resaltados.includes(p._id)} mensajes={notificaciones[p._id] || 0} onAceptar={aceptarPedido} onAvanzar={avanzarEstado} />
+                      <TarjetaCocina key={p._id} pedido={p} resaltado={resaltados.includes(p._id)} mensajes={notificaciones[p._id] || 0} ocupado={ocupados.includes(p._id)} onAceptar={(id) => accionCocina(id, () => aceptarPedido(id))} onAvanzar={(id, estado) => accionCocina(id, () => avanzarEstado(id, estado))} />
                     ))
                   )}
                 </div>
               ))}
             </div>
+            {pedidosEnCamino.length > 0 && (
+              <details className="dv-k-transit">
+                <summary>En camino con repartidor · {pedidosEnCamino.length}</summary>
+                <p>Estos pedidos ya salieron del local.</p>
+                <div className="dv-k-transit-list">{pedidosEnCamino.map((p) => <TarjetaCocina key={p._id} pedido={p} mensajes={notificaciones[p._id] || 0} />)}</div>
+              </details>
+            )}
           </section>
         ) : (
         <>
