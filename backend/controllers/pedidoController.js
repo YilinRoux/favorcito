@@ -309,14 +309,11 @@ export const cancelarPedido = async (req, res) => {
       await session.withTransaction(async () => {
         const actualizado = await Pedido.findOneAndUpdate(
           { _id: pedidoId, estudiante: estudianteId, estado: "enviado" },
-          { $set: { estado: "cancelado", canceladoPor: "estudiante" },
+          { $set: { estado: "cancelado", canceladoPor: "estudiante", reposicionStock: { estado: "pendiente" } },
             $push: { historialEstados: { estado: "cancelado" } } },
           { new: true, session }
         );
         if (!actualizado) throw new Error("CANCELACION_NO_DISPONIBLE");
-        for (const item of actualizado.productos) {
-          await Producto.updateOne({ _id: item.producto }, { $inc: { stock: item.cantidad } }, { session });
-        }
         usuario = await Usuario.findByIdAndUpdate(
           estudianteId, { $inc: { cancelaciones: 1 } }, { new: true, session }
         );
@@ -404,13 +401,10 @@ export const cancelarPedidoVendedor = async (req, res) => {
       await session.withTransaction(async () => {
         actualizado = await Pedido.findOneAndUpdate(
           { _id: pedidoId, estado: { $nin: ["cancelado", "entregado"] } },
-          { $set: { estado: "cancelado", canceladoPor: "vendedor" }, $push: { historialEstados: { estado: "cancelado" } } },
+          { $set: { estado: "cancelado", canceladoPor: "vendedor", reposicionStock: { estado: "pendiente" } }, $push: { historialEstados: { estado: "cancelado" } } },
           { new: true, session }
         );
         if (!actualizado) throw new Error("CANCELACION_NO_DISPONIBLE");
-        for (const item of actualizado.productos) {
-          await Producto.updateOne({ _id: item.producto }, { $inc: { stock: item.cantidad } }, { session });
-        }
       });
     } finally {
       await session.endSession();

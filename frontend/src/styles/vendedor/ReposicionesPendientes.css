@@ -1,0 +1,25 @@
+.rs-wrap{position:relative;z-index:1;margin-bottom:20px;color:var(--ink)}
+.rs-pending{padding:16px 20px;border:1px solid var(--row-line);border-radius:18px;background:var(--card)}
+.rs-pending summary{font-weight:700;cursor:pointer;line-height:1.5}
+.rs-pending summary span{display:inline-block;margin-left:12px;color:var(--accent-text);font-size:.85rem}
+.rs-help,.rs-order>p{font-size:.85rem;line-height:1.5;color:var(--muted)}
+.rs-order{padding-top:18px;margin-top:20px;border-top:1px solid var(--row-line)}
+.rs-order h3{margin:0;font:800 1.1rem 'Manrope',sans-serif}
+.rs-order fieldset{border:0;padding:0;margin:0;min-width:0}
+.rs-legend{font-size:.82rem;color:var(--muted);margin:6px 0}
+.rs-item{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid var(--row-line)}
+.rs-item>span{min-width:0;overflow-wrap:anywhere}
+.rs-item strong{font-size:.92rem}
+.rs-item small{display:block;color:var(--muted);margin-top:4px}
+.rs-item input{width:85px;min-height:44px;flex:none;padding:10px;border:1px solid var(--row-line);border-radius:10px;background:var(--row);color:var(--ink);font-size:1rem}
+.rs-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.rs-actions button,.rs-pagination button{min-height:44px;padding:10px 16px;border:1px solid var(--row-line);border-radius:999px;font:600 .85rem 'DM Sans',sans-serif;cursor:pointer}
+.rs-all,.rs-pagination button{background:var(--row);color:var(--ink)}
+.rs-actions .rs-save{background:var(--btn);color:#fff;border-color:transparent;margin-left:auto}
+.rs-error,.rs-success{padding:12px 16px;border-radius:12px;font-size:.9rem;line-height:1.5}
+.rs-error{color:var(--red);background:var(--red-bg)}
+.rs-success{color:var(--green);background:var(--green-bg)}
+.rs-pagination{display:flex;align-items:center;justify-content:flex-end;gap:12px;margin-top:16px}
+.rs-wrap :is(input,button,summary):focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.rs-wrap button:disabled{opacity:.55;cursor:not-allowed}
+@media(max-width:520px){.rs-pending{padding:15px}.rs-pending summary span{display:block;margin:8px 0 0}.rs-actions .rs-save{margin-left:0;width:100%}.rs-actions button{flex:1}.rs-pagination{justify-content:center}}

@@ -1,4 +1,5 @@
 import express from "express";
+import { obtenerReposicionesPendientes, resolverReposicion } from "../controllers/reposicionController.js";
 import {
   crearPedido,
   obtenerPedidosVendedor,
@@ -31,6 +32,8 @@ router.get("/mis-pedidos", protegerRuta, soloEstudiante, obtenerMisPedidos);
 router.put("/:pedidoId/cancelar", protegerRuta, soloEstudiante, cancelarPedido);
 
 // VENDEDOR
+router.get("/reposiciones-pendientes", protegerRuta, soloVendedor, obtenerReposicionesPendientes);
+router.put("/:pedidoId/reposicion", protegerRuta, soloVendedor, resolverReposicion);
 router.get("/vendedor", protegerRuta, soloVendedor, obtenerPedidosVendedor);
 router.put("/:pedidoId/aceptar", protegerRuta, soloVendedor, aceptarPedido);
 router.put("/:pedidoId/estado", protegerRuta, soloVendedor, cambiarEstadoPedido);

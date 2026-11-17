@@ -1,3 +1,4 @@
+import ReposicionesPendientes from "../../components/vendedor/ReposicionesPendientes";
 import MarcoVendedor from "../../components/vendedor/MarcoVendedor";
 import { useEffect, useState } from "react";
 import api from "../../services/api";
@@ -153,6 +154,10 @@ function GestionMenu() {
 
   return (
     <MarcoVendedor titulo="Tu menú" descripcion="Agrega productos y mantén al día precios y disponibilidad." className="gm-wrap">
+      <ReposicionesPendientes onResuelta={async () => {
+        const res = await api.get(`/productos/local/${local._id}`);
+        setProductos(res.data);
+      }} />
       <div className="gm-container">
 
 

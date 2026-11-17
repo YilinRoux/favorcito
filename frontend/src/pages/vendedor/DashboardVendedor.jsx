@@ -1,3 +1,4 @@
+import ReposicionesPendientes from "../../components/vendedor/ReposicionesPendientes";
 import { useEffect, useRef, useState, useContext } from "react";
 import api from "../../services/api";
 import { NotificationContext } from "../../context/NotificationContext";
@@ -257,6 +258,7 @@ function DashboardVendedor() {
     try {
       const res = await api.put(`/pedidos/${pedidoId}/cancelar-vendedor`);
       setPedidos((prev) => prev.map((p) => p._id === pedidoId ? res.data.pedido : p));
+      window.dispatchEvent(new Event("favorcito-revisar-stock"));
     } catch (error) {
       const mensaje = error.response?.data?.mensaje || "Error al cancelar pedido";
       window.alert(mensaje);
@@ -373,6 +375,9 @@ function DashboardVendedor() {
           </p>
           {pedido.notas && <p className="dv-pedido-notas">⚠ {pedido.notas}</p>}
           {pedido.atendidoPor && <p className="dv-pedido-atiende">Prepara: {pedido.atendidoPor}</p>}
+          {pedido.estado === "cancelado" && pedido.reposicionStock && <p className="dv-pedido-atiende">
+            {pedido.reposicionStock.estado === "pendiente" ? "Inventario pendiente de revisión" : `Inventario revisado · ${pedido.reposicionStock.cantidades.reduce((a, n) => a + n, 0)} unidad(es) repuestas`}
+          </p>}
         </div>
         <div className="dv-pedido-right">
           <span className={`dv-pill dv-pill--${grupoEstado(pedido.estado)}`}>{estadoLabel[pedido.estado]}</span>
@@ -509,6 +514,8 @@ function DashboardVendedor() {
         </header>
 
         {aviso && <p className="dv-aviso" role="status">{aviso}</p>}
+
+        <ReposicionesPendientes />
 
         {modoCocina ? (
           <section className="dv-cocina" id="pedidos">
