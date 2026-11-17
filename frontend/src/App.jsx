@@ -2,7 +2,7 @@ import MarcoEstudiante from "./components/estudiante/MarcoEstudiante";
 import { lazy, Suspense } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/layout/Navbar";
-import SidebarAdmin from "./components/layout/SidebarAdmin";
+import LayoutAdmin from "./components/admin/LayoutAdmin";
 
 const Inicio = lazy(() => import("./pages/Inicio"));
 
@@ -47,15 +47,6 @@ const Apelaciones = lazy(() => import("./pages/admin/Apelaciones"));
 
 /* CHAT */
 const ChatPedido = lazy(() => import("./pages/chat/ChatPedido"));
-
-function LayoutAdmin({ children }) {
-  return (
-    <div className="flex">
-      <SidebarAdmin />
-      <div className="ml-56 flex-1 min-h-screen bg-gray-50">{children}</div>
-    </div>
-  );
-}
 
 function LoadingView() {
   return (

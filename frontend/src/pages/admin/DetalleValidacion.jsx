@@ -1,3 +1,4 @@
+import { AdminError } from "../../components/admin/AdminTools";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../services/api";
@@ -9,15 +10,18 @@ function DetalleValidacion() {
   const { id } = useParams();
   const [local, setLocal] = useState(null);
   const [cargando, setCargando] = useState(true);
+  const [procesando, setProcesando] = useState(false);
+  const [errorCarga, setErrorCarga] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
     const cargar = async () => {
       try {
+        setErrorCarga("");
         const res = await api.get(`/admin/local/${id}`);
         setLocal(res.data);
       } catch {
-        navigate("/admin/validar");
+        setErrorCarga("Revisa tu conexión y vuelve a intentar.");
       } finally {
         setCargando(false);
       }
@@ -26,13 +30,20 @@ function DetalleValidacion() {
   }, [id, navigate]);
 
   const handleDecision = async (aprobado) => {
+    if (procesando) return;
+    if (!confirm(aprobado ? "¿Aprobar este local y permitir que reciba pedidos?" : "¿Rechazar esta solicitud de local?")) return;
+    setProcesando(true);
     try {
       await api.put(`/locales/${id}/aprobar`, { aprobado });
       navigate("/admin/validar");
     } catch {
       alert("Error al procesar");
+    } finally {
+      setProcesando(false);
     }
   };
+
+  if (errorCarga) return <AdminError mensaje={errorCarga} />;
 
   if (cargando) return (
     <div className="dv-wrap">
@@ -108,13 +119,13 @@ function DetalleValidacion() {
           </div>
 
           <div className="dv-actions">
-            <button onClick={() => handleDecision(true)} className="dv-btn-aprobar">
+            <button disabled={procesando} aria-busy={procesando} onClick={() => handleDecision(true)} className="dv-btn-aprobar">
               <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
               </svg>
               Aprobar Local
             </button>
-            <button onClick={() => handleDecision(false)} className="dv-btn-rechazar">
+            <button disabled={procesando} aria-busy={procesando} onClick={() => handleDecision(false)} className="dv-btn-rechazar">
               <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
                 <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
               </svg>

@@ -1,3 +1,4 @@
+import { AdminError } from "../../components/admin/AdminTools";
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import "../../styles/admin/Estadisticas.css";
@@ -6,10 +7,12 @@ function Estadisticas() {
   const [stats, setStats] = useState(null);
   const [insights, setInsights] = useState(null);
   const [cargando, setCargando] = useState(true);
+  const [errorCarga, setErrorCarga] = useState("");
 
   useEffect(() => {
     const cargar = async () => {
       try {
+        setErrorCarga("");
         const [resStats, resInsights] = await Promise.all([
           api.get("/admin/estadisticas"),
           api.get("/admin/insights"),
@@ -17,6 +20,7 @@ function Estadisticas() {
         setStats(resStats.data);
         setInsights(resInsights.data);
       } catch {
+        setErrorCarga("Revisa tu conexión y vuelve a intentar.");
         console.error("Error al cargar estadísticas");
       } finally {
         setCargando(false);
@@ -24,6 +28,8 @@ function Estadisticas() {
     };
     cargar();
   }, []);
+
+  if (errorCarga) return <AdminError mensaje={errorCarga} />;
 
   if (cargando) return (
     <div className="est-wrap">
@@ -50,7 +56,7 @@ function Estadisticas() {
               <line x1="12" y1="20" x2="12" y2="4" stroke="#FF5C0A" strokeWidth="2" strokeLinecap="round"/>
               <line x1="6" y1="20" x2="6" y2="14" stroke="#FF5C0A" strokeWidth="2" strokeLinecap="round"/>
             </svg>
-            En tiempo real
+            Al abrir esta pantalla
           </div>
         </div>
 
@@ -79,7 +85,7 @@ function Estadisticas() {
             </div>
             <p className="est-card-label">Total generado</p>
             <p className="est-card-value est-value-green">${stats?.totalGenerado ?? "—"}</p>
-            <p className="est-card-hint">Ingresos totales del sistema</p>
+            <p className="est-card-hint">Importe acumulado de pedidos entregados</p>
           </div>
 
           <div className="est-card est-card-wide">
@@ -103,7 +109,7 @@ function Estadisticas() {
             <div className="est-header" style={{ marginTop: 8 }}>
               <div>
                 <h2 className="est-title" style={{ fontSize: 20 }}>Patrones de consumo</h2>
-                <p className="est-subtitle">Data Mining sobre pedidos entregados</p>
+                <p className="est-subtitle">Productos y categorías: pedidos entregados. Horarios y días: todos los pedidos.</p>
               </div>
             </div>
 

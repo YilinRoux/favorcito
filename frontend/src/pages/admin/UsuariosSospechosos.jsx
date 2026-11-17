@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { AuthContext } from "../../context/AuthContext";
+import { AdminError, useAdminList } from "../../components/admin/AdminTools";
+import { useEffect, useState, useContext } from "react";
 import api from "../../services/api";
 import "../../styles/admin/UsuariosSospechosos.css";
 
@@ -6,11 +8,14 @@ function UsuariosSospechosos() {
   const [usuarios, setUsuarios] = useState([]);
   const [todos, setTodos] = useState([]);
   const [cargando, setCargando] = useState(true);
+  const [procesando, setProcesando] = useState(false);
+  const [errorCarga, setErrorCarga] = useState("");
   const [tab, setTab] = useState("sospechosos");
-  const [busqueda, setBusqueda] = useState("");
+  const { usuario: actual } = useContext(AuthContext);
 
   const cargar = async () => {
     try {
+      setErrorCarga("");
       const [sospechososRes, todosRes] = await Promise.all([
         api.get("/admin/usuarios/sospechosos"),
         api.get("/admin/usuarios"),
@@ -18,6 +23,7 @@ function UsuariosSospechosos() {
       setUsuarios(sospechososRes.data);
       setTodos(todosRes.data);
     } catch {
+        setErrorCarga("Revisa tu conexión y vuelve a intentar.");
       setUsuarios([]);
       setTodos([]);
     } finally {
@@ -30,34 +36,39 @@ function UsuariosSospechosos() {
   }, []);
 
   const suspender = async (id) => {
+    if (procesando) return;
     if (!confirm("¿Suspender este usuario?")) return;
+    setProcesando(true);
     try {
       await api.put(`/admin/usuarios/${id}/suspender`);
-      cargar();
+      await cargar();
     } catch {
       alert("Error al suspender usuario");
+    } finally {
+      setProcesando(false);
     }
   };
 
   const reactivar = async (id) => {
+    if (procesando) return;
     if (!confirm("¿Reactivar este usuario? Se limpiarán sus cancelaciones.")) return;
+    setProcesando(true);
     try {
       await api.put(`/admin/usuarios/${id}/reactivar`);
-      cargar();
+      await cargar();
     } catch {
       alert("Error al reactivar usuario");
+    } finally {
+      setProcesando(false);
     }
   };
 
-  const usuariosFiltrados = todos.filter((u) => {
-    const q = busqueda.toLowerCase();
-    return (
-      u.nombre_completo?.toLowerCase().includes(q) ||
-      u.email?.toLowerCase().includes(q)
-    );
-  });
-
   const countSuspendidos = todos.filter((u) => !u.activo).length;
+
+  const fuente = tab === "sospechosos" ? usuarios : tab === "suspendidos" ? todos.filter((u) => !u.activo) : todos;
+  const lista = useAdminList(fuente, (u) => `${u.nombre_completo} ${u.email} ${u.rol}`, tab);
+
+  if (errorCarga) return <AdminError mensaje={errorCarga} />;
 
   if (cargando) return (
     <div className="us-wrap">
@@ -103,6 +114,7 @@ function UsuariosSospechosos() {
             <p className="us-rol">
               Rol: <strong>{usuario.rol}</strong>
             </p>
+            <p className="ad-user-record">Faltas confirmadas: <strong>{usuario.faltas || 0}</strong>{usuario.bloqueoPorPago && " · Bloqueo por adeudo"}{usuario.bajaDefinitiva && " · Baja definitiva"}</p>
             {usuario.cancelaciones > 0 && (
               <div className="us-cancelaciones">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -119,15 +131,15 @@ function UsuariosSospechosos() {
 
       {/* Acción */}
       <div className="us-card-action">
-        {usuario.activo ? (
-          <button onClick={() => suspender(usuario._id)} className="us-btn us-btn--suspender">
+        {String(usuario._id) === String(actual?.id || actual?._id) ? <span className="ad-own-account">Tu cuenta</span> : usuario.activo ? (
+          <button disabled={procesando} aria-busy={procesando} onClick={() => suspender(usuario._id)} className="us-btn us-btn--suspender">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
             </svg>
             Suspender
           </button>
         ) : (
-          <button onClick={() => reactivar(usuario._id)} className="us-btn us-btn--reactivar">
+          <button disabled={procesando} aria-busy={procesando} onClick={() => reactivar(usuario._id)} className="us-btn us-btn--reactivar">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="23 4 23 10 17 10"/>
               <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
@@ -196,81 +208,9 @@ function UsuariosSospechosos() {
           </button>
         </div>
 
-        {/* ── Tab: Sospechosos ── */}
-        {tab === "sospechosos" && (
-          usuarios.length === 0 ? (
-            <div className="us-empty">
-              <div className="us-empty-icon">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                  <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-                </svg>
-              </div>
-              <p>No hay usuarios sospechosos.</p>
-            </div>
-          ) : (
-            <div className="us-lista">
-              {usuarios.map((u) => <CardUsuario key={u._id} usuario={u} />)}
-            </div>
-          )
-        )}
-
-        {/* ── Tab: Todos ── */}
-        {tab === "todos" && (
-          <>
-            <div className="us-search-wrap">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-              </svg>
-              <input
-                type="text"
-                placeholder="Buscar por nombre o correo..."
-                value={busqueda}
-                onChange={(e) => setBusqueda(e.target.value)}
-                className="us-search-input"
-              />
-              {busqueda && (
-                <button className="us-search-clear" onClick={() => setBusqueda("")} aria-label="Limpiar búsqueda">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                  </svg>
-                </button>
-              )}
-            </div>
-            {usuariosFiltrados.length === 0 ? (
-              <div className="us-empty">
-                <div className="us-empty-icon">
-                  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                  </svg>
-                </div>
-                <p>No se encontraron usuarios.</p>
-              </div>
-            ) : (
-              <div className="us-lista">
-                {usuariosFiltrados.map((u) => <CardUsuario key={u._id} usuario={u} />)}
-              </div>
-            )}
-          </>
-        )}
-
-        {/* ── Tab: Suspendidos ── */}
-        {tab === "suspendidos" && (
-          countSuspendidos === 0 ? (
-            <div className="us-empty">
-              <div className="us-empty-icon">
-                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
-              </div>
-              <p>No hay usuarios suspendidos.</p>
-            </div>
-          ) : (
-            <div className="us-lista">
-              {todos.filter((u) => !u.activo).map((u) => <CardUsuario key={u._id} usuario={u} />)}
-            </div>
-          )
-        )}
+        {lista.controles}
+        {lista.visibles.length === 0 ? <div className="us-empty"><p>No hay usuarios que coincidan con esta lista y búsqueda.</p></div> : <div className="us-lista">{lista.visibles.map((u) => <CardUsuario key={u._id} usuario={u} />)}</div>}
+        {lista.paginacion}
 
       </div>
     </div>

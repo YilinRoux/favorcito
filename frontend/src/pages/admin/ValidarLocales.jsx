@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+import { AdminError, useAdminList } from "../../components/admin/AdminTools";
 import { useState, useEffect } from "react";
 import api from "../../services/api";
 import "../../styles/admin/ValidarLocales.css";
@@ -5,13 +7,17 @@ import "../../styles/admin/ValidarLocales.css";
 function ValidarLocales() {
   const [locales, setLocales] = useState([]);
   const [cargando, setCargando] = useState(true);
+  const [procesando, setProcesando] = useState(false);
+  const [errorCarga, setErrorCarga] = useState("");
 
   useEffect(() => {
     const obtener = async () => {
       try {
+        setErrorCarga("");
         const res = await api.get("/admin/locales-pendientes");
         setLocales(res.data);
       } catch {
+        setErrorCarga("Revisa tu conexión y vuelve a intentar.");
         setLocales([]);
       } finally {
         setCargando(false);
@@ -21,13 +27,22 @@ function ValidarLocales() {
   }, []);
 
   const handleDecision = async (id, aprobado) => {
+    if (procesando) return;
+    if (!confirm(aprobado ? "¿Aprobar este local y permitir que reciba pedidos?" : "¿Rechazar esta solicitud de local?")) return;
+    setProcesando(true);
     try {
       await api.put(`/locales/${id}/aprobar`, { aprobado });
       setLocales((prev) => prev.filter((l) => l._id !== id));
     } catch {
       alert("Error al procesar la solicitud");
+    } finally {
+      setProcesando(false);
     }
   };
+
+  const lista = useAdminList(locales, (local) => [local.nombre, local.descripcion, local.direccion, local.vendedor?.nombre_completo, local.vendedor?.email].join(" "));
+
+  if (errorCarga) return <AdminError mensaje={errorCarga} />;
 
   if (cargando) return (
     <div className="vl-wrap">
@@ -56,18 +71,19 @@ function ValidarLocales() {
           </div>
         </div>
 
-        {locales.length === 0 ? (
+        {lista.controles}
+        {lista.visibles.length === 0 ? (
           <div className="vl-empty">
             <div className="vl-empty-icon">
               <svg viewBox="0 0 24 24" fill="none" width="32" height="32">
                 <path d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="#444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
-            <p className="vl-empty-text">No hay solicitudes pendientes.</p>
+            <p className="vl-empty-text">{locales.length ? "No hay solicitudes que coincidan con tu búsqueda." : "No hay solicitudes pendientes."}</p>
           </div>
         ) : (
           <div className="vl-list">
-            {locales.map((local) => (
+            {lista.visibles.map((local) => (
               <div key={local._id} className="vl-card">
                 <div className="vl-card-top-border" />
                 <div className="vl-card-body">
@@ -92,13 +108,14 @@ function ValidarLocales() {
                     </div>
                   </div>
                   <div className="vl-card-actions">
-                    <button onClick={() => handleDecision(local._id, true)} className="vl-btn-aprobar">
+                    <Link to={`/admin/validacion/${local._id}`} className="ad-detail-link">Revisar solicitud →</Link>
+                    <button disabled={procesando} aria-busy={procesando} onClick={() => handleDecision(local._id, true)} className="vl-btn-aprobar">
                       <svg viewBox="0 0 20 20" fill="currentColor" width="15" height="15">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
                       </svg>
                       Aprobar
                     </button>
-                    <button onClick={() => handleDecision(local._id, false)} className="vl-btn-rechazar">
+                    <button disabled={procesando} aria-busy={procesando} onClick={() => handleDecision(local._id, false)} className="vl-btn-rechazar">
                       <svg viewBox="0 0 20 20" fill="currentColor" width="15" height="15">
                         <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
                       </svg>
@@ -110,6 +127,7 @@ function ValidarLocales() {
             ))}
           </div>
         )}
+        {lista.paginacion}
       </div>
     </div>
   );

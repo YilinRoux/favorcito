@@ -195,7 +195,7 @@ export const obtenerPrediccionMiLocal = async (req, res) => {
 
 export const obtenerPendientes = async (req, res) => {
   try {
-    const locales = await Local.find({ aprobado: false })
+    const locales = await Local.find({ aprobado: false, rechazado: { $ne: true }, activo: { $ne: false } })
       .populate("vendedor", "nombre_completo email");
 
     res.json(locales);

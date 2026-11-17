@@ -1,3 +1,5 @@
+import logoClaro from "../../assets/login/login-light-bg.png";
+import logoOscuro from "../../assets/login/login-dark-bg.png";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useContext } from "react";
 import { AuthContext } from "../../context/AuthContext";
@@ -10,7 +12,7 @@ function SidebarAdmin() {
 
   const links = [
     {
-      to: "/admin/dashboard", label: "Dashboard",
+      to: "/admin/dashboard", label: "Resumen",
       icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
     },
     {
@@ -18,7 +20,7 @@ function SidebarAdmin() {
       icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
     },
     {
-      to: "/admin/sospechosos", label: "Sospechosos",
+      to: "/admin/sospechosos", label: "Usuarios",
       icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
     },
     {
@@ -40,7 +42,7 @@ function SidebarAdmin() {
     navigate("/login");
   };
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = (path) => location.pathname === path || (path === "/admin/validar" && location.pathname.startsWith("/admin/validacion/"));
 
   return (
     <aside className="sb-sidebar">
@@ -48,17 +50,10 @@ function SidebarAdmin() {
       {/* Header */}
       <div className="sb-header">
         <div className="sb-logo">
-          <div className="sb-logo-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18" style={{position:"relative",zIndex:1}}>
-              <circle cx="5.5" cy="17.5" r="2.5"/>
-              <circle cx="18.5" cy="17.5" r="2.5"/>
-              <path d="M3 5h11l2 7H5L3 5z"/>
-              <path d="M15 12h4l2 5"/>
-            </svg>
-          </div>
+          <div className="sb-brand"><img className="sb-brand-light" src={logoClaro} alt="" /><img className="sb-brand-dark" src={logoOscuro} alt="" /></div>
           <div className="sb-logo-info">
             <span className="sb-logo-name">Favorcito</span>
-            <span className="sb-logo-role">Admin Panel</span>
+            <span className="sb-logo-role">Administración</span>
           </div>
         </div>
       </div>
@@ -72,13 +67,14 @@ function SidebarAdmin() {
       </div>
 
       {/* Navegación */}
-      <nav className="sb-nav">
+      <nav className="sb-nav" aria-label="Administración">
         <p className="sb-section-label">Navegación</p>
         {links.map((link, i) => (
           <Link
             key={link.to}
             to={link.to}
             data-tooltip={link.label}
+            aria-current={isActive(link.to) ? "page" : undefined}
             className={`sb-item ${isActive(link.to) ? "sb-item--active" : ""}`}
             style={{ animationDelay: `${i * 0.06}s` }}
           >

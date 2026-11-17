@@ -1,3 +1,4 @@
+import { AdminError, useAdminList } from "../../components/admin/AdminTools";
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import "../../styles/admin/Apelaciones.css";
@@ -35,13 +36,17 @@ const TAB_CONFIG = [
 function Apelaciones() {
   const [apelaciones, setApelaciones] = useState([]);
   const [cargando, setCargando] = useState(true);
+  const [procesando, setProcesando] = useState(false);
+  const [errorCarga, setErrorCarga] = useState("");
   const [filtro, setFiltro] = useState("pendiente");
 
   const cargar = async () => {
     try {
+      setErrorCarga("");
       const res = await api.get("/apelaciones");
       setApelaciones(res.data);
     } catch {
+        setErrorCarga("Revisa tu conexión y vuelve a intentar.");
       setApelaciones([]);
     } finally {
       setCargando(false);
@@ -51,15 +56,19 @@ function Apelaciones() {
   useEffect(() => { cargar(); }, []);
 
   const resolver = async (id, decision) => {
+    if (procesando) return;
     const texto = decision === "aprobada"
       ? "¿Aprobar y reactivar esta cuenta?"
       : "¿Rechazar esta apelación?";
     if (!confirm(texto)) return;
+    setProcesando(true);
     try {
       await api.put(`/apelaciones/${id}/resolver`, { decision });
-      cargar();
+      await cargar();
     } catch {
       alert("Error al resolver apelación");
+    } finally {
+      setProcesando(false);
     }
   };
 
@@ -69,6 +78,10 @@ function Apelaciones() {
     aprobada:  apelaciones.filter((a) => a.estado === "aprobada").length,
     rechazada: apelaciones.filter((a) => a.estado === "rechazada").length,
   };
+
+  const lista = useAdminList(filtradas, (apelacion) => [apelacion.nombre, apelacion.email, apelacion.motivo].join(" "), filtro);
+
+  if (errorCarga) return <AdminError mensaje={errorCarga} />;
 
   if (cargando) return (
     <div className="ap-wrap">
@@ -128,7 +141,8 @@ function Apelaciones() {
         </div>
 
         {/* ── Empty state ── */}
-        {filtradas.length === 0 ? (
+        {lista.controles}
+        {lista.visibles.length === 0 ? (
           <div className="ap-empty">
             <div className="ap-empty-icon">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -136,11 +150,11 @@ function Apelaciones() {
                 <polyline points="14 2 14 8 20 8"/>
               </svg>
             </div>
-            <p>No hay apelaciones {filtro === "pendiente" ? "pendientes" : filtro === "aprobada" ? "aprobadas" : "rechazadas"}.</p>
+            <p>{filtradas.length ? "No hay apelaciones que coincidan con tu búsqueda." : `No hay apelaciones ${filtro === "pendiente" ? "pendientes" : filtro === "aprobada" ? "aprobadas" : "rechazadas"}.`}</p>
           </div>
         ) : (
           <div className="ap-lista">
-            {filtradas.map((apelacion, i) => (
+            {lista.visibles.map((apelacion, i) => (
               <div key={apelacion._id} className={`ap-card ap-card--${apelacion.estado}`} style={{ animationDelay: `${i * 0.07}s` }}>
 
                 <div className="ap-card-body">
@@ -176,13 +190,13 @@ function Apelaciones() {
                 <div className="ap-card-action">
                   {apelacion.estado === "pendiente" && (
                     <div className="ap-acciones">
-                      <button onClick={() => resolver(apelacion._id, "aprobada")} className="ap-btn ap-btn--aprobar">
+                      <button disabled={procesando} aria-busy={procesando} onClick={() => resolver(apelacion._id, "aprobada")} className="ap-btn ap-btn--aprobar">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="20 6 9 17 4 12"/>
                         </svg>
                         Aprobar
                       </button>
-                      <button onClick={() => resolver(apelacion._id, "rechazada")} className="ap-btn ap-btn--rechazar">
+                      <button disabled={procesando} aria-busy={procesando} onClick={() => resolver(apelacion._id, "rechazada")} className="ap-btn ap-btn--rechazar">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                           <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                         </svg>
@@ -215,6 +229,7 @@ function Apelaciones() {
           </div>
         )}
 
+        {lista.paginacion}
       </div>
     </div>
   );

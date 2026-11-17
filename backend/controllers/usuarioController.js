@@ -26,6 +26,9 @@ export const obtenerUsuariosSospechosos = async (req, res) => {
 export const suspenderUsuario = async (req, res) => {
   try {
     const { usuarioId } = req.params;
+    if (String(usuarioId) === String(req.usuario._id)) {
+      return res.status(400).json({ mensaje: "No puedes suspender tu propia cuenta de administrador" });
+    }
     const usuario = await Usuario.findById(usuarioId);
     if (!usuario) return res.status(404).json({ mensaje: "Usuario no encontrado" });
 

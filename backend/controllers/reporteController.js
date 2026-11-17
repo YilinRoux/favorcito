@@ -118,7 +118,7 @@ export const obtenerReportes = async (req, res) => {
       .populate("reportante", "nombre_completo email rol faltas reportesImprocedentes")
       .populate("localReportado", "nombre")
       .populate("estudianteReportado", "nombre_completo email faltas sospechoso activo bloqueoPorPago")
-      .populate("pedido", "total tipoEntrega createdAt")
+      .populate("pedido", "alias total tipoEntrega createdAt estado devolucion productos")
       .sort({ createdAt: -1 })
       .limit(500);
 

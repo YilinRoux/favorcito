@@ -6,7 +6,7 @@ export const obtenerResumen = async (req, res) => {
   try {
     const totalUsuarios = await Usuario.countDocuments();
     const totalLocales = await Local.countDocuments();
-    const localesPendientes = await Local.countDocuments({ aprobado: false });
+    const localesPendientes = await Local.countDocuments({ aprobado: false, rechazado: { $ne: true }, activo: { $ne: false } });
     const totalPedidos = await Pedido.countDocuments();
 
     res.json({
@@ -33,6 +33,7 @@ export const obtenerEstadisticas = async (req, res) => {
     ]);
 
     const localMasVentas = await Pedido.aggregate([
+      { $match: { estado: "entregado" } },
       { $group: { _id: "$local", total: { $sum: 1 } } },
       { $sort: { total: -1 } },
       { $limit: 1 },
