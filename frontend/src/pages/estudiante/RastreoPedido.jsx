@@ -151,7 +151,7 @@ function RastreoPedido() {
         </div>
 
         {/* ── Info del pedido ── */}
-        <div className="rp-card">
+        <div className="rp-card st-tracking-summary">
           <p className="rp-local-nombre">{pedido.local?.nombre}</p>
           {pedido.alias && (
             <p className="alias-linea">Tu pedido: <AliasPedido alias={pedido.alias} grande /><small>Dilo al recoger o al recibirlo</small></p>
@@ -257,7 +257,7 @@ function RastreoPedido() {
         )}
 
         {/* ── Productos ── */}
-        <div className="rp-card">
+        <div className="rp-card st-tracking-products">
           <p className="rp-section-title">Productos</p>
           <div className="rp-productos">
             {pedido.productos?.map((item, i) => (

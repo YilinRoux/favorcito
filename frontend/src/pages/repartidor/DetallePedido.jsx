@@ -145,7 +145,7 @@ function DetallePedido() {
         {pedido.devolucion?.estado === "recibida" && <p className="st-delivery-notice" role="status">El vendedor confirmó la recepción. El pedido no se marcó como entregado al cliente; el local decidirá qué productos pueden reponerse.</p>}
         {devolucionPendiente && <div className="st-delivery-notice" role="status"><h3>Vuelve al local con el pedido</h3><p>Coordina por chat con el vendedor y entrega la comida completa. El vendedor debe confirmar la recepción. No lo marques como entregado al cliente.</p><PasosDevolucion estado="pendiente" /><p>La solicitud ya está registrada. Ahora entrega la comida al vendedor y espera su confirmación; tú no tienes que marcar «Confirmar entrega».</p></div>}
         {/* ── Recoger en ── */}
-        <div className="depd-card">
+        <div className="depd-card st-delivery-pickup">
           <p className="depd-card-label">{pedido.devolucion ? "Local de devolución" : "Recoger en"}</p>
           <p className="depd-local-nombre">{pedido.local?.nombre}</p>
           {pedido.alias && (
@@ -160,7 +160,7 @@ function DetallePedido() {
         </div>
 
         {/* ── Productos ── */}
-        <div className="depd-card">
+        <div className="depd-card st-delivery-products">
           <p className="depd-section-title">{pedido.devolucion ? "Productos del pedido devuelto" : "Productos a entregar"}</p>
 
           <div className="depd-productos">

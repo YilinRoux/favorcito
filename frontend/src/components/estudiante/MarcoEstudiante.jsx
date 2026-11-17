@@ -3,6 +3,7 @@ import hojas from "../../assets/dashboard/hojas-dashboard.png";
 import "../../styles/estudiante/PaletaEstudiante.css";
 import "../../styles/estudiante/EstructuraEstudiante.css";
 import "../../styles/estudiante/MenuLocalVisual.css";
+import "../../styles/estudiante/ExperienciaEstudiante.css";
 
 export default function MarcoEstudiante({ children }) {
   const [tema, setTema] = useState(() => localStorage.getItem("favorcito-tema") || "claro");

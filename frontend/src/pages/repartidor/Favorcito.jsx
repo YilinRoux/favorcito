@@ -117,6 +117,11 @@ function Favorcito() {
         </div>
 
         {/* ── Vacío ── */}
+        <ol className="st-courier-guide" aria-label="Cómo hacer un favorcito">
+          <li><span>1</span><div><strong>Elige un pedido</strong><small>Revisa el local y el importe antes de aceptar.</small></div></li>
+          <li><span>2</span><div><strong>Recoge en el local</strong><small>Identifica el pedido con su alias.</small></div></li>
+          <li><span>3</span><div><strong>Entrega y confirma</strong><small>Cobra en efectivo y confirma al entregarlo.</small></div></li>
+        </ol>
         {pedidos.length === 0 ? (
           <div className="fav-empty">
             <div className="fav-empty-icon">
