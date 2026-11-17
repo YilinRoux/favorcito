@@ -110,13 +110,37 @@ function TarjetaCocina({ pedido, resaltado, mensajes, onAceptar, onAvanzar }) {
   );
 }
 
+// Cada sección conserva su propia página; se ajusta si un pedido cambia de estado.
+function ListaPedidos({ titulo, pedidos, clase = "", descripcion, vacio, renderPedido, recientes = false }) {
+  const [pagina, setPagina] = useState(1);
+  const porPagina = 5;
+  const paginas = Math.max(1, Math.ceil(pedidos.length / porPagina));
+  const actual = Math.min(pagina, paginas);
+  const ordenados = [...pedidos].sort((a, b) => recientes ? new Date(b.createdAt) - new Date(a.createdAt) : new Date(a.createdAt) - new Date(b.createdAt));
+  const inicio = (actual - 1) * porPagina;
+  return (
+    <section className={`dv-order-section ${clase}`} aria-label={titulo}>
+      <header className="dv-section-head">
+        <h2>{titulo} <span>{pedidos.length}</span></h2>
+        {descripcion && <p>{descripcion}</p>}
+      </header>
+      {pedidos.length ? <div className="dv-order-list">{ordenados.slice(inicio, inicio + porPagina).map(renderPedido)}</div> : <p className="dv-section-empty">{vacio}</p>}
+      {paginas > 1 && (
+        <nav className="dv-pagination" aria-label={`Paginación: ${titulo}`}>
+          <button type="button" className="dv-page-arrow" disabled={actual === 1} onClick={() => setPagina(actual - 1)} aria-label={`Página anterior: ${titulo}`}>‹</button>
+          <span className="dv-page-summary">{inicio + 1}–{Math.min(inicio + porPagina, pedidos.length)} de {pedidos.length}</span>
+          <button type="button" className="dv-page-arrow" disabled={actual === paginas} onClick={() => setPagina(actual + 1)} aria-label={`Página siguiente: ${titulo}`}>›</button>
+        </nav>
+      )}
+    </section>
+  );
+}
+
 function DashboardVendedor() {
   const [pedidos, setPedidos] = useState([]);
   const [local, setLocal] = useState(null);
   const [cargando, setCargando] = useState(true);
-  const [tabElegida, setTab] = useState(null);
-  const [pagina, setPagina] = useState(1);
-  const pedidosPorPagina = 5;
+  const [verHistorial, setVerHistorial] = useState(false);
   const [mostrarMensajes, setMostrarMensajes] = useState(false);
   const [tema, setTema] = useState(() => localStorage.getItem("favorcito-tema") || "claro");
   const [sonido, setSonido] = useState(sonidoActivado);
@@ -284,28 +308,8 @@ function DashboardVendedor() {
   const pedidosEnProceso = pedidos.filter((p) => ["aceptado", "en_preparacion", "listo", "en_camino"].includes(p.estado));
   const pedidosCompletados = pedidos.filter((p) => ["entregado", "cancelado"].includes(p.estado));
 
-  // Prioriza trabajo pendiente hasta que el vendedor elija una pestaña.
-  const tab = tabElegida ?? (pedidosNuevos.length ? "nuevos" : pedidosEnProceso.length ? "proceso" : "nuevos");
-
-  const pedidosActivos =
-    tab === "nuevos" ? pedidosNuevos :
-    tab === "proceso" ? pedidosEnProceso :
-    pedidosCompletados;
-
-  const totalPaginas = Math.max(1, Math.ceil(pedidosActivos.length / pedidosPorPagina));
-  const inicioPagina = (pagina - 1) * pedidosPorPagina;
-  const pedidosPaginados = pedidosActivos.slice(inicioPagina, inicioPagina + pedidosPorPagina);
-
-  const cambiarTab = (nuevoTab) => {
-    setTab(nuevoTab);
-    setPagina(1);
-  };
-
-  const irPagina = (nuevaPagina) => {
-    setTab(tab);
-    setPagina(Math.min(Math.max(nuevaPagina, 1), totalPaginas));
-  };
-
+  const pedidosPreparando = pedidosEnProceso.filter((p) => ["aceptado", "en_preparacion"].includes(p.estado));
+  const pedidosPorEntregar = pedidosEnProceso.filter((p) => ["listo", "en_camino"].includes(p.estado));
 
   useEffect(() => {
     if (cargando || location.hash !== "#pedidos") return;
@@ -333,11 +337,10 @@ function DashboardVendedor() {
     return () => { document.title = original; };
   }, [pedidosNuevos.length]);
 
-  const hayPromo = Boolean(local?.promocionActiva && local?.imagenesAnuncios?.length > 0);
 
 
   if (cargando) return (
-    <div className={`dv-wrap dv-theme-${tema}${ligero ? " dv-ligero" : ""}`}>
+    <div className={`dv-wrap dv-workspace dv-theme-${tema}${ligero ? " dv-ligero" : ""}`}>
       <Fondo />
       <p className="dv-loading">Cargando...</p>
     </div>
@@ -353,7 +356,6 @@ function DashboardVendedor() {
       )}
 
       <div className="dv-pedido-header">
-        <span className="dv-pedido-icon"><Ic size={18}><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0" /></Ic></span>
         <div className="dv-pedido-main">
           <p className="dv-pedido-id">{pedido.alias ? <strong className="dv-alias">{pedido.alias}</strong> : <>Pedido #{pedido._id.slice(-6).toUpperCase()}</>} <span className="dv-pedido-time">{hace(pedido.createdAt)}</span></p>
           <p className="dv-pedido-cliente">Cliente: {pedido.estudiante?.nombre_completo || "Desconocido"}</p>
@@ -382,7 +384,7 @@ function DashboardVendedor() {
       <div className="dv-pedido-productos">
         {pedido.productos?.map((item, i) => (
           <div key={i} className="dv-producto-row">
-            <span>{item.cantidad}x {item.nombre}</span>
+            <span><b className="dv-producto-cantidad">{item.cantidad}×</b> {item.nombre}</span>
             <span>${item.precio * item.cantidad}</span>
           </div>
         ))}
@@ -444,21 +446,24 @@ function DashboardVendedor() {
   );
 
   return (
-    <div className={`dv-wrap dv-theme-${tema}${ligero ? " dv-ligero" : ""}`}>
+    <div className={`dv-wrap dv-workspace dv-theme-${tema}${ligero ? " dv-ligero" : ""}`}>
       <Fondo />
 
       <div className="dv-container">
         <header className="dv-top">
           <div className="dv-heading">
-            <span className="dv-eyebrow">Panel del vendedor</span>
-            <h1>Pedidos de <strong>tu local</strong></h1>
-            <p>Acepta los nuevos pedidos y da seguimiento a los que estás preparando.</p>
+            <h1>{local?.nombre || "Tu local"}</h1>
+            <div className="dv-store-meta">
+              <Link to="/vendedor/estado">Local aprobado</Link>
+              <span aria-hidden="true">·</span>
+              <Link to="/vendedor/promocion">{local?.promocionActiva ? "Promoción activa" : "Sin promoción activa"}</Link>
+            </div>
           </div>
 
           <div className="dv-top-actions">
             <button type="button" className={`dv-modo${modoCocina ? " is-on" : ""}`} onClick={alternarCocina} aria-pressed={modoCocina}>
               <Ic size={18}><path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 9.18 0A4 4 0 0 1 18 13.87V21H6zM6 17h12" /></Ic>
-              Cocina
+              {modoCocina ? "Salir de cocina" : "Modo cocina"}
             </button>
 
             <button
@@ -543,22 +548,6 @@ function DashboardVendedor() {
           </section>
         ) : (
         <>
-        {local && (
-          <section className="dv-local-strip" aria-label="Tu local">
-            <span className="dv-local-icon" aria-hidden="true">
-              <Ic size={24}><path d="M3 9l1.5-5h15L21 9M4 9v11h16V9M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0" /></Ic>
-            </span>
-            <div className="dv-local-info">
-              <div className="dv-local-header">
-                <h2 className="dv-local-nombre">{local.nombre}</h2>
-                <span className="dv-local-badge"><Ic size={13}><path d="m5 12 5 5 9-10" /></Ic>Aprobado</span>
-              </div>
-              <p className="dv-local-status">{hayPromo ? "Promoción con anuncio activo" : local.promocionActiva ? "Promoción activa" : "Sin promoción activa"}</p>
-            </div>
-            <Link to="/vendedor/estado" className="dv-local-details">Ver estado del local <span aria-hidden="true">→</span></Link>
-          </section>
-        )}
-
         {total > 0 && (
           <section className="dv-message-notice">
             <div className="dv-message-notice-header">
@@ -588,102 +577,23 @@ function DashboardVendedor() {
           </section>
         )}
 
-        <div className="dv-stats-grid">
-          <div className="dv-stat-card">
-            <span className="dv-stat-icon"><Ic size={26}><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0" /></Ic></span>
-            <div>
-              <p className="dv-stat-label">Creados hoy</p>
-              <p className="dv-stat-value">{pedidosHoy.length}</p>
-              <p className="dv-stat-hint">Todos los estados</p>
-            </div>
-            <img className="dv-leaf dv-leaf--stat" src={hojas} alt="" aria-hidden="true" />
-          </div>
-          <div className="dv-stat-card dv-stat-card--proceso">
-            <span className="dv-stat-icon"><Ic size={26}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></Ic></span>
-            <div>
-              <p className="dv-stat-label">En proceso · todos</p>
-              <p className="dv-stat-value">{pedidosEnProceso.length}</p>
-              <p className="dv-stat-hint">Incluye días anteriores</p>
-            </div>
-            <img className="dv-leaf dv-leaf--stat" src={hojas} alt="" aria-hidden="true" />
-          </div>
-          <div className="dv-stat-card dv-stat-card--ventas">
-            <span className="dv-stat-icon"><Ic size={26}><ellipse cx="12" cy="5" rx="8" ry="3" /><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6" /></Ic></span>
-            <div>
-              <p className="dv-stat-label">Ventas hoy</p>
-              <p className="dv-stat-value">${ventasHoy}</p>
-              <p className="dv-stat-hint">Pedidos de hoy entregados</p>
-            </div>
-            <img className="dv-leaf dv-leaf--stat" src={hojas} alt="" aria-hidden="true" />
-          </div>
+        <div className="dv-dayline">
+          <p>Hoy <strong>{pedidosHoy.length} pedidos creados</strong><span aria-hidden="true">/</span><strong>${ventasHoy} en pedidos de hoy entregados</strong></p>
+          <button type="button" className="dv-history-link" aria-pressed={verHistorial} onClick={() => setVerHistorial((prev) => !prev)}>
+            {verHistorial ? "Volver a pendientes" : "Ver historial"} <span aria-hidden="true">↗</span>
+          </button>
         </div>
 
-        <section className="dv-orders-layout" id="pedidos">
-          <div className="dv-orders-panel">
-            <div className="dv-panel-heading">
-              <span className="dv-heading-icon"><Ic size={20}><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01" /></Ic></span>
-              <h2>Actividad de pedidos</h2>
-            </div>
-
-            <div className="dv-tabs" role="tablist">
-              <button role="tab" aria-selected={tab === "nuevos"} onClick={() => cambiarTab("nuevos")} className={`dv-tab dv-tab--nuevos ${tab === "nuevos" ? "is-active" : ""}`}>
-                <Ic size={15}><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0" /></Ic>
-                Nuevos
-                {pedidosNuevos.length > 0 && <span className="dv-tab-badge">{pedidosNuevos.length}</span>}
-              </button>
-              <button role="tab" aria-selected={tab === "proceso"} onClick={() => cambiarTab("proceso")} className={`dv-tab dv-tab--proceso ${tab === "proceso" ? "is-active" : ""}`}>
-                <Ic size={15}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></Ic>
-                En proceso
-                {pedidosEnProceso.length > 0 && <span className="dv-tab-badge">{pedidosEnProceso.length}</span>}
-              </button>
-              <button role="tab" aria-selected={tab === "completados"} onClick={() => cambiarTab("completados")} className={`dv-tab dv-tab--completados ${tab === "completados" ? "is-active" : ""}`}>
-                <Ic size={15}><circle cx="12" cy="12" r="9" /><path d="m8 12 3 3 5-6" /></Ic>
-                Historial
-                {pedidosCompletados.length > 0 && <span className="dv-tab-badge">{pedidosCompletados.length}</span>}
-              </button>
-            </div>
-
-            <p className="dv-orders-scope">{tab === "completados" ? "Entregados y cancelados · pedidos creados en los últimos 14 días." : "Pedidos pendientes de todos los días, hasta que se cierren."}</p>
-            <div className="dv-tab-content">
-              {pedidosActivos.length === 0 ? (
-                <p className="dv-empty-msg">
-                  {tab === "nuevos" ? "Sin pedidos nuevos." : tab === "proceso" ? "Sin pedidos en proceso." : "Sin pedidos entregados ni cancelados en los últimos 14 días."}
-                </p>
-              ) : (
-                <>
-                  {pedidosPaginados.map((p) => <CardPedido key={p._id} pedido={p} />)}
-
-                  {totalPaginas > 1 && (
-                    <nav className="dv-pagination" aria-label="Paginación de pedidos">
-                      <button type="button" className="dv-page-arrow" onClick={() => irPagina(pagina - 1)} disabled={pagina === 1} aria-label="Página anterior">‹</button>
-
-                      <div className="dv-page-numbers">
-                        {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((numero) => (
-                          <button
-                            type="button"
-                            key={numero}
-                            className={`dv-page-number ${pagina === numero ? "is-active" : ""}`}
-                            onClick={() => irPagina(numero)}
-                            aria-current={pagina === numero ? "page" : undefined}
-                          >
-                            {numero}
-                          </button>
-                        ))}
-                      </div>
-
-                      <button type="button" className="dv-page-arrow" onClick={() => irPagina(pagina + 1)} disabled={pagina === totalPaginas} aria-label="Página siguiente">›</button>
-
-                      <span className="dv-page-summary">
-                        {inicioPagina + 1}–{Math.min(inicioPagina + pedidosPorPagina, pedidosActivos.length)} de {pedidosActivos.length}
-                      </span>
-                    </nav>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
-
-
+        <section className="dv-workbench" id="pedidos" aria-label={verHistorial ? "Historial de pedidos" : "Pedidos pendientes"}>
+          {verHistorial ? (
+            <ListaPedidos titulo="Historial" recientes pedidos={pedidosCompletados} descripcion="Entregados y cancelados · pedidos creados en los últimos 14 días." vacio="Sin pedidos entregados ni cancelados en los últimos 14 días." renderPedido={(p) => <CardPedido key={p._id} pedido={p} />} />
+          ) : (
+            <>
+              <ListaPedidos titulo="Por aceptar" pedidos={pedidosNuevos} clase="dv-incoming" vacio="Sin pedidos nuevos. Los que lleguen aparecerán aquí." renderPedido={(p) => <CardPedido key={p._id} pedido={p} />} />
+              <ListaPedidos titulo="En preparación" pedidos={pedidosPreparando} descripcion="Incluye pedidos pendientes de días anteriores." vacio="No hay pedidos en preparación." renderPedido={(p) => <CardPedido key={p._id} pedido={p} />} />
+              <ListaPedidos titulo="Listos y en camino" pedidos={pedidosPorEntregar} vacio="Todavía no hay pedidos listos para entregar." renderPedido={(p) => <CardPedido key={p._id} pedido={p} />} />
+            </>
+          )}
         </section>
         </>
         )}
