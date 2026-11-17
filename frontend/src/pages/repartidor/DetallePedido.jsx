@@ -7,6 +7,20 @@ import ReportarProblema from "../../components/common/ReportarProblema";
 import AliasPedido from "../../components/common/AliasPedido";
 import "../../styles/repartidor/DetallePedido.css";
 
+function PasosDevolucion({ estado }) {
+  const pasos = [
+    [estado ? "Solicitud enviada" : "Solicita la devolución", estado ? "Tu solicitud quedó guardada." : "Confirma que conservas la comida y envía la solicitud."],
+    ["Lleva el pedido al local", "Coordina por chat y entrega el pedido al vendedor."],
+    ["El vendedor confirma la recepción", "Él cierra la devolución y revisa qué puede reponerse."],
+  ];
+  const actual = estado === "recibida" ? 3 : estado === "pendiente" ? 1 : 0;
+  return <ol className="st-return-steps" aria-label="Pasos de la devolución">
+    {pasos.map(([titulo, texto], i) => <li key={titulo} className={i < actual ? "is-done" : i === actual ? "is-current" : ""} aria-current={i === actual ? "step" : undefined}>
+      <span className="st-step-number" aria-hidden="true">{i < actual ? "✓" : i + 1}</span><div><strong>{titulo}</strong><p>{texto}</p></div>
+    </li>)}
+  </ol>;
+}
+
 function DetallePedido() {
   const { id } = useParams();
   const { usuario } = useContext(AuthContext);
@@ -129,7 +143,7 @@ function DetallePedido() {
         </div>
 
         {pedido.devolucion?.estado === "recibida" && <p className="st-delivery-notice" role="status">El vendedor confirmó la recepción. El pedido no se marcó como entregado al cliente; el local decidirá qué productos pueden reponerse.</p>}
-        {devolucionPendiente && <div className="st-delivery-notice" role="status"><h3>Vuelve al local con el pedido</h3><p>Coordina por chat con el vendedor y entrega la comida completa. El vendedor debe confirmar la recepción. No lo marques como entregado al cliente.</p><p>Si corresponde, envía el reporte por separado para revisión administrativa.</p></div>}
+        {devolucionPendiente && <div className="st-delivery-notice" role="status"><h3>Vuelve al local con el pedido</h3><p>Coordina por chat con el vendedor y entrega la comida completa. El vendedor debe confirmar la recepción. No lo marques como entregado al cliente.</p><PasosDevolucion estado="pendiente" /><p>La solicitud ya está registrada. Ahora entrega la comida al vendedor y espera su confirmación; tú no tienes que marcar «Confirmar entrega».</p></div>}
         {/* ── Recoger en ── */}
         <div className="depd-card">
           <p className="depd-card-label">{pedido.devolucion ? "Local de devolución" : "Recoger en"}</p>
@@ -211,6 +225,11 @@ function DetallePedido() {
           </div>
         )}
 
+        {pedido.estado === "en_camino" && esRepartidor && !devolucionPendiente && <aside className="st-delivery-how" aria-label="Cómo completar la entrega">
+          <h3>¿Qué necesitas hacer?</h3>
+          <p><strong>Si el cliente recibió la comida:</strong> cobra el importe indicado y pulsa «Confirmar entrega».</p>
+          <p><strong>Si todavía conservas la comida:</strong> abre «No pude entregar el pedido» y sigue los pasos para devolverla al local.</p>
+        </aside>}
         {/* ── Acciones ── */}
         <div className="depd-acciones">
           <button onClick={() => navigate(`/chat/${pedido._id}`)} className="depd-btn depd-btn--chat">
@@ -244,16 +263,19 @@ function DetallePedido() {
 
           {pedido.estado === "en_camino" && esRepartidor && !devolucionPendiente && <details className="st-return-form">
             <summary>No pude entregar el pedido</summary>
-            <p>Contacta primero al cliente por chat. Si conservas la comida, solicita regresar al local. Si ya entregaste el producto y solo falta el pago, usa el reporte; no solicites una devolución.</p>
+            <p>Contacta primero al cliente por chat. Si no pudiste entregarle la comida y todavía la tienes, sigue estos pasos:</p>
+            <PasosDevolucion />
+            <p className="st-return-separate"><strong>¿Solo falta el pago?</strong> Si ya entregaste la comida, usa «Problema con el cliente»; no solicites devolución.</p>
             <form onSubmit={solicitarDevolucion}>
               <label>Motivo de la devolución<select value={motivoDevolucion} onChange={(e) => setMotivoDevolucion(e.target.value)}><option value="cliente_ausente">El cliente no apareció o no respondió</option><option value="no_recibio_pedido">El cliente rechazó el pedido</option><option value="no_pago">No pagó y no le entregué la comida</option></select></label>
-              <label className="st-return-check"><input type="checkbox" checked={conservoPedido} onChange={(e) => setConservoPedido(e.target.checked)} />Conservo el pedido completo y lo devolveré al local.</label>
+              <label className={`st-return-check${conservoPedido ? " is-checked" : ""}`}><input type="checkbox" checked={conservoPedido} aria-describedby="confirmacion-devolucion" onChange={(e) => setConservoPedido(e.target.checked)} /><span>Conservo el pedido completo y lo devolveré al local.</span></label>
+              <p id="confirmacion-devolucion" className="st-return-required" role="status">{conservoPedido ? "Confirmación lista. Ya puedes enviar la solicitud." : "Marca la casilla de arriba para habilitar el botón de solicitud."}</p>
               {errorDevolucion && <p role="alert">{errorDevolucion}</p>}
               <button type="submit" disabled={!conservoPedido || solicitando || entregando}>{solicitando ? "Solicitando…" : "Solicitar devolución al local"}</button>
             </form>
           </details>}
           {esRepartidor && ["en_camino", "entregado", ...(pedido.devolucion ? ["cancelado"] : [])].includes(pedido.estado) && (
-            <ReportarProblema pedidoId={pedido._id} rol="repartidor" />
+            <section className="st-report-separate" aria-label="Reporte a administración"><h3>Reporte a administración</h3><p>Sirve para que se revise lo ocurrido. Enviar un reporte no solicita la devolución ni cierra el pedido.</p><ReportarProblema pedidoId={pedido._id} rol="repartidor" /></section>
           )}
         </div>
 

@@ -95,3 +95,20 @@
 .st-shell .depd-acciones>.depd-btn{flex:1 1 200px;min-height:46px;white-space:normal}
 .st-shell .depd-acciones>:is(div,details,.rpt-trigger){flex-basis:100%;width:100%;min-width:0}
 .st-shell .depd-btn--chat{background:var(--bg-card-inner)!important;color:var(--text)!important;box-shadow:none!important}
+/* Pasos explícitos y confirmación visible incluso con el reset de inputs. */
+.st-return-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;list-style:none;margin:18px 0;padding:0}
+.st-return-steps li{display:flex;align-items:flex-start;gap:10px;min-width:0}
+.st-step-number{display:grid;place-items:center;flex:none;width:28px;height:28px;border-radius:50%;background:var(--bg-card-inner);border:1px solid var(--border-input);color:var(--text-muted);font-weight:700;font-size:.85rem}
+.st-return-steps .is-current .st-step-number{background:var(--st-btn);color:var(--st-btn-text);border-color:transparent}
+.st-return-steps .is-done .st-step-number{background:var(--green-glow);color:var(--green);border-color:transparent}
+.st-return-steps strong{display:block;font-size:.88rem;color:var(--text);line-height:1.4}
+.st-return-steps li p{margin:5px 0 0;font-size:.8rem;color:var(--text-muted);line-height:1.5}
+.st-shell .depd-wrap .st-return-check{padding:14px;border:1px solid var(--border-input);border-radius:14px;background:var(--bg-input);cursor:pointer;gap:12px;line-height:1.5}
+.st-shell .depd-wrap .st-return-check.is-checked{border-color:var(--orange);background:var(--orange-glow)}
+.st-shell .depd-wrap .st-return-check input[type="checkbox"]{appearance:auto!important;-webkit-appearance:checkbox!important;display:block!important;opacity:1!important;position:static!important;width:24px!important;height:24px!important;min-width:24px;margin:0!important;flex:none;accent-color:var(--st-btn);cursor:pointer}
+.st-return-form .st-return-required{margin:0;font-size:.84rem;color:var(--text)}
+.st-delivery-how,.st-report-separate{padding:18px 20px;border:1px solid var(--border);border-radius:18px;background:var(--bg-card);color:var(--text);line-height:1.5}
+.st-delivery-how h3,.st-report-separate h3{font-size:1rem;margin:0 0 10px}
+.st-delivery-how p,.st-report-separate>p{font-size:.88rem;color:var(--text-muted);margin:8px 0}
+.st-shell .depd-acciones>.st-report-separate{width:100%;flex-basis:100%;min-width:0}
+@media(max-width:620px){.st-return-steps{grid-template-columns:minmax(0,1fr);gap:16px}.st-delivery-how,.st-report-separate{padding:16px}}
