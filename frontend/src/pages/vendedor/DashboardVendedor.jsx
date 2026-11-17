@@ -1,10 +1,11 @@
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useRef, useState, useContext } from "react";
 import api from "../../services/api";
 import { NotificationContext } from "../../context/NotificationContext";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import socket from "../../services/socket";
 import { getImageUrl } from "../../utils/imageUrl";
-import hojasLogin from "../../assets/login/hojas-login.png";
+import { activarSonido, desactivarSonido, reanudarEnPrimerToque, sonar, sonidoActivado } from "../../utils/avisoPedidos";
+import hojas from "../../assets/dashboard/hojas-dashboard.png";
 import "../../styles/vendedor/DashboardVendedor.css";
 
 const estadoLabel = {
@@ -29,6 +30,87 @@ const siguienteLabel = {
   listo: "Cliente recogió ✅",
 };
 
+
+const Ic = ({ children, size = 18 }) => (
+  <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    {children}
+  </svg>
+);
+
+const grupoEstado = (estado) =>
+  estado === "enviado" ? "nuevo" : estado === "entregado" ? "ok" : estado === "cancelado" ? "cancel" : "proceso";
+
+const hace = (fecha) => {
+  const min = Math.floor((new Date() - new Date(fecha)) / 60000);
+  if (!Number.isFinite(min) || min < 1) return "Ahora";
+  if (min < 60) return `Hace ${min} min`;
+  const horas = Math.floor(min / 60);
+  if (horas < 24) return `Hace ${horas} h`;
+  return `Hace ${Math.floor(horas / 24)} d`;
+};
+
+/* Fondo decorativo: mismas olas y hojas que el login, para que ambas pantallas combinen */
+const Fondo = () => (
+  <>
+    <svg className="dv-waves" viewBox="0 0 1440 320" preserveAspectRatio="none" aria-hidden="true">
+      <path className="dv-wv-soft" d="M0 130C190 40 400 40 610 118C800 188 1010 230 1200 205C1300 192 1380 170 1440 140V320H0Z" />
+      <path className="dv-wv-navy" d="M330 320C470 215 640 190 820 235C960 270 1090 275 1215 245C1300 225 1370 255 1440 285V320Z" />
+      <path className="dv-wv-orange" d="M820 320C1010 250 1200 215 1440 150V320H0Z" />
+    </svg>
+    <img className="dv-leaf dv-leaf--page" src={hojas} alt="" aria-hidden="true" />
+  </>
+);
+
+const HORAS_COCINA = 12;
+
+const minutosDesde = (fecha) => Math.max(0, Math.floor((new Date() - new Date(fecha)) / 60000));
+const urgenciaPedido = (pedido) => {
+  if (!["enviado", "aceptado", "en_preparacion"].includes(pedido.estado)) return "";
+  const minutos = minutosDesde(pedido.createdAt);
+  return minutos >= 20 ? " is-rojo" : minutos >= 10 ? " is-ambar" : "";
+};
+
+/* Tarjeta de la vista de cocina: letra grande y un solo botón por pedido. */
+function TarjetaCocina({ pedido, resaltado, mensajes, onAceptar, onAvanzar }) {
+  const alias = pedido.alias || `#${pedido._id.slice(-6).toUpperCase()}`;
+  return (
+    <article className={`dv-k-card${urgenciaPedido(pedido)}${resaltado ? " is-nueva" : ""}`}>
+      <header className="dv-k-head">
+        <strong className="dv-k-alias">{alias}</strong>
+        <span className={`dv-k-tipo dv-k-tipo--${pedido.tipoEntrega}`}>{pedido.tipoEntrega === "favorcito" ? "Favorcito" : "Recoger"}</span>
+        <span className="dv-k-time">{hace(pedido.createdAt)}</span>
+      </header>
+      {!pedido.alias && <p className="dv-k-cliente">{pedido.estudiante?.nombre_completo || "Cliente"}</p>}
+      <ul className="dv-k-items">
+        {pedido.productos?.map((item, i) => (
+          <li key={i}><b>{item.cantidad}×</b> {item.nombre}</li>
+        ))}
+      </ul>
+      {pedido.notas && <p className="dv-k-notas">⚠ {pedido.notas}</p>}
+      {pedido.atendidoPor && <p className="dv-k-atiende">Prepara: {pedido.atendidoPor}</p>}
+      <div className="dv-k-acciones">
+        {pedido.estado === "enviado" && (
+          <button type="button" className="dv-k-btn" onClick={() => onAceptar(pedido._id)}>Aceptar y preparar</button>
+        )}
+        {["aceptado", "en_preparacion"].includes(pedido.estado) && (
+          <button type="button" className="dv-k-btn" onClick={() => onAvanzar(pedido._id, pedido.estado)}>
+            {pedido.estado === "aceptado" ? "Marcar en preparación" : "Listo"}
+          </button>
+        )}
+        {pedido.estado === "listo" && pedido.tipoEntrega === "recoger" && (
+          <button type="button" className="dv-k-btn" onClick={() => onAvanzar(pedido._id, "listo")}>Entregado</button>
+        )}
+        {pedido.estado === "listo" && pedido.tipoEntrega === "favorcito" && <p className="dv-k-nota">Esperando repartidor…</p>}
+        {pedido.estado === "en_camino" && <p className="dv-k-nota">En camino con el repartidor</p>}
+        <Link to={`/chat/${pedido._id}`} className="dv-k-chat" aria-label={`Chat del pedido ${alias}`}>
+          <Ic size={18}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></Ic>
+          {mensajes > 0 && <span className="dv-chat-badge">{mensajes}</span>}
+        </Link>
+      </div>
+    </article>
+  );
+}
+
 function DashboardVendedor() {
   const [pedidos, setPedidos] = useState([]);
   const [local, setLocal] = useState(null);
@@ -38,8 +120,18 @@ function DashboardVendedor() {
   const pedidosPorPagina = 5;
   const [mostrarMensajes, setMostrarMensajes] = useState(false);
   const [tema, setTema] = useState(() => localStorage.getItem("favorcito-tema") || "claro");
+  const [sonido, setSonido] = useState(sonidoActivado);
+  const [resaltados, setResaltados] = useState([]);
+  const [modoCocina, setModoCocina] = useState(() => localStorage.getItem("favorcito-cocina") === "1");
+  const [colCocina, setColCocina] = useState("nuevos");
+  const [atiende, setAtiende] = useState(() => localStorage.getItem("favorcito-atiende") || "");
+  const [aviso, setAviso] = useState("");
+  // Equipos modestos (pocos núcleos o poca memoria): se quitan decoraciones y sombras.
+  const [ligero] = useState(() => (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4);
+  const conocidos = useRef(null);
   const { notificaciones, total } = useContext(NotificationContext);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const cambiarTema = () => {
     const siguiente = tema === "claro" ? "oscuro" : "claro";
@@ -48,12 +140,57 @@ function DashboardVendedor() {
     window.dispatchEvent(new Event("favorcito-theme-change"));
   };
 
+  const alternarCocina = () => {
+    const siguiente = !modoCocina;
+    setModoCocina(siguiente);
+    localStorage.setItem("favorcito-cocina", siguiente ? "1" : "0");
+  };
+
+  // El local comparte una sola cuenta: cada persona indica su nombre para saber quién prepara qué.
+  const cambiarAtiende = () => {
+    const nombre = window.prompt("¿Quién atiende? Tu nombre aparecerá en los pedidos que aceptes.", atiende);
+    if (nombre === null) return;
+    const limpio = nombre.trim().slice(0, 20);
+    setAtiende(limpio);
+    localStorage.setItem("favorcito-atiende", limpio);
+  };
+
+  const avisarConflicto = () => {
+    setAviso("Otra persona ya movió ese pedido. Se actualizó la lista.");
+    cargar();
+    setTimeout(() => setAviso(""), 4000);
+  };
+
+  const alternarSonido = async () => {
+    if (sonido) {
+      desactivarSonido();
+      setSonido(false);
+    } else if (await activarSonido()) {
+      setSonido(true);
+    }
+  };
+
+  // Compara con la carga anterior: lo que aparece por primera vez como "enviado" es un pedido nuevo.
+  const detectarNuevos = (lista) => {
+    const ids = lista.filter((p) => p.estado === "enviado").map((p) => p._id);
+    if (conocidos.current) {
+      const recientes = ids.filter((id) => !conocidos.current.has(id));
+      if (recientes.length) {
+        setResaltados(recientes);
+        if (sonidoActivado()) sonar();
+        setTimeout(() => setResaltados([]), 10000);
+      }
+    }
+    conocidos.current = new Set(ids);
+  };
+
   const cargar = async () => {
     try {
       const localRes = await api.get("/locales/mi-local");
       setLocal(localRes.data);
       if (!localRes.data.aprobado) { navigate("/vendedor/estado"); return; }
       const pedidosRes = await api.get("/pedidos/vendedor");
+      detectarNuevos(pedidosRes.data);
       setPedidos(pedidosRes.data);
     } catch {
       navigate("/vendedor/solicitar");
@@ -64,20 +201,48 @@ function DashboardVendedor() {
 
   useEffect(() => {
     cargar();
-    socket.on("estadoActualizado", () => cargar());
+    const alCambiar = () => cargar();
+    socket.on("estadoActualizado", alCambiar);
+    socket.on("nuevoPedido", alCambiar);
     const interval = setInterval(cargar, 15000);
+    const quitarReanudar = reanudarEnPrimerToque();
     return () => {
-      socket.off("estadoActualizado");
+      socket.off("estadoActualizado", alCambiar);
+      socket.off("nuevoPedido", alCambiar);
       clearInterval(interval);
+      quitarReanudar();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
 
+  // Mantiene la pantalla encendida mientras el panel está abierto (útil en celular).
+  useEffect(() => {
+    let candado = null;
+    const pedir = async () => {
+      try {
+        if (document.visibilityState === "visible" && "wakeLock" in navigator) {
+          candado = await navigator.wakeLock.request("screen");
+        }
+      } catch {
+        // Sin soporte o con ahorro de batería: no pasa nada.
+      }
+    };
+    pedir();
+    document.addEventListener("visibilitychange", pedir);
+    return () => {
+      document.removeEventListener("visibilitychange", pedir);
+      candado?.release?.().catch(() => {});
+    };
+  }, []);
+
   const aceptarPedido = async (pedidoId) => {
     try {
-      const res = await api.put(`/pedidos/${pedidoId}/aceptar`, { tiempoEstimado: 20 });
+      const res = await api.put(`/pedidos/${pedidoId}/aceptar`, { tiempoEstimado: 20, atiende });
       setPedidos((prev) => prev.map((p) => (p._id === pedidoId ? res.data.pedido : p)));
-    } catch { alert("Error al aceptar pedido"); }
+    } catch (error) {
+      if ([400, 409].includes(error.response?.status)) { avisarConflicto(); return; }
+      alert("Error al aceptar pedido");
+    }
   };
 
   const avanzarEstado = async (pedidoId, estadoActual) => {
@@ -86,7 +251,10 @@ function DashboardVendedor() {
     try {
       const res = await api.put(`/pedidos/${pedidoId}/estado`, { nuevoEstado });
       setPedidos((prev) => prev.map((p) => (p._id === pedidoId ? res.data.pedido : p)));
-    } catch { alert("Error al cambiar estado"); }
+    } catch (error) {
+      if (error.response?.status === 409) { avisarConflicto(); return; }
+      alert("Error al cambiar estado");
+    }
   };
 
   const cancelarPorVendedor = async (pedidoId) => {
@@ -135,47 +303,76 @@ function DashboardVendedor() {
     setPagina(Math.min(Math.max(nuevaPagina, 1), totalPaginas));
   };
 
+
+  useEffect(() => {
+    if (cargando || location.hash !== "#pedidos") return;
+    document.getElementById("pedidos")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [cargando, location.hash, location.key]);
+
   const hoy = new Date().toDateString();
   const pedidosHoy = pedidos.filter((p) => new Date(p.createdAt).toDateString() === hoy);
   const ventasHoy = pedidosHoy.filter((p) => p.estado === "entregado").reduce((acc, p) => acc + p.total, 0);
+  // La cocina solo muestra lo de las últimas 12 horas. Lo abierto de días anteriores se avisa aparte
+  // y sigue disponible en el panel normal, para que no se quede amontonado arriba de todo.
+  const esReciente = (p) => new Date() - new Date(p.createdAt) < HORAS_COCINA * 36e5;
+  const activosAnteriores = pedidosEnProceso.concat(pedidosNuevos).filter((p) => !esReciente(p));
+  const cocinaPreparando = pedidos.filter((p) => ["aceptado", "en_preparacion"].includes(p.estado) && esReciente(p));
+  const cocinaListos = pedidos.filter((p) => ["listo", "en_camino"].includes(p.estado) && esReciente(p));
+  const columnasCocina = [
+    ["nuevos", "Nuevos", pedidosNuevos.filter(esReciente)],
+    ["preparando", "Preparando", cocinaPreparando],
+    ["listos", "Listos", cocinaListos],
+  ];
+
+  useEffect(() => {
+    const original = document.title;
+    document.title = pedidosNuevos.length > 0 ? `(${pedidosNuevos.length}) ${original}` : original;
+    return () => { document.title = original; };
+  }, [pedidosNuevos.length]);
+
+  const hayPromo = Boolean(local?.promocionActiva && local?.imagenesAnuncios?.length > 0);
+
+  const verPedidos = () => {
+    cambiarTab("nuevos");
+    document.getElementById("pedidos")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   if (cargando) return (
-    <div className={`dv-wrap dv-theme-${tema}`}>
-      <div className="dv-orbe dv-orbe-1" /><div className="dv-orbe dv-orbe-2" />
+    <div className={`dv-wrap dv-theme-${tema}${ligero ? " dv-ligero" : ""}`}>
+      <Fondo />
       <p className="dv-loading">Cargando...</p>
     </div>
   );
 
   const CardPedido = ({ pedido }) => (
-    <div className="dv-card-pedido">
-      <div className="dv-card-top-border" />
-
+    <article className={`dv-card-pedido is-${grupoEstado(pedido.estado)}${resaltados.includes(pedido._id) ? " is-nueva" : ""}`}>
       {pedido.estudiante?.sospechoso && (
         <div className="dv-alerta-sospechoso">
-          <svg viewBox="0 0 24 24" fill="none" width="15" height="15">
-            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4M12 17h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+          <Ic size={15}><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01" /></Ic>
           Usuario con cancelaciones frecuentes ({pedido.estudiante.cancelaciones} cancelaciones)
         </div>
       )}
 
       <div className="dv-pedido-header">
-        <div>
-          <p className="dv-pedido-id">Pedido #{pedido._id.slice(-6).toUpperCase()}</p>
+        <span className="dv-pedido-icon"><Ic size={18}><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0" /></Ic></span>
+        <div className="dv-pedido-main">
+          <p className="dv-pedido-id">{pedido.alias ? <strong className="dv-alias">{pedido.alias}</strong> : <>Pedido #{pedido._id.slice(-6).toUpperCase()}</>} <span className="dv-pedido-time">{hace(pedido.createdAt)}</span></p>
           <p className="dv-pedido-cliente">Cliente: {pedido.estudiante?.nombre_completo || "Desconocido"}</p>
           {pedido.estudiante?.cancelaciones > 0 && !pedido.estudiante?.sospechoso && (
             <p className="dv-pedido-warning">{pedido.estudiante.cancelaciones} cancelación(es) previa(s)</p>
           )}
           <p className="dv-pedido-tipo">
             {pedido.tipoEntrega === "favorcito" ? (
-              <><svg viewBox="0 0 24 24" fill="none" width="13" height="13" style={{display:"inline",marginRight:"4px",verticalAlign:"middle"}}><path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3m-4 12a2 2 0 100-4 2 2 0 000 4zm6 0a2 2 0 100-4 2 2 0 000 4zm1-10H9a2 2 0 00-2 2v6h12v-6a2 2 0 00-2-2z" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>Favorcito</>
+              <><Ic size={13}><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3m-4 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm6 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm1-10H9a2 2 0 0 0-2 2v6h12v-6a2 2 0 0 0-2-2z" /></Ic>Favorcito</>
             ) : (
-              <><svg viewBox="0 0 24 24" fill="none" width="13" height="13" style={{display:"inline",marginRight:"4px",verticalAlign:"middle"}}><circle cx="12" cy="12" r="10" stroke="#666" strokeWidth="2"/><path d="M12 8v4l3 3" stroke="#666" strokeWidth="2" strokeLinecap="round"/></svg>Recoger en local</>
+              <><Ic size={13}><circle cx="12" cy="12" r="10" /><path d="M12 8v4l3 3" /></Ic>Recoger en local</>
             )}
           </p>
+          {pedido.notas && <p className="dv-pedido-notas">⚠ {pedido.notas}</p>}
+          {pedido.atendidoPor && <p className="dv-pedido-atiende">Prepara: {pedido.atendidoPor}</p>}
         </div>
         <div className="dv-pedido-right">
-          <p className="dv-pedido-estado">{estadoLabel[pedido.estado]}</p>
+          <span className={`dv-pill dv-pill--${grupoEstado(pedido.estado)}`}>{estadoLabel[pedido.estado]}</span>
           <p className="dv-pedido-total">${pedido.total}</p>
           {pedido.promocionAplicada && (
             <p className="dv-pedido-promo">Envío gratis</p>
@@ -193,10 +390,8 @@ function DashboardVendedor() {
       </div>
 
       <div className="dv-pedido-actions">
-        <Link to={`/chat/${pedido._id}`} className="dv-btn-chat">
-          <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
-            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+        <Link to={`/chat/${pedido._id}`} className="dv-btn dv-btn-chat">
+          <Ic size={14}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></Ic>
           Chat
           {notificaciones[pedido._id] > 0 && (
             <span className="dv-chat-badge">{notificaciones[pedido._id]}</span>
@@ -204,116 +399,195 @@ function DashboardVendedor() {
         </Link>
 
         {pedido.estado === "enviado" && (
-          <button onClick={() => aceptarPedido(pedido._id)} className="dv-btn-aceptar">
-            <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
-              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-            </svg>
-            Aceptar pedido
+          <button onClick={() => aceptarPedido(pedido._id)} className="dv-btn dv-btn-aceptar">
+            <Ic size={14}><path d="m5 12 5 5 9-10" /></Ic>
+            Aceptar y preparar
           </button>
         )}
 
         {["aceptado", "en_preparacion"].includes(pedido.estado) && (
-          <button type="button" onClick={() => cancelarPorVendedor(pedido._id)} className="dv-btn-cancelar">
-            <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
-              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
-            </svg>
+          <button type="button" onClick={() => cancelarPorVendedor(pedido._id)} className="dv-btn dv-btn-cancelar">
+            <Ic size={14}><path d="M18 6 6 18M6 6l12 12" /></Ic>
             Cancelar pedido
           </button>
         )}
 
         {pedido.estado !== "listo" && siguienteEstado[pedido.estado] && pedido.estado !== "enviado" && (
-          <button onClick={() => avanzarEstado(pedido._id, pedido.estado)} className="dv-btn-avanzar">
-            <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
-              <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+          <button onClick={() => avanzarEstado(pedido._id, pedido.estado)} className="dv-btn dv-btn-avanzar">
+            <Ic size={14}><path d="M5 12h14M12 5l7 7-7 7" /></Ic>
             {siguienteLabel[pedido.estado]}
           </button>
         )}
 
         {pedido.estado === "listo" && pedido.tipoEntrega === "recoger" && (
-          <button onClick={() => avanzarEstado(pedido._id, pedido.estado)} className="dv-btn-aceptar">
-            <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
-              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-            </svg>
+          <button onClick={() => avanzarEstado(pedido._id, pedido.estado)} className="dv-btn dv-btn-aceptar">
+            <Ic size={14}><path d="m5 12 5 5 9-10" /></Ic>
             Cliente recogió
           </button>
         )}
 
         {pedido.estado === "listo" && pedido.tipoEntrega === "favorcito" && (
-          <p className="dv-status-purple">Esperando repartidor...</p>
+          <p className="dv-status-note">Esperando repartidor...</p>
         )}
 
         {pedido.estado === "en_camino" && (
-          <p className="dv-status-purple">En camino al cliente</p>
+          <p className="dv-status-note">En camino al cliente</p>
         )}
 
         {pedido.estado === "cancelado" && pedido.estudiante?._id && (
-          <button onClick={() => reportarEstudiante(pedido.estudiante._id)} className="dv-btn-cancelar">
-            <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
-              <path d="M3 3l18 18M10.584 10.587a2 2 0 002.828 2.83M9.363 5.365A9.466 9.466 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+          <button onClick={() => reportarEstudiante(pedido.estudiante._id)} className="dv-btn dv-btn-cancelar">
+            <Ic size={14}><path d="M3 3l18 18M10.58 10.59a2 2 0 0 0 2.83 2.83M9.36 5.37A9.47 9.47 0 0 1 12 5c4.48 0 8.27 2.94 9.54 7a10 10 0 0 1-4.13 5.41" /></Ic>
             Reportar estudiante
           </button>
         )}
       </div>
-    </div>
+    </article>
   );
 
   return (
-    <div className={`dv-wrap dv-theme-${tema}`}>
-      <svg className="dv-bg-waves" viewBox="0 0 1440 260" preserveAspectRatio="none" aria-hidden="true">
-        <path className="dv-bg-wave-one" d="M0 150C205 80 405 88 605 155C800 220 1010 235 1210 185C1310 160 1385 145 1440 152V260H0Z" />
-        <path className="dv-bg-wave-two" d="M420 260C590 190 760 195 920 228C1090 262 1260 225 1440 170V260Z" />
-      </svg>
-      <img className="dv-leaf dv-leaf-left" src={hojasLogin} alt="" aria-hidden="true" />
-      <img className="dv-leaf dv-leaf-right" src={hojasLogin} alt="" aria-hidden="true" />
+    <div className={`dv-wrap dv-theme-${tema}${ligero ? " dv-ligero" : ""}`}>
+      <Fondo />
 
       <div className="dv-container">
-        <section className="dv-heading">
-          <div>
+        <header className="dv-top">
+          <div className="dv-heading">
             <span className="dv-eyebrow">Panel del vendedor</span>
             <h1>Bienvenido a <strong>Favorcito</strong></h1>
             <p>Gestiona tu local, pedidos, menú y promociones desde un solo lugar.</p>
           </div>
-          <button type="button" className="dv-theme-toggle" onClick={cambiarTema} aria-label="Cambiar tema">
-            <span>☾</span>
-            <span className="dv-theme-track"><i /></span>
-            <span>☀</span>
-          </button>
-        </section>
 
+          <div className="dv-top-actions">
+            <button type="button" className={`dv-modo${modoCocina ? " is-on" : ""}`} onClick={alternarCocina} aria-pressed={modoCocina}>
+              <Ic size={18}><path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 9.18 0A4 4 0 0 1 18 13.87V21H6zM6 17h12" /></Ic>
+              Cocina
+            </button>
+
+            <button
+              type="button"
+              className={`dv-bell dv-sound${sonido ? " is-on" : ""}`}
+              onClick={alternarSonido}
+              aria-pressed={sonido}
+              aria-label={sonido ? "Desactivar sonido de pedidos nuevos" : "Activar sonido de pedidos nuevos"}
+              title={sonido ? "Sonido de pedidos: activado" : "Activar sonido de pedidos"}
+            >
+              {sonido ? (
+                <Ic size={20}><path d="M11 5 6 9H2v6h4l5 4zM15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13" /></Ic>
+              ) : (
+                <Ic size={20}><path d="M11 5 6 9H2v6h4l5 4zM22 9l-6 6M16 9l6 6" /></Ic>
+              )}
+            </button>
+
+            <button
+              type="button"
+              className="dv-bell"
+              aria-label={total > 0 ? `${total} mensajes sin leer` : "Sin mensajes nuevos"}
+              aria-expanded={mostrarMensajes}
+              onClick={() => total > 0 && setMostrarMensajes(!mostrarMensajes)}
+            >
+              <Ic size={20}><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0" /></Ic>
+              {total > 0 && <i className="dv-bell-dot" />}
+            </button>
+
+            {local && (
+              <div className="dv-user">
+                <span className="dv-user-avatar">
+                  <Ic size={18}><path d="M3 9l1.5-5h15L21 9M4 9v11h16V9M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0" /></Ic>
+                </span>
+                <span className="dv-user-text">
+                  <strong>{local.nombre}</strong>
+                  <small>Vendedor</small>
+                </span>
+              </div>
+            )}
+
+            <button
+              type="button"
+              className={`dv-toggle is-${tema}`}
+              onClick={cambiarTema}
+              aria-label={tema === "claro" ? "Cambiar a modo oscuro" : "Cambiar a modo claro"}
+              aria-pressed={tema === "oscuro"}
+            >
+              <span className="dv-toggle-opt dv-toggle-sun"><Ic size={16}><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.41M17.66 6.34l1.41-1.41" /></Ic></span>
+              <span className="dv-toggle-opt dv-toggle-moon"><Ic size={16}><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z" /></Ic></span>
+            </button>
+          </div>
+        </header>
+
+        {aviso && <p className="dv-aviso" role="status">{aviso}</p>}
+
+        {modoCocina ? (
+          <section className="dv-cocina" id="pedidos">
+            {activosAnteriores.length > 0 && (
+              <p className="dv-aviso dv-aviso--anteriores">
+                {activosAnteriores.length} pedido(s) de días anteriores sin cerrar.
+                <button type="button" onClick={alternarCocina}>Revisarlos en el panel</button>
+              </p>
+            )}
+            <div className="dv-cocina-bar">
+              <div className="dv-cocina-tabs" role="tablist">
+                {columnasCocina.map(([clave, titulo, lista]) => (
+                  <button key={clave} role="tab" aria-selected={colCocina === clave} className={`dv-tab${colCocina === clave ? " is-active" : ""}`} onClick={() => setColCocina(clave)}>
+                    {titulo}<span className="dv-tab-badge">{lista.length}</span>
+                  </button>
+                ))}
+              </div>
+              <button type="button" className="dv-atiende" onClick={cambiarAtiende}>
+                Atiendes como: <strong>{atiende || "elige tu nombre"}</strong>
+              </button>
+            </div>
+            <div className="dv-cocina-cols">
+              {columnasCocina.map(([clave, titulo, lista]) => (
+                <div key={clave} className={`dv-col dv-col--${clave}${colCocina === clave ? " is-visible" : ""}`}>
+                  <h2 className="dv-col-titulo">{titulo}<span>{lista.length}</span></h2>
+                  {lista.length === 0 ? (
+                    <p className="dv-col-vacia">Sin pedidos</p>
+                  ) : (
+                    [...lista].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)).map((p) => (
+                      <TarjetaCocina key={p._id} pedido={p} resaltado={resaltados.includes(p._id)} mensajes={notificaciones[p._id] || 0} onAceptar={aceptarPedido} onAvanzar={avanzarEstado} />
+                    ))
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        ) : (
+        <>
         {local && (
-          <div className={`dv-local-card ${local.promocionActiva && local.imagenesAnuncios?.length ? "has-promo" : "no-promo"}`}>
-            <div className="dv-local-copy">
-              <div className="dv-local-header">
-                <div>
-                <h2 className="dv-local-nombre">{local.nombre}</h2>
+          <section className={`dv-hero ${hayPromo ? "has-promo" : "no-promo"}`}>
+            <div className="dv-hero-copy">
+              <div className="dv-hero-store" aria-hidden="true">
+                <svg viewBox="0 0 64 64" width="40" height="40" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M10 24 14 10h36l4 14" />
+                  <path d="M10 24c0 3.3 2.7 6 6 6s6-2.7 6-6c0 3.3 2.7 6 6 6s6-2.7 6-6c0 3.3 2.7 6 6 6s6-2.7 6-6c0 3.3 2.7 6 6 6s6-2.7 6-6" />
+                  <path d="M14 32v22h36V32" />
+                  <path d="M38 54V40h8v14" />
+                  <path d="M20 40h12v8H20z" />
+                </svg>
+              </div>
+              <div className="dv-hero-info">
+                <div className="dv-local-header">
+                  <h2 className="dv-local-nombre">{local.nombre}</h2>
+                  <span className="dv-local-badge"><Ic size={13}><path d="m5 12 5 5 9-10" /></Ic>Aprobado</span>
+                </div>
                 <p className="dv-local-desc">{local.descripcion}</p>
                 <p className="dv-local-dir">
-                  <svg viewBox="0 0 16 16" fill="none" width="12" height="12" style={{display:"inline",marginRight:"4px",verticalAlign:"middle"}}>
-                    <path d="M8 1.5a4.5 4.5 0 00-4.5 4.5c0 3 4.5 8.5 4.5 8.5s4.5-5.5 4.5-8.5A4.5 4.5 0 008 1.5zm0 6a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" fill="#666"/>
-                  </svg>
+                  <Ic size={14}><path d="M12 21s7-6.2 7-11a7 7 0 0 0-14 0c0 4.8 7 11 7 11z" /><circle cx="12" cy="10" r="2.5" /></Ic>
                   {local.direccion}
                 </p>
-              </div>
-                <span className="dv-local-badge">Aprobado</span>
-              </div>
-              <div className="dv-local-links">
-              <Link to="/vendedor/menu" className="dv-link-blue">
-                <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
-                  <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                Gestionar Menú
-              </Link>
-              <Link to="/vendedor/promocion" className="dv-link-purple">
-                <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                Promoción y Anuncios
-              </Link>
+                <div className="dv-local-links">
+                  <Link to="/vendedor/menu" className="dv-link-primary">
+                    <Ic size={16}><path d="M3 2v7a3 3 0 0 0 6 0V2M6 2v20M19 22V2c-2.5 1.5-4 4.5-4 8v4h4" /></Ic>
+                    Gestionar menú
+                  </Link>
+                  <Link to="/vendedor/promocion" className="dv-link-ghost">
+                    <Ic size={16}><path d="m3 11 18-5v12L3 14zM11.6 16.8a3 3 0 1 1-5.8-1.6" /></Ic>
+                    Promoción y Anuncios
+                  </Link>
+                </div>
               </div>
             </div>
-            {local.promocionActiva && local.imagenesAnuncios?.length > 0 && (
+
+            {hayPromo ? (
               <div className="dv-promo-visual">
                 <img
                   src={getImageUrl(local.imagenesAnuncios[0])}
@@ -322,14 +596,20 @@ function DashboardVendedor() {
                 />
                 {local.anuncio && <span className="dv-promo-caption">{local.anuncio}</span>}
               </div>
+            ) : (
+              <div className="dv-hero-empty">
+                <img className="dv-leaf dv-leaf--hero" src={hojas} alt="" aria-hidden="true" />
+                <p>Sin promoción activa</p>
+                <Link to="/vendedor/promocion">Activar promoción</Link>
+              </div>
             )}
-          </div>
+          </section>
         )}
 
         {total > 0 && (
           <section className="dv-message-notice">
             <div className="dv-message-notice-header">
-              <span className="dv-message-notice-icon">✉</span>
+              <span className="dv-message-notice-icon"><Ic size={18}><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM22 6l-10 7L2 6" /></Ic></span>
               <div className="dv-message-notice-content">
                 <p className="dv-message-notice-title">{total} mensajes sin leer</p>
                 <p className="dv-message-notice-subtitle">Conversaciones de tus pedidos</p>
@@ -343,7 +623,7 @@ function DashboardVendedor() {
                 {pedidos.filter(p => notificaciones[p._id] > 0).map(p => (
                   <Link key={p._id} className="dv-message-list-item" to={`/chat/${p._id}`}>
                     <span className="dv-message-list-info">
-                      <strong>Pedido #{p._id.slice(-6).toUpperCase()}</strong>
+                      <strong>{p.alias || `Pedido #${p._id.slice(-6).toUpperCase()}`}</strong>
                       <small>{p.estudiante?.nombre_completo || "Cliente"}</small>
                     </span>
                     <span className="dv-message-list-count">{notificaciones[p._id]} sin leer</span>
@@ -357,156 +637,127 @@ function DashboardVendedor() {
 
         <div className="dv-stats-grid">
           <div className="dv-stat-card">
-            <div className="dv-card-top-border" />
-            <p className="dv-stat-label">Pedidos hoy</p>
-            <p className="dv-stat-value dv-stat-blue">{pedidosHoy.length}</p>
+            <span className="dv-stat-icon"><Ic size={26}><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0" /></Ic></span>
+            <div>
+              <p className="dv-stat-label">Pedidos hoy</p>
+              <p className="dv-stat-value">{pedidosHoy.length}</p>
+            </div>
+            <img className="dv-leaf dv-leaf--stat" src={hojas} alt="" aria-hidden="true" />
           </div>
-          <div className="dv-stat-card">
-            <div className="dv-card-top-border dv-top-orange" />
-            <p className="dv-stat-label">En proceso</p>
-            <p className="dv-stat-value dv-stat-orange">{pedidosEnProceso.length}</p>
+          <div className="dv-stat-card dv-stat-card--proceso">
+            <span className="dv-stat-icon"><Ic size={26}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></Ic></span>
+            <div>
+              <p className="dv-stat-label">En proceso</p>
+              <p className="dv-stat-value">{pedidosEnProceso.length}</p>
+            </div>
+            <img className="dv-leaf dv-leaf--stat" src={hojas} alt="" aria-hidden="true" />
           </div>
-          <div className="dv-stat-card">
-            <div className="dv-card-top-border dv-top-green" />
-            <p className="dv-stat-label">Ventas hoy</p>
-            <p className="dv-stat-value dv-stat-green">${ventasHoy}</p>
+          <div className="dv-stat-card dv-stat-card--ventas">
+            <span className="dv-stat-icon"><Ic size={26}><ellipse cx="12" cy="5" rx="8" ry="3" /><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6" /></Ic></span>
+            <div>
+              <p className="dv-stat-label">Ventas hoy</p>
+              <p className="dv-stat-value">${ventasHoy}</p>
+            </div>
+            <img className="dv-leaf dv-leaf--stat" src={hojas} alt="" aria-hidden="true" />
           </div>
         </div>
 
-        <section className="dv-orders-layout">
+        <section className="dv-orders-layout" id="pedidos">
           <div className="dv-orders-panel">
-            <div className="dv-orders-heading">
-              <div>
-                <span className="dv-panel-kicker">Pedidos recientes</span>
-                <h2>Actividad de pedidos</h2>
-              </div>
+            <div className="dv-panel-heading">
+              <span className="dv-heading-icon"><Ic size={20}><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01" /></Ic></span>
+              <h2>Actividad de pedidos</h2>
               <span className="dv-orders-total">{pedidosActivos.length} en esta vista</span>
             </div>
 
-            <div className="dv-tabs">
-          <button onClick={() => cambiarTab("nuevos")} className={`dv-tab ${tab === "nuevos" ? "dv-tab-active-yellow" : ""}`}>
-            <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
-              <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            Nuevos
-            {pedidosNuevos.length > 0 && <span className="dv-tab-badge dv-badge-yellow">{pedidosNuevos.length}</span>}
-          </button>
-          <button onClick={() => cambiarTab("proceso")} className={`dv-tab ${tab === "proceso" ? "dv-tab-active-blue" : ""}`}>
-            <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
-              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
-              <polyline points="12 6 12 12 16 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-            En Proceso
-            {pedidosEnProceso.length > 0 && <span className="dv-tab-badge dv-badge-blue">{pedidosEnProceso.length}</span>}
-          </button>
-          <button onClick={() => cambiarTab("completados")} className={`dv-tab ${tab === "completados" ? "dv-tab-active-green" : ""}`}>
-            <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
-              <path d="M22 11.08V12a10 10 0 11-5.93-9.14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <polyline points="22 4 12 14.01 9 11.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            Completados
-            {pedidosCompletados.length > 0 && <span className="dv-tab-badge dv-badge-green">{pedidosCompletados.length}</span>}
-          </button>
-        </div>
+            <div className="dv-tabs" role="tablist">
+              <button role="tab" aria-selected={tab === "nuevos"} onClick={() => cambiarTab("nuevos")} className={`dv-tab dv-tab--nuevos ${tab === "nuevos" ? "is-active" : ""}`}>
+                <Ic size={15}><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0" /></Ic>
+                Nuevos
+                {pedidosNuevos.length > 0 && <span className="dv-tab-badge">{pedidosNuevos.length}</span>}
+              </button>
+              <button role="tab" aria-selected={tab === "proceso"} onClick={() => cambiarTab("proceso")} className={`dv-tab dv-tab--proceso ${tab === "proceso" ? "is-active" : ""}`}>
+                <Ic size={15}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></Ic>
+                En proceso
+                {pedidosEnProceso.length > 0 && <span className="dv-tab-badge">{pedidosEnProceso.length}</span>}
+              </button>
+              <button role="tab" aria-selected={tab === "completados"} onClick={() => cambiarTab("completados")} className={`dv-tab dv-tab--completados ${tab === "completados" ? "is-active" : ""}`}>
+                <Ic size={15}><circle cx="12" cy="12" r="9" /><path d="m8 12 3 3 5-6" /></Ic>
+                Completados
+                {pedidosCompletados.length > 0 && <span className="dv-tab-badge">{pedidosCompletados.length}</span>}
+              </button>
+            </div>
 
-        <div className="dv-tab-content">
-          {pedidosActivos.length === 0 ? (
-            <p className="dv-empty-msg">
-              {tab === "nuevos" ? "Sin pedidos nuevos." : tab === "proceso" ? "Sin pedidos en proceso." : "Sin pedidos completados."}
-            </p>
-          ) : (
-            <>
-              {pedidosPaginados.map((p) => <CardPedido key={p._id} pedido={p} />)}
+            <div className="dv-tab-content">
+              {pedidosActivos.length === 0 ? (
+                <p className="dv-empty-msg">
+                  {tab === "nuevos" ? "Sin pedidos nuevos." : tab === "proceso" ? "Sin pedidos en proceso." : "Sin pedidos completados."}
+                </p>
+              ) : (
+                <>
+                  {pedidosPaginados.map((p) => <CardPedido key={p._id} pedido={p} />)}
 
-              {totalPaginas > 1 && (
-                <nav className="dv-pagination" aria-label="Paginación de pedidos">
-                  <button
-                    type="button"
-                    className="dv-page-arrow"
-                    onClick={() => irPagina(pagina - 1)}
-                    disabled={pagina === 1}
-                    aria-label="Página anterior"
-                  >
-                    ←
-                  </button>
+                  {totalPaginas > 1 && (
+                    <nav className="dv-pagination" aria-label="Paginación de pedidos">
+                      <button type="button" className="dv-page-arrow" onClick={() => irPagina(pagina - 1)} disabled={pagina === 1} aria-label="Página anterior">‹</button>
 
-                  <div className="dv-page-numbers">
-                    {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((numero) => (
-                      <button
-                        type="button"
-                        key={numero}
-                        className={`dv-page-number ${pagina === numero ? "is-active" : ""}`}
-                        onClick={() => irPagina(numero)}
-                        aria-current={pagina === numero ? "page" : undefined}
-                      >
-                        {numero}
-                      </button>
-                    ))}
-                  </div>
+                      <div className="dv-page-numbers">
+                        {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((numero) => (
+                          <button
+                            type="button"
+                            key={numero}
+                            className={`dv-page-number ${pagina === numero ? "is-active" : ""}`}
+                            onClick={() => irPagina(numero)}
+                            aria-current={pagina === numero ? "page" : undefined}
+                          >
+                            {numero}
+                          </button>
+                        ))}
+                      </div>
 
-                  <button
-                    type="button"
-                    className="dv-page-arrow"
-                    onClick={() => irPagina(pagina + 1)}
-                    disabled={pagina === totalPaginas}
-                    aria-label="Página siguiente"
-                  >
-                    →
-                  </button>
+                      <button type="button" className="dv-page-arrow" onClick={() => irPagina(pagina + 1)} disabled={pagina === totalPaginas} aria-label="Página siguiente">›</button>
 
-                  <span className="dv-page-summary">
-                    {inicioPagina + 1}–{Math.min(inicioPagina + pedidosPorPagina, pedidosActivos.length)} de {pedidosActivos.length}
-                  </span>
-                </nav>
+                      <span className="dv-page-summary">
+                        {inicioPagina + 1}–{Math.min(inicioPagina + pedidosPorPagina, pedidosActivos.length)} de {pedidosActivos.length}
+                      </span>
+                    </nav>
+                  )}
+                </>
               )}
-            </>
-          )}
             </div>
           </div>
 
           <aside className="dv-summary-card">
-            <div className="dv-summary-head">
-              <div>
-                <span className="dv-panel-kicker">Resumen del día</span>
-                <h2>Lo importante de hoy</h2>
-              </div>
+            <div className="dv-panel-heading">
+              <span className="dv-heading-icon"><Ic size={20}><path d="m12 2 10 5-10 5L2 7zM2 12l10 5 10-5M2 17l10 5 10-5" /></Ic></span>
+              <h2>Resumen del día</h2>
             </div>
-
             <div className="dv-summary-list">
-              <div className="dv-summary-row">
-                <span>Pedidos de hoy</span>
-                <strong>{pedidosHoy.length}</strong>
-              </div>
-              <div className="dv-summary-row">
-                <span>En proceso</span>
-                <strong>{pedidosEnProceso.length}</strong>
-              </div>
-              <div className="dv-summary-row">
-                <span>Ventas de hoy</span>
-                <strong>${ventasHoy}</strong>
-              </div>
+              <div className="dv-summary-row"><span>Nuevos</span><strong>{pedidosNuevos.length}</strong></div>
+              <div className="dv-summary-row"><span>En proceso</span><strong>{pedidosEnProceso.length}</strong></div>
+              <div className="dv-summary-row"><span>Completados</span><strong>{pedidosCompletados.length}</strong></div>
             </div>
 
-            <div className="dv-quick">
-              <p className="dv-quick-title">Acciones rápidas</p>
-              <div className="dv-quick-grid">
-                <Link to="/vendedor/menu" className="dv-quick-action">
-                  <span className="dv-quick-icon">☰</span>
-                  <span>Editar menú</span>
-                </Link>
-                <Link to="/vendedor/promocion" className="dv-quick-action">
-                  <span className="dv-quick-icon">✦</span>
-                  <span>Crear promoción</span>
-                </Link>
-                <button type="button" className="dv-quick-action" onClick={() => cambiarTab("nuevos")}>
-                  <span className="dv-quick-icon">◫</span>
-                  <span>Ver pedidos</span>
-                </button>
-              </div>
+            <h3 className="dv-quick-title"><Ic size={16}><path d="M13 2 3 14h9l-1 8 10-12h-9z" /></Ic>Acciones rápidas</h3>
+            <div className="dv-quick-grid">
+              <Link to="/vendedor/menu" className="dv-quick">
+                <Ic size={22}><path d="M3 2v7a3 3 0 0 0 6 0V2M6 2v20M19 22V2c-2.5 1.5-4 4.5-4 8v4h4" /></Ic>
+                <span>Editar menú</span>
+              </Link>
+              <Link to="/vendedor/promocion" className="dv-quick">
+                <Ic size={22}><path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8zM7 7h.01" /></Ic>
+                <span>Crear promoción</span>
+              </Link>
+              <button type="button" className="dv-quick" onClick={verPedidos}>
+                <Ic size={22}><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0" /></Ic>
+                <span>Ver pedidos</span>
+                {pedidosNuevos.length > 0 && <em className="dv-quick-badge">{pedidosNuevos.length}</em>}
+              </button>
             </div>
           </aside>
         </section>
-
+        </>
+        )}
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import { NotificationContext } from "../../context/NotificationContext";
 import { AuthContext } from "../../context/AuthContext";
+import AliasPedido from "../../components/common/AliasPedido";
 import "../../styles/estudiante/MisPedidos.css";
 
 const estadoLabel = {
@@ -162,7 +163,7 @@ function MisPedidos() {
                 {/* ── Cabecera del pedido ── */}
                 <div className="mp-card-top">
                   <div className="mp-card-info">
-                    <p className="mp-local-nombre">{pedido.local?.nombre}</p>
+                    <p className="mp-local-nombre">{pedido.local?.nombre} <AliasPedido alias={pedido.alias} /></p>
                     <div className="mp-entrega-tipo">
                       {pedido.tipoEntrega === "favorcito" ? (
                         <>

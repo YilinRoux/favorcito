@@ -51,7 +51,7 @@ export const resolverApelacion = async (req, res) => {
     await apelacion.save();
 
     if (decision === "aprobada") {
-      await Usuario.findByIdAndUpdate(apelacion.usuario, { activo: true, sospechoso: false, cancelaciones: 0 });
+      await Usuario.findByIdAndUpdate(apelacion.usuario, { activo: true, sospechoso: false, cancelaciones: 0, faltas: 0, suspendidoHasta: null, bajaDefinitiva: false, avisoFalta: false });
     }
     res.json({ mensaje: `Apelación ${decision}` });
   } catch {

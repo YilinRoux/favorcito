@@ -45,6 +45,7 @@ export default function Login() {
     try {
       const res = await api.post("/auth/login", { email, password });
       login(res.data);
+      if (res.data.aviso) alert(res.data.aviso);
       const { rol, onboardingCompletado } = res.data.usuario;
       if (rol === "estudiante" && !onboardingCompletado) navigate("/onboarding");
       else if (rol === "estudiante") navigate("/perfil");

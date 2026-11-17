@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import socket from "../../services/socket";
+import ReportarProblema from "../../components/common/ReportarProblema";
+import AliasPedido from "../../components/common/AliasPedido";
 import "../../styles/repartidor/DetallePedido.css";
 
 function DetallePedido() {
@@ -110,6 +112,9 @@ function DetallePedido() {
         <div className="depd-card">
           <p className="depd-card-label">Recoger en</p>
           <p className="depd-local-nombre">{pedido.local?.nombre}</p>
+          {pedido.alias && (
+            <p className="alias-linea">Pide en el local: <AliasPedido alias={pedido.alias} grande /><small>Y al entregar pregunta: "¿Eres {pedido.alias}?"</small></p>
+          )}
           <div className="depd-local-dir">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
@@ -213,6 +218,10 @@ function DetallePedido() {
                 </>
               )}
             </button>
+          )}
+
+          {["en_camino", "entregado"].includes(pedido.estado) && (
+            <ReportarProblema pedidoId={pedido._id} rol="repartidor" />
           )}
         </div>
 

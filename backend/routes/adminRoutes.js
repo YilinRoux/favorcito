@@ -16,7 +16,7 @@ import {
   obtenerEstadisticas,
   obtenerInsightsDataMining,
 } from "../controllers/adminController.js";
-import { obtenerReportes, resolverReporte } from "../controllers/reporteController.js";
+import { obtenerReportes, resolverReporte, saldarReporte } from "../controllers/reporteController.js";
 
 const router = express.Router();
 
@@ -39,5 +39,6 @@ router.get("/insights", protegerRuta, soloAdmin, obtenerInsightsDataMining);
 // Reportes
 router.get("/reportes", protegerRuta, soloAdmin, obtenerReportes);
 router.put("/reportes/:id/resolver", protegerRuta, soloAdmin, resolverReporte);
+router.put("/reportes/:id/saldar", protegerRuta, soloAdmin, saldarReporte);
 
 export default router;

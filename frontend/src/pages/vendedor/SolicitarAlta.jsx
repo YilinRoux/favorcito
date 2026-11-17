@@ -106,7 +106,7 @@ function SolicitarAlta() {
           </div>
           <p className="sa-help">
             {tipoUbicacion === "fijo"
-              ? "Elige esta opción si atiendes siempre desde un puesto, cafetería, local o espacio fijo dentro del campus."
+              ? "Elige esta opción si atiendes siempre desde un puesto, cafetería, local o espacio fijo dentro del campus o fuera de este mismo  ."
               : "Elige esta opción si te mueves dentro del campus o vendes desde carrito, mesa móvil, mochila, hielera u otro punto variable."}
           </p>
         </div>

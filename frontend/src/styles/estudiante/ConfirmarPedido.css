@@ -815,3 +815,10 @@
     padding: 13px !important;
   }
 }
+
+/* Nota para el local */
+.cp-notas{display:flex;flex-direction:column;gap:8px;margin:0 0 16px}
+.cp-notas label{font-weight:600;font-size:.9rem}
+.cp-notas small{opacity:.7;font-weight:500}
+.cp-notas textarea{width:100%;box-sizing:border-box;padding:12px 14px;border-radius:14px;border:1px solid rgba(128,128,128,.35);background:rgba(128,128,128,.12);color:inherit;font:inherit;resize:vertical}
+.cp-notas textarea:focus{outline:2px solid #d8935a;outline-offset:1px}

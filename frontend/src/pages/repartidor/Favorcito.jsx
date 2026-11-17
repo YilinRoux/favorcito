@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import socket from "../../services/socket";
+import AliasPedido from "../../components/common/AliasPedido";
 import "../../styles/repartidor/Favorcito.css";
 
 function Favorcito() {
@@ -125,7 +126,7 @@ function Favorcito() {
                 {/* ── Cabecera de la card ── */}
                 <div className="fav-card-top">
                   <div className="fav-card-local">
-                    <p className="fav-local-nombre">{pedido.local?.nombre}</p>
+                    <p className="fav-local-nombre">{pedido.local?.nombre} <AliasPedido alias={pedido.alias} /></p>
                     <div className="fav-local-dir">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>

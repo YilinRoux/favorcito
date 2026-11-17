@@ -1,0 +1,4 @@
+.alias-pedido{display:inline-block;padding:3px 12px;border-radius:999px;border:1px solid rgba(216,147,90,.45);background:rgba(216,147,90,.16);color:#d8935a;font:800 .9rem 'Manrope','DM Sans',system-ui,sans-serif;letter-spacing:-.01em;vertical-align:middle}
+.alias-pedido--grande{padding:6px 18px;font-size:1.5rem}
+.alias-linea{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:10px 0 0;font:600 .9rem 'DM Sans',system-ui,sans-serif}
+.alias-linea small{opacity:.7;font-weight:500}

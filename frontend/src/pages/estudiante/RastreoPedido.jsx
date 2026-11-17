@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import socket from "../../services/socket";
+import ReportarProblema from "../../components/common/ReportarProblema";
+import AliasPedido from "../../components/common/AliasPedido";
 import "../../styles/estudiante/RastreoPedido.css";
 
 const estadoLabel = {
@@ -150,6 +152,9 @@ function RastreoPedido() {
         {/* ── Info del pedido ── */}
         <div className="rp-card">
           <p className="rp-local-nombre">{pedido.local?.nombre}</p>
+          {pedido.alias && (
+            <p className="alias-linea">Tu pedido: <AliasPedido alias={pedido.alias} grande /><small>Dilo al recoger o al recibirlo</small></p>
+          )}
           <div className="rp-entrega-tipo">
             {esFavorcito ? (
               <>
@@ -284,6 +289,10 @@ function RastreoPedido() {
               </svg>
               Calificar pedido
             </button>
+          )}
+
+          {esFavorcito && pedido.repartidor && ["en_camino", "entregado"].includes(pedido.estado) && (
+            <ReportarProblema pedidoId={pedido._id} rol="cliente" />
           )}
         </div>
 

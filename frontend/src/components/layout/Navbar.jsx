@@ -4,7 +4,6 @@ import { AuthContext } from "../../context/AuthContext";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import logoClaro from "../../assets/login/login-light-bg.png";
 import logoOscuro from "../../assets/login/login-dark-bg.png";
-import hojasLogin from "../../assets/login/hojas-login.png";
 import "../../styles/layout/Navbar.css";
 
 function Navbar() {
@@ -20,7 +19,10 @@ function Navbar() {
     navigate("/login");
   };
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = (to) => {
+    const [ruta, ancla] = to.split("#");
+    return location.pathname === ruta && location.hash === (ancla ? `#${ancla}` : "");
+  };
   const toggleMenu = () => setMenuOpen(p => !p);
   const closeMenu = () => setMenuOpen(false);
 
@@ -47,10 +49,14 @@ function Navbar() {
     { to: "/perfil",       label: "Perfil",    icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> },
   ];
 
+  const svg = (children) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width="14" height="14">{children}</svg>
+  );
   const vendedorLinks = [
-    { to: "/vendedor/dashboard", label: "Inicio", icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> },
-    { to: "/vendedor/menu",      label: "Menú",      icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><path d="M7 2v20M21 15V2l-3 5-3-5v13"/><path d="M21 22H3"/></svg> },
-    { to: "/vendedor/promocion", label: "Promociones", icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> },
+    { to: "/vendedor/dashboard", label: "Dashboard", icon: svg(<><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></>) },
+    { to: "/vendedor/menu",      label: "Menú",      icon: svg(<><path d="M3 2v7a3 3 0 0 0 6 0V2"/><path d="M6 2v20"/><path d="M19 22V2c-2.5 1.5-4 4.5-4 8v4h4"/></>) },
+    { to: "/vendedor/promocion", label: "Promoción", icon: svg(<><path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8z"/><path d="M7 7h.01"/></>) },
+    { to: "/vendedor/dashboard#pedidos", label: "Pedidos", icon: svg(<><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></>) },
   ];
 
   const activeLinks = usuario?.rol === "estudiante" ? estudianteLinks
@@ -61,8 +67,6 @@ function Navbar() {
   return (
     <nav className={`nb-bar ${vendedorDashboard ? `nb-bar--vendor-dashboard nb-bar--${temaActual}` : ""}`}>
       <div className="nb-inner">
-        {vendedorDashboard && <img src={hojasLogin} alt="" aria-hidden="true" className="nb-vendor-leaf" />}
-        {vendedorDashboard && <span className="nb-vendor-wave" aria-hidden="true" />}
 
         {/* Logo */}
         <Link to="/" className="nb-logo" onClick={closeMenu}>
@@ -105,7 +109,7 @@ function Navbar() {
             >
               <span className="nb-link-icon">{link.icon}</span>
               {link.label}
-              {total > 0 && ((usuario?.rol === "vendedor" && link.to === "/vendedor/dashboard") || (usuario?.rol === "estudiante" && link.to === "/mis-pedidos")) && (
+              {total > 0 && ((usuario?.rol === "vendedor" && link.to === "/vendedor/dashboard#pedidos") || (usuario?.rol === "estudiante" && link.to === "/mis-pedidos")) && (
                 <span className="nb-unread-count" aria-label={`${total} mensajes sin leer`}>{total > 99 ? "99+" : total}</span>
               )}
             </Link>
@@ -119,7 +123,7 @@ function Navbar() {
                 <polyline points="16 17 21 12 16 7"/>
                 <line x1="21" y1="12" x2="9" y2="12"/>
               </svg>
-              Cerrar sesión
+              {vendedorDashboard ? "Cerrar sesión" : "Salir"}
             </button>
           )}
         </div>
@@ -152,7 +156,7 @@ function Navbar() {
             >
               <span className="nb-mobile-link-icon">{link.icon}</span>
               {link.label}
-              {total > 0 && ((usuario?.rol === "vendedor" && link.to === "/vendedor/dashboard") || (usuario?.rol === "estudiante" && link.to === "/mis-pedidos")) && (
+              {total > 0 && ((usuario?.rol === "vendedor" && link.to === "/vendedor/dashboard#pedidos") || (usuario?.rol === "estudiante" && link.to === "/mis-pedidos")) && (
                 <span className="nb-unread-count" aria-label={`${total} mensajes sin leer`}>{total > 99 ? "99+" : total}</span>
               )}
             </Link>

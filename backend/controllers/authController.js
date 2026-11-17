@@ -1,3 +1,4 @@
+import { suspensionVencida, MENSAJES_AVISO } from "../services/sanciones.js";
 import { randomInt } from "node:crypto";
 import Usuario from "../models/Usuario.js";
 import bcrypt from "bcryptjs";
@@ -240,15 +241,23 @@ export const login = async (req, res) => {
       return res.status(400).json({ mensaje: "Credenciales inválidas" });
     }
 
-    if (!usuario.activo) {
-      return res.status(403).json({
-        mensaje: "Cuenta suspendida. Contacte a la administración.",
-      });
+    // Una suspensión temporal que ya venció se levanta sola al iniciar sesión.
+    if (suspensionVencida(usuario)) {
+      await Usuario.updateOne({ _id: usuario._id }, { $set: { activo: true, suspendidoHasta: null } });
+      usuario.activo = true;
     }
 
+    // Primero la contraseña: así no se revela a terceros si una cuenta está suspendida.
     const passwordValido = await bcrypt.compare(password, usuario.password);
     if (!passwordValido) {
       return res.status(400).json({ mensaje: "Credenciales inválidas" });
+    }
+
+    if (!usuario.activo) {
+      return res.status(403).json({
+        mensaje: "Cuenta suspendida. Contacte a la administración.",
+        ...(usuario.suspendidoHasta ? { suspendidoHasta: usuario.suspendidoHasta } : {}),
+      });
     }
 
     if (usuario.verificado === false) {
@@ -263,8 +272,15 @@ export const login = async (req, res) => {
       { expiresIn: "7d" }
     );
 
+    let aviso;
+    if (usuario.avisoFalta) {
+      aviso = MENSAJES_AVISO[usuario.faltas >= 2 ? "sospechoso" : "aviso"];
+      await Usuario.updateOne({ _id: usuario._id }, { $set: { avisoFalta: false } });
+    }
+
     res.json({
       mensaje: "Login exitoso",
+      ...(aviso ? { aviso } : {}),
       token,
       usuario: {
         id: usuario._id,

@@ -16,6 +16,7 @@ function ConfirmarPedido() {
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
   const [aceptoTerminos, setAceptoTerminos] = useState(false);
+  const [notas, setNotas] = useState("");
 
   const subtotal = carrito.reduce((acc, p) => acc + p.precio * p.cantidad, 0);
   const costoEnvio = tipoEntrega === "favorcito" ? 15 : 0;
@@ -76,6 +77,7 @@ function ConfirmarPedido() {
           producto: p.producto,
           cantidad: p.cantidad,
         })),
+        notas: notas.trim() || undefined,
         tipoEntrega,
       });
 
@@ -252,6 +254,18 @@ function ConfirmarPedido() {
         </div>
 
         {/* Checkbox de aceptación */}
+        <div className="cp-notas">
+          <label htmlFor="notas">Nota para el local <small>(opcional)</small></label>
+          <textarea
+            id="notas"
+            rows={2}
+            maxLength={140}
+            value={notas}
+            onChange={(e) => setNotas(e.target.value)}
+            placeholder="Ej. sin cebolla, salsa aparte"
+          />
+        </div>
+
         <div className="cp-terminos">
           <div className="cp-checkbox-wrap">
             <input

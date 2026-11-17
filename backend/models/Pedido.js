@@ -78,6 +78,14 @@ const pedidoSchema = new mongoose.Schema(
       default: false,
     },
 
+    // Identificación para llamar y entregar: número del día por local + alias hablado (ej. "Ana12").
+    numero: { type: Number, min: 1 },
+    dia: { type: String },
+    alias: { type: String, trim: true, maxlength: 24 },
+    notas: { type: String, trim: true, maxlength: 140 },
+    // Quién del equipo del local lo está preparando (texto libre, el local comparte una sola cuenta).
+    atendidoPor: { type: String, trim: true, maxlength: 20 },
+
     historialEstados: [historialEstadoSchema],
 
     canceladoPor: String,
@@ -85,6 +93,11 @@ const pedidoSchema = new mongoose.Schema(
   {
     timestamps: true,
   }
+);
+
+pedidoSchema.index(
+  { local: 1, dia: 1, numero: 1 },
+  { unique: true, partialFilterExpression: { numero: { $exists: true } } }
 );
 
 const Pedido = mongoose.model("Pedido", pedidoSchema);
