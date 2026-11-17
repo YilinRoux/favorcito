@@ -56,6 +56,9 @@ function DetalleLocal() {
     });
   };
 
+  const categoriasMenu = [...new Set(productos.map((p) => p.categoria?.trim() || "Otro"))]
+    .sort((a, b) => a === b ? 0 : a === "Otro" ? 1 : b === "Otro" ? -1 : a.localeCompare(b, "es"));
+
   const totalCarrito = carrito.reduce((acc, p) => acc + p.precio * p.cantidad, 0);
 
   const handleCalificar = async (estrella) => {
@@ -220,7 +223,8 @@ function DetalleLocal() {
 
         {/* ── TAB MENÚ ── */}
         {tab === "menu" && (
-          <div className="dl-productos-lista">
+          <div className="dl-menu-categorias">
+            {categoriasMenu.length > 1 && <nav className="dl-categorias-nav" aria-label="Categorías del menú">{categoriasMenu.map((categoria, i) => <a key={categoria} href={`#categoria-menu-${i}`}>{categoria}</a>)}</nav>}
             {productos.length === 0 ? (
               <div className="dl-empty">
                 <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -230,7 +234,10 @@ function DetalleLocal() {
                 <p>Este local no tiene productos aún.</p>
               </div>
             ) : (
-              productos.map((producto, i) => {
+              categoriasMenu.map((categoria, categoriaIndex) => <section key={categoria} id={`categoria-menu-${categoriaIndex}`} className="dl-categoria-seccion" aria-label={categoria}>
+                <h3>{categoria} <span>{productos.filter((p) => (p.categoria?.trim() || "Otro") === categoria).length}</span></h3>
+                <div className="dl-productos-lista">
+              {productos.filter((p) => (p.categoria?.trim() || "Otro") === categoria).map((producto, i) => {
                 const enCarrito = carrito.find((p) => p.producto === producto._id);
                 return (
                   <div key={producto._id} className="dl-producto-card" style={{ animationDelay: `${i * 0.06}s` }}>
@@ -257,11 +264,11 @@ function DetalleLocal() {
                     <div className="dl-carrito-ctrl">
                       {enCarrito ? (
                         <>
-                          <button onClick={() => quitarDelCarrito(producto._id)} className="dl-qty-btn dl-qty-btn--minus">
+                          <button onClick={() => quitarDelCarrito(producto._id)} className="dl-qty-btn dl-qty-btn--minus" aria-label={`Quitar una unidad de ${producto.nombre}`}>
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
                           </button>
                           <span className="dl-qty-num">{enCarrito.cantidad}</span>
-                          <button onClick={() => agregarAlCarrito(producto)} className="dl-qty-btn dl-qty-btn--plus">
+                          <button onClick={() => agregarAlCarrito(producto)} className="dl-qty-btn dl-qty-btn--plus" aria-label={`Agregar una unidad de ${producto.nombre}`}>
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                           </button>
                         </>
@@ -273,7 +280,9 @@ function DetalleLocal() {
                     </div>
                   </div>
                 );
-              })
+              })}
+                </div>
+              </section>)
             )}
           </div>
         )}
