@@ -29,6 +29,15 @@ const pedidoBase = (extra = {}) => ({
   ...extra,
 });
 
+const mockSession = (t) => {
+  const session = {
+    withTransaction: async (callback) => callback(),
+    endSession: t.mock.fn(async () => {}),
+  };
+  t.mock.method(Reporte, "startSession", async () => session);
+  return session;
+};
+
 const response = () => ({
   statusCode: 200,
   status(code) { this.statusCode = code; return this; },
@@ -122,6 +131,7 @@ test("un segundo reporte del mismo pedido responde 409", async (t) => {
 });
 
 test("resolver procedente suma falta (y bloquea si fue no_pago); improcedente penaliza al reportante", async (t) => {
+  mockSession(t);
   const reporte = { _id: "r1", reportante: REPARTIDOR, estudianteReportado: CLIENTE, tipoReportado: "estudiante", motivo: "no_pago" };
   t.mock.method(Reporte, "findOneAndUpdate", async () => reporte);
   const sets = [];
@@ -147,6 +157,7 @@ test("resolver exige una decisión válida y no repite reportes ya resueltos", a
   await resolverReporte({ params: { id: PEDIDO }, body: { decision: "cualquiera" }, usuario: { _id: ADMIN } }, res);
   assert.equal(res.statusCode, 400);
 
+  mockSession(t);
   t.mock.method(Reporte, "findOneAndUpdate", async () => null);
   const res2 = response();
   await resolverReporte({ params: { id: PEDIDO }, body: { decision: "procedente" }, usuario: { _id: ADMIN } }, res2);

@@ -138,33 +138,45 @@ export const resolverReporte = async (req, res) => {
       return res.status(400).json({ mensaje: "Decisión inválida" });
     }
 
-    // Transición atómica: dos administradores no pueden resolver el mismo reporte.
-    const reporte = await Reporte.findOneAndUpdate(
-      { _id: id, estado: "pendiente" },
-      { $set: { estado: decision, resueltoPor: req.usuario._id, resueltoEn: new Date() } },
-      { new: true }
-    );
-    if (!reporte) return res.status(409).json({ mensaje: "El reporte no existe o ya fue resuelto" });
+    const session = await Reporte.startSession();
+    let resultado;
+    try {
+      resultado = await session.withTransaction(async () => {
+        // La resolución y todas sus consecuencias se confirman juntas.
+        const reporte = await Reporte.findOneAndUpdate(
+          { _id: id, estado: "pendiente" },
+          { $set: { estado: decision, resueltoPor: req.usuario._id, resueltoEn: new Date() } },
+          { new: true, session }
+        );
+        if (!reporte) return null;
 
-    let sancion = null;
-    if (decision === "procedente" && reporte.tipoReportado === "estudiante" && reporte.estudianteReportado) {
-      sancion = await aplicarFalta(reporte.estudianteReportado);
-      if (reporte.motivo === "no_pago") {
-        await Usuario.updateOne({ _id: reporte.estudianteReportado }, { $set: { bloqueoPorPago: true } });
-      }
-    }
+        let sancion = null;
+        if (decision === "procedente" && reporte.tipoReportado === "estudiante" && reporte.estudianteReportado) {
+          sancion = await aplicarFalta(reporte.estudianteReportado, session);
+          if (!sancion) throw new Error("USUARIO_REPORTADO_NO_EXISTE");
+          if (reporte.motivo === "no_pago") {
+            await Usuario.updateOne({ _id: reporte.estudianteReportado }, { $set: { bloqueoPorPago: true } }, { session });
+          }
+        }
 
-    if (decision === "improcedente") {
-      // Muchos reportes rechazados = posible abuso del sistema de reportes.
-      const reportante = await Usuario.findByIdAndUpdate(
-        reporte.reportante,
-        { $inc: { reportesImprocedentes: 1 } },
-        { new: true }
-      );
-      if (reportante && reportante.reportesImprocedentes >= 3 && !reportante.sospechoso) {
-        await Usuario.updateOne({ _id: reportante._id }, { $set: { sospechoso: true } });
-      }
+        if (decision === "improcedente") {
+          // Muchos reportes rechazados = posible abuso del sistema de reportes.
+          const reportante = await Usuario.findByIdAndUpdate(
+            reporte.reportante,
+            { $inc: { reportesImprocedentes: 1 } },
+            { new: true, session }
+          );
+          if (reportante && reportante.reportesImprocedentes >= 3 && !reportante.sospechoso) {
+            await Usuario.updateOne({ _id: reportante._id }, { $set: { sospechoso: true } }, { session });
+          }
+        }
+        return { sancion };
+      });
+    } finally {
+      await session.endSession();
     }
+    if (!resultado) return res.status(409).json({ mensaje: "El reporte no existe o ya fue resuelto" });
+    const { sancion } = resultado;
 
     res.json({ mensaje: `Reporte ${decision}`, sancion });
   } catch {
@@ -178,22 +190,46 @@ export const saldarReporte = async (req, res) => {
     const { id } = req.params;
     if (!mongoose.isValidObjectId(id)) return res.status(400).json({ mensaje: "Reporte inválido" });
 
-    const reporte = await Reporte.findOneAndUpdate(
-      { _id: id, motivo: "no_pago", estado: "procedente", saldado: { $ne: true } },
-      { $set: { saldado: true, saldadoEn: new Date() } },
-      { new: true }
-    );
-    if (!reporte) return res.status(409).json({ mensaje: "No hay un adeudo pendiente en este reporte" });
+    const session = await Reporte.startSession();
+    let resultado;
+    try {
+      resultado = await session.withTransaction(async () => {
+        const reporte = await Reporte.findOneAndUpdate(
+          { _id: id, motivo: "no_pago", estado: "procedente", saldado: { $ne: true } },
+          { $set: { saldado: true, saldadoEn: new Date() } },
+          { new: true, session }
+        );
+        if (!reporte) return null;
 
-    const otros = await Reporte.exists({
-      estudianteReportado: reporte.estudianteReportado,
-      motivo: "no_pago",
-      estado: "procedente",
-      saldado: { $ne: true },
-    });
-    if (!otros) await Usuario.updateOne({ _id: reporte.estudianteReportado }, { $set: { bloqueoPorPago: false } });
+        // Escribir siempre el usuario serializa saldos y nuevas sanciones concurrentes.
+        // Evita que dos saldos dejen un bloqueo activo sin adeudos pendientes.
+        const usuario = await Usuario.findByIdAndUpdate(
+          reporte.estudianteReportado,
+          { $set: { bloqueoPorPago: false } },
+          { new: true, session }
+        );
+        if (!usuario) throw new Error("USUARIO_REPORTADO_NO_EXISTE");
+        const otros = await Reporte.exists({
+          estudianteReportado: reporte.estudianteReportado,
+          motivo: "no_pago",
+          estado: "procedente",
+          saldado: { $ne: true },
+        }).session(session);
+        if (otros) {
+          await Usuario.updateOne(
+            { _id: reporte.estudianteReportado },
+            { $set: { bloqueoPorPago: true } },
+            { session }
+          );
+        }
+        return { bloqueoLevantado: !otros };
+      });
+    } finally {
+      await session.endSession();
+    }
+    if (!resultado) return res.status(409).json({ mensaje: "No hay un adeudo pendiente en este reporte" });
 
-    res.json({ mensaje: "Adeudo saldado", bloqueoLevantado: !otros });
+    res.json({ mensaje: "Adeudo saldado", bloqueoLevantado: resultado.bloqueoLevantado });
   } catch {
     res.status(500).json({ mensaje: "Error al saldar adeudo" });
   }

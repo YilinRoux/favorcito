@@ -72,9 +72,10 @@ export const suspensionVencida = (usuario, ahora = new Date()) =>
   Boolean(usuario.suspendidoHasta) &&
   new Date(usuario.suspendidoHasta) <= ahora;
 
-/** Suma una falta (atómico) y aplica la consecuencia correspondiente. */
-export const aplicarFalta = async (usuarioId) => {
-  const usuario = await Usuario.findByIdAndUpdate(usuarioId, { $inc: { faltas: 1 } }, { new: true });
+/** Suma una falta y aplica la consecuencia; participa en la transacción si se indica sesión. */
+export const aplicarFalta = async (usuarioId, session) => {
+  const options = session ? { session } : {};
+  const usuario = await Usuario.findByIdAndUpdate(usuarioId, { $inc: { faltas: 1 } }, { new: true, ...options });
   if (!usuario) return null;
 
   const consecuencia = consecuenciaPorFaltas(usuario.faltas);
@@ -91,7 +92,7 @@ export const aplicarFalta = async (usuarioId) => {
   if (consecuencia.accion === "baja") {
     Object.assign(cambios, { sospechoso: true, activo: false, suspendidoHasta: null, bajaDefinitiva: true });
   }
-  if (Object.keys(cambios).length) await Usuario.updateOne({ _id: usuarioId }, { $set: cambios });
+  if (Object.keys(cambios).length) await Usuario.updateOne({ _id: usuarioId }, { $set: cambios }, options);
 
   return { faltas: usuario.faltas, ...consecuencia };
 };
