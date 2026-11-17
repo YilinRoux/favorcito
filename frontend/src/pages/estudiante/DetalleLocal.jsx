@@ -1,3 +1,4 @@
+import ImagenPromocion from "../../components/estudiante/ImagenPromocion";
 import { useEffect, useState, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../services/api";
@@ -179,11 +180,11 @@ function DetalleLocal() {
           {local.imagenesAnuncios?.length > 0 && (
             <div className="dl-imagenes-scroll">
               {local.imagenesAnuncios.map((img, i) => (
-                <ImageWithFallback
+                <ImagenPromocion
                   key={i}
                   src={getImageUrl(img)}
                   className="dl-imagen-anuncio"
-                  alt={`Anuncio ${i + 1}`}
+                  alt={`Anuncio ${i + 1} de ${local.nombre}`}
                 />
               ))}
             </div>

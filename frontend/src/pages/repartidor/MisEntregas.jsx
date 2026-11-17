@@ -12,6 +12,7 @@ const estadoLabel = {
 
 function MisEntregas() {
   const [entregas, setEntregas] = useState([]);
+  const [verHistorial, setVerHistorial] = useState(false);
   const [cargando, setCargando] = useState(true);
   const navigate = useNavigate();
 
@@ -28,6 +29,10 @@ function MisEntregas() {
     };
     cargar();
   }, []);
+
+  const activas = entregas.filter((e) => e.estado === "en_camino");
+  const historial = entregas.filter((e) => e.estado !== "en_camino");
+  const visibles = verHistorial ? historial : activas;
 
   if (cargando) return (
     <div className="me-wrap">
@@ -62,12 +67,17 @@ function MisEntregas() {
             <h2 className="me-title">Mis Entregas</h2>
             <p className="me-subtitle">
               {entregas.length > 0
-                ? `${entregas.length} entrega${entregas.length !== 1 ? "s" : ""} realizadas`
+                ? `${entregas.length} entrega${entregas.length !== 1 ? "s" : ""} registradas`
                 : "Historial de tus favorcitos"}
             </p>
           </div>
         </div>
 
+        <div className="st-order-filters" aria-label="Filtrar entregas">
+          <button type="button" aria-pressed={!verHistorial} onClick={() => setVerHistorial(false)}>Pendientes · {activas.length}</button>
+          <button type="button" aria-pressed={verHistorial} onClick={() => setVerHistorial(true)}>Historial · {historial.length}</button>
+        </div>
+        {entregas.length > 0 && visibles.length === 0 && <p className="st-no-results">{verHistorial ? "Todavía no hay entregas finalizadas." : "No tienes entregas pendientes. Las anteriores están en Historial."}</p>}
         {/* ── Empty state ── */}
         {entregas.length === 0 ? (
           <div className="me-empty">
@@ -91,7 +101,7 @@ function MisEntregas() {
           </div>
         ) : (
           <div className="me-lista">
-            {entregas.map((entrega, i) => (
+            {visibles.map((entrega, i) => (
               <div key={entrega._id} className={`me-card me-card--${entrega.estado}`} style={{ animationDelay: `${i * 0.07}s` }}>
 
                 {/* ── Top ── */}

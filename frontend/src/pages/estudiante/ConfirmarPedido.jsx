@@ -127,6 +127,7 @@ function ConfirmarPedido() {
           </div>
         )}
 
+        <section className="st-checkout-summary" aria-label="Resumen de tu pedido">
         {/* Info del local */}
         <div className="cp-card">
           <p className="cp-label">Local</p>
@@ -180,6 +181,8 @@ function ConfirmarPedido() {
           </div>
         </div>
 
+        </section>
+        <section className="st-checkout-options" aria-label="Entrega y confirmación">
         {/* Tipo de entrega */}
         <div className="cp-card">
           <p className="cp-section-title">Tipo de entrega</p>
@@ -303,6 +306,7 @@ function ConfirmarPedido() {
           )}
         </button>
 
+        </section>
       </div>
     </div>
   );
