@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { createPortal } from "react-dom";
 import api from "../../services/api";
 import "../../styles/common/ReportarProblema.css";
@@ -30,6 +30,8 @@ const TEXTOS = {
 
 function ReportarProblema({ pedidoId, rol }) {
   const textos = TEXTOS[rol];
+  const tituloId = useId();
+  const [estadoReporte, setEstadoReporte] = useState("pendiente");
   const [abierto, setAbierto] = useState(false);
   const [reportado, setReportado] = useState(null);
   const [motivo, setMotivo] = useState("");
@@ -40,17 +42,17 @@ function ReportarProblema({ pedidoId, rol }) {
   useEffect(() => {
     let activo = true;
     api.get(`/reportes/pedido/${pedidoId}/mio`)
-      .then((res) => { if (activo) setReportado(Boolean(res.data.reportado)); })
+      .then((res) => { if (activo) { setReportado(Boolean(res.data.reportado)); setEstadoReporte(res.data.estado || "pendiente"); } })
       .catch(() => { if (activo) setReportado(false); });
     return () => { activo = false; };
   }, [pedidoId]);
 
   useEffect(() => {
     if (!abierto) return undefined;
-    const cerrarConEsc = (e) => { if (e.key === "Escape") setAbierto(false); };
+    const cerrarConEsc = (e) => { if (e.key === "Escape" && !enviando) setAbierto(false); };
     window.addEventListener("keydown", cerrarConEsc);
     return () => window.removeEventListener("keydown", cerrarConEsc);
-  }, [abierto]);
+  }, [abierto, enviando]);
 
   const enviar = async () => {
     if (!motivo) { setError("Elige qué ocurrió"); return; }
@@ -71,7 +73,7 @@ function ReportarProblema({ pedidoId, rol }) {
   if (reportado === null) return null;
 
   if (reportado) {
-    return <p className="rpt-enviado">Reporte enviado · en revisión</p>;
+    return <div><p className="rpt-enviado">Reporte {estadoReporte === "pendiente" ? "enviado · en revisión" : estadoReporte === "procedente" ? "confirmado por administración" : estadoReporte === "improcedente" ? "revisado · no procedente" : "revisado"}</p>{rol === "repartidor" && <p className="rpt-seguimiento">El reporte no confirma una entrega ni una devolución. Si conservas la comida, solicita la devolución al local desde el detalle de tu entrega.</p>}</div>;
   }
 
   return (
@@ -84,10 +86,11 @@ function ReportarProblema({ pedidoId, rol }) {
       </button>
 
       {abierto && createPortal(
-        <div className="rpt-overlay" role="presentation" onClick={() => !enviando && setAbierto(false)}>
-          <div className="rpt-modal" role="dialog" aria-modal="true" aria-labelledby="rpt-titulo" onClick={(e) => e.stopPropagation()}>
-            <h3 id="rpt-titulo">{textos.titulo}</h3>
+        <div className={`rpt-overlay rpt-theme-${localStorage.getItem("favorcito-tema") || "claro"}`} role="presentation" onClick={() => !enviando && setAbierto(false)}>
+          <div className="rpt-modal" role="dialog" aria-modal="true" aria-labelledby={tituloId} onClick={(e) => e.stopPropagation()}>
+            <h3 id={tituloId}>{textos.titulo}</h3>
             <p className="rpt-ayuda">{textos.ayuda}</p>
+            {rol === "repartidor" && <p className="rpt-guia">Contacta al cliente por chat. Si no pudiste entregar y conservas el pedido completo, solicita devolverlo al local. Si ya entregaste la comida y no te pagaron, repórtalo sin solicitar devolución. No marques una entrega que no ocurrió.</p>}
 
             <div className="rpt-opciones" role="radiogroup" aria-label="Motivo del reporte">
               {textos.motivos.map(([valor, titulo, detalle]) => (
@@ -99,7 +102,7 @@ function ReportarProblema({ pedidoId, rol }) {
             </div>
 
             <textarea
-              className="rpt-texto"
+              className="rpt-texto" aria-label="Detalles del problema"
               maxLength={300}
               rows={3}
               placeholder="Cuéntanos más (opcional)"

@@ -79,7 +79,7 @@ export const crearReportePedido = async (req, res) => {
     if (!mongoose.isValidObjectId(pedidoId)) return res.status(400).json({ mensaje: "Pedido inválido" });
 
     const pedido = await Pedido.findById(pedidoId).select(
-      "estudiante repartidor tipoEntrega estado historialEstados updatedAt"
+      "estudiante repartidor tipoEntrega estado historialEstados updatedAt devolucion"
     );
     const evaluacion = evaluarReportePedido({ pedido, usuarioId: req.usuario._id, motivo });
     if (!evaluacion.ok) return res.status(evaluacion.status).json({ mensaje: evaluacion.mensaje });
@@ -105,8 +105,8 @@ export const miReportePedido = async (req, res) => {
   try {
     const { pedidoId } = req.params;
     if (!mongoose.isValidObjectId(pedidoId)) return res.status(400).json({ mensaje: "Pedido inválido" });
-    const existe = await Reporte.exists({ pedido: pedidoId, reportante: req.usuario._id });
-    res.json({ reportado: Boolean(existe) });
+    const reporte = await Reporte.findOne({ pedido: pedidoId, reportante: req.usuario._id }).select("estado");
+    res.json({ reportado: Boolean(reporte), estado: reporte?.estado });
   } catch {
     res.status(500).json({ mensaje: "Error al consultar reporte" });
   }

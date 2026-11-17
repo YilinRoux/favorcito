@@ -37,8 +37,9 @@ export const evaluarReportePedido = ({ pedido, usuarioId, motivo, ahora = new Da
   if (pedido.tipoEntrega !== "favorcito" || !pedido.repartidor) {
     return { ok: false, status: 400, mensaje: "Este pedido no tuvo repartidor" };
   }
-  if (!ESTADOS_REPORTABLES.includes(pedido.estado)) {
-    return { ok: false, status: 400, mensaje: "Solo puedes reportar pedidos en camino o entregados" };
+  const devueltoAlLocal = pedido.estado === "cancelado" && pedido.devolucion?.estado === "recibida";
+  if (!ESTADOS_REPORTABLES.includes(pedido.estado) && !devueltoAlLocal) {
+    return { ok: false, status: 400, mensaje: "Solo puedes reportar pedidos en camino, entregados o devueltos al local" };
   }
 
   const usuario = idDe(usuarioId);

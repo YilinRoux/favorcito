@@ -89,6 +89,16 @@ const pedidoSchema = new mongoose.Schema(
     historialEstados: [historialEstadoSchema],
 
     canceladoPor: String,
+    devolucion: {
+      type: new mongoose.Schema({
+        estado: { type: String, enum: ["pendiente", "recibida"], required: true },
+        motivo: { type: String, enum: ["cliente_ausente", "no_recibio_pedido", "no_pago"], required: true },
+        solicitadaEn: Date,
+        recibidaEn: Date,
+        recibidaPor: { type: mongoose.Schema.Types.ObjectId, ref: "Usuario" },
+      }, { _id: false }),
+      default: undefined,
+    },
     // Ausente en pedidos antiguos: su cancelación ya devolvía stock automáticamente.
     reposicionStock: {
       type: new mongoose.Schema({

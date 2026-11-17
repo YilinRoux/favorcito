@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import "../../styles/estudiante/MenuLocales.css";
 import { getImageUrl } from "../../utils/imageUrl";
@@ -8,6 +8,8 @@ import { AuthContext } from "../../context/AuthContext";
 
 function MenuLocales() {
   const [locales, setLocales] = useState([]);
+  const [busqueda, setBusqueda] = useState("");
+  const [soloPromo, setSoloPromo] = useState(false);
   const [cargando, setCargando] = useState(true);
   const [imagenActiva, setImagenActiva] = useState(0);
   const [recomendados, setRecomendados] = useState([]);
@@ -53,6 +55,9 @@ function MenuLocales() {
 
     cargarRecomendados();
   }, [usuario]);
+
+  const consulta = busqueda.trim().toLocaleLowerCase("es-MX");
+  const localesVisibles = locales.filter((l) => (!soloPromo || l.promocionActiva) && `${l.nombre} ${l.descripcion || ""} ${l.direccion || ""}`.toLocaleLowerCase("es-MX").includes(consulta));
 
   const imagenesPromo = locales
     .filter((l) => l.promocionActiva && l.imagenesAnuncios?.length > 0)
@@ -110,6 +115,12 @@ function MenuLocales() {
           </div>
         </div>
 
+        <div className="st-local-search">
+          <label>Busca tu comida o local<input type="search" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Nombre, comida o ubicación" /></label>
+          <label className="st-promo-filter"><input type="checkbox" checked={soloPromo} onChange={(e) => setSoloPromo(e.target.checked)} />Con promoción de envío</label>
+        </div>
+        <p className="st-result-count" role="status">{localesVisibles.length} local(es) disponibles</p>
+        {locales.length > 0 && localesVisibles.length === 0 && <p className="st-no-results">No encontramos coincidencias. Prueba otra búsqueda o quita el filtro de promoción.</p>}
         {/* Carrusel de promociones */}
         {imagenesPromo.length > 0 && (
           <div className="ml-carrusel">
@@ -212,10 +223,10 @@ function MenuLocales() {
           </div>
         ) : (
           <div className="ml-locales-lista">
-            {locales.map((local, i) => (
-              <div
+            {localesVisibles.map((local, i) => (
+              <Link
                 key={local._id}
-                onClick={() => navigate(`/local/${local._id}`)}
+                to={`/local/${local._id}`}
                 className={`ml-local-card${local.promocionActiva ? " ml-local-card--promo" : ""}`}
                 style={{ animationDelay: `${i * 0.07}s` }}
               >
@@ -292,7 +303,7 @@ function MenuLocales() {
                     </svg>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}

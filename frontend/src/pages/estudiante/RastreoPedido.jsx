@@ -121,6 +121,7 @@ function RastreoPedido() {
       </div>
 
       <div className="rp-inner">
+        {pedido.devolucion && <p className="st-delivery-notice" role="status">{pedido.devolucion.estado === "pendiente" ? "La entrega no se completó. El estudiante que reparte está devolviendo el pedido al local; falta que el vendedor confirme la recepción." : "El local confirmó que recibió la devolución. El pedido no fue entregado al cliente. Cualquier reporte será revisado por administración."}</p>}
 
         {/* ── Back + Header ── */}
         <div className="rp-topbar">

@@ -126,7 +126,7 @@ function MisEntregas() {
                           <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                         </svg>
                       )}
-                      {estadoLabel[entrega.estado] || entrega.estado}
+                      {entrega.devolucion?.estado === "pendiente" ? "Devolución pendiente" : entrega.devolucion?.estado === "recibida" ? "Devuelto al local" : estadoLabel[entrega.estado] || entrega.estado}
                     </span>
                   </div>
                 </div>

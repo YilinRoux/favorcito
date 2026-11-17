@@ -24,3 +24,16 @@
 .rpt-btn--ghost{background:transparent;border-color:rgba(255,236,220,.22);color:#f7f2ed}
 .rpt-btn--primary{background:#bf7a45;color:#fff}
 .rpt-btn--primary:hover:not(:disabled){background:#cb8650}
+/* El diálogo vive en un portal: lleva su propia paleta y no depende de su padre. */
+.rpt-overlay{--rpt-panel:#3b3d4a;--rpt-ink:#f7f2ed;--rpt-muted:#c6c9d1;--rpt-line:rgba(255,236,220,.18);--rpt-row:rgba(255,236,220,.06);--rpt-accent:#d8935a;--rpt-button:#bf7a45}
+.rpt-theme-claro{--rpt-panel:#fffaf6;--rpt-ink:#14213d;--rpt-muted:#586274;--rpt-line:rgba(20,33,61,.14);--rpt-row:rgba(20,33,61,.035);--rpt-accent:#c3601d;--rpt-button:#c9682a}
+.rpt-modal{background:var(--rpt-panel);color:var(--rpt-ink);border-color:var(--rpt-line)}
+.rpt-ayuda,.rpt-opcion small{color:var(--rpt-muted)}
+.rpt-opcion,.rpt-texto{border-color:var(--rpt-line);background:var(--rpt-row)}
+.rpt-opcion.is-activa{border-color:var(--rpt-accent);background:color-mix(in srgb,var(--rpt-accent) 10%,transparent)}
+.rpt-opcion input:checked{border-color:var(--rpt-accent)}
+.rpt-opcion input::before{background:var(--rpt-accent)}
+.rpt-btn--ghost{color:var(--rpt-ink);border-color:var(--rpt-line)}
+.rpt-btn--primary{background:var(--rpt-button)}
+.rpt-guia{padding:12px;border-radius:12px;background:var(--rpt-row);color:var(--rpt-muted);font-size:.84rem;line-height:1.5;margin:0 0 16px}
+.rpt-seguimiento{font-size:.82rem;line-height:1.5;color:inherit;max-width:560px}

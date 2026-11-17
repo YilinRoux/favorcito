@@ -23,3 +23,6 @@
 .rs-wrap :is(input,button,summary):focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 .rs-wrap button:disabled{opacity:.55;cursor:not-allowed}
 @media(max-width:520px){.rs-pending{padding:15px}.rs-pending summary span{display:block;margin:8px 0 0}.rs-actions .rs-save{margin-left:0;width:100%}.rs-actions button{flex:1}.rs-pagination{justify-content:center}}
+.rs-return-title{margin:0;font:800 1.1rem 'Manrope',sans-serif}
+.rs-receive{min-height:44px;padding:10px 16px;border:0;border-radius:999px;background:var(--btn);color:#fff;font:600 .85rem 'DM Sans',sans-serif;cursor:pointer}
+@media(max-width:520px){.rs-item:has(.rs-receive){flex-wrap:wrap}.rs-receive{width:100%}}

@@ -1,3 +1,4 @@
+import DevolucionesPendientes from "../../components/vendedor/DevolucionesPendientes";
 import ReposicionesPendientes from "../../components/vendedor/ReposicionesPendientes";
 import { useEffect, useRef, useState, useContext } from "react";
 import api from "../../services/api";
@@ -94,7 +95,7 @@ function TarjetaCocina({ pedido, resaltado, mensajes, onAceptar, onAvanzar, ocup
           <button type="button" className="dv-k-btn" disabled={ocupado} onClick={() => onAvanzar(pedido._id, "listo")}>Cliente recogió</button>
         )}
         {pedido.estado === "listo" && pedido.tipoEntrega === "favorcito" && <p className="dv-k-nota">Esperando repartidor…</p>}
-        {pedido.estado === "en_camino" && <p className="dv-k-nota">En camino con el repartidor</p>}
+        {pedido.estado === "en_camino" && <p className="dv-k-nota">{pedido.devolucion?.estado === "pendiente" ? "Devolviendo al local" : "En camino con el repartidor"}</p>}
         <Link to={`/chat/${pedido._id}`} className="dv-k-chat" aria-label={`Chat del pedido ${alias}`}>
           <Ic size={18}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></Ic>
           {mensajes > 0 && <span className="dv-chat-badge">{mensajes}</span>}
@@ -380,7 +381,7 @@ function DashboardVendedor() {
           </p>}
         </div>
         <div className="dv-pedido-right">
-          <span className={`dv-pill dv-pill--${grupoEstado(pedido.estado)}`}>{estadoLabel[pedido.estado]}</span>
+          <span className={`dv-pill dv-pill--${grupoEstado(pedido.estado)}`}>{pedido.devolucion?.estado === "pendiente" ? "Devolución pendiente" : pedido.devolucion?.estado === "recibida" ? "Devuelto al local" : estadoLabel[pedido.estado]}</span>
           <p className="dv-pedido-total">${pedido.total}</p>
           {pedido.promocionAplicada && (
             <p className="dv-pedido-promo">Envío gratis</p>
@@ -515,6 +516,7 @@ function DashboardVendedor() {
 
         {aviso && <p className="dv-aviso" role="status">{aviso}</p>}
 
+        <DevolucionesPendientes />
         <ReposicionesPendientes />
 
         {modoCocina ? (

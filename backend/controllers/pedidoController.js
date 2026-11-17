@@ -270,7 +270,7 @@ export const confirmarEntrega = async (req, res) => {
     const estudianteId = req.usuario.id;
 
     const pedido = await Pedido.findOneAndUpdate(
-      { _id: pedidoId, repartidor: estudianteId, estado: "en_camino" },
+      { _id: pedidoId, repartidor: estudianteId, estado: "en_camino", "devolucion.estado": { $ne: "pendiente" } },
       { $set: { estado: "entregado" }, $push: { historialEstados: { estado: "entregado" } } },
       { new: true }
     );
@@ -393,6 +393,7 @@ export const cancelarPedidoVendedor = async (req, res) => {
     const pedido = await Pedido.findById(pedidoId).populate("local");
     if (!pedido) return res.status(404).json({ mensaje: "Pedido no encontrado" });
     if (!pedido.local || String(pedido.local.vendedor) !== vendedorId) return res.status(403).json({ mensaje: "No autorizado" });
+    if (pedido.devolucion?.estado === "pendiente") return res.status(409).json({ mensaje: "Confirma la recepción de la devolución antes de revisar el inventario" });
     if (["cancelado", "entregado"].includes(pedido.estado)) return res.status(400).json({ mensaje: "No se puede cancelar este pedido" });
 
     const session = await Pedido.startSession();
@@ -400,7 +401,7 @@ export const cancelarPedidoVendedor = async (req, res) => {
     try {
       await session.withTransaction(async () => {
         actualizado = await Pedido.findOneAndUpdate(
-          { _id: pedidoId, estado: { $nin: ["cancelado", "entregado"] } },
+          { _id: pedidoId, estado: { $nin: ["cancelado", "entregado"] }, "devolucion.estado": { $ne: "pendiente" } },
           { $set: { estado: "cancelado", canceladoPor: "vendedor", reposicionStock: { estado: "pendiente" } }, $push: { historialEstados: { estado: "cancelado" } } },
           { new: true, session }
         );

@@ -1,3 +1,5 @@
+import { solicitarDevolucion, recibirDevolucion, obtenerDevoluciones } from "../controllers/devolucionController.js";
+import { evaluarReportePedido } from "../services/sanciones.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import mongoose from "mongoose";
@@ -5,7 +7,7 @@ import Pedido from "../models/Pedido.js";
 import Producto from "../models/Producto.js";
 import Local from "../models/Local.js";
 import Usuario from "../models/Usuario.js";
-import { cancelarPedido, cancelarPedidoVendedor } from "../controllers/pedidoController.js";
+import { cancelarPedido, cancelarPedidoVendedor, confirmarEntrega } from "../controllers/pedidoController.js";
 import { resolverReposicion, obtenerReposicionesPendientes } from "../controllers/reposicionController.js";
 const response = () => ({ statusCode: 200, status(code) { this.statusCode = code; return this; }, json(body) { this.body = body; return this; } });
 // Solo una instancia de pruebas con replica set; cada ejecución elimina su propia base.
@@ -79,4 +81,54 @@ test("inventario de cancelaciones: autorización, atomicidad e idempotencia", { 
     await Pedido.updateOne({ _id: p._id }, { $unset: { reposicionStock: 1 } }); assert.equal((await resolver(p, [3, 2])).statusCode, 409);
     p = await reset("enviado"); assert.equal((await resolver(p, [3, 2])).statusCode, 409); assert.equal(await stock(), 10);
   });
+  const prepararDevolucion = async () => {
+    const p = await reset("en_camino");
+    await Pedido.updateOne({ _id: p._id }, { $set: { tipoEntrega: "favorcito", repartidor: ajeno }, $unset: { reposicionStock: 1 } });
+    return p;
+  };
+  const solicitar = (p, autor = ajeno, extra = {}) => llamar(solicitarDevolucion, p._id, autor, { motivo: "cliente_ausente", conservoPedido: true, ...extra });
+  await t.test("solo el repartidor asignado que conserva el pedido puede solicitar devolución", async () => {
+    const p = await prepararDevolucion();
+    assert.equal((await solicitar(p, estudiante)).statusCode, 409);
+    assert.equal((await solicitar(p, ajeno, { conservoPedido: false })).statusCode, 400);
+    assert.equal((await solicitar(p, ajeno, { motivo: "otro" })).statusCode, 400);
+    assert.equal((await solicitar(p)).statusCode, 200);
+    assert.equal((await solicitar(p)).statusCode, 409);
+    const actual = await Pedido.findById(p._id);
+    assert.equal(actual.estado, "en_camino"); assert.equal(actual.devolucion.estado, "pendiente");
+    assert.equal(actual.reposicionStock, undefined); assert.equal(await stock(), 10);
+  });
+  await t.test("una devolución pendiente no puede confirmarse como entrega ni cancelarse para reponer", async () => {
+    const p = await prepararDevolucion(); await solicitar(p);
+    assert.equal((await llamar(confirmarEntrega, p._id, ajeno)).statusCode, 409);
+    assert.equal((await llamar(cancelarPedidoVendedor, p._id, vendedor)).statusCode, 409);
+    assert.equal((await resolver(p, [3, 2])).statusCode, 409);
+    assert.equal(await stock(), 10);
+  });
+  await t.test("el vendedor confirma la recepción antes de decidir reposición y sin sumar faltas", async () => {
+    const p = await prepararDevolucion(); await solicitar(p);
+    assert.equal((await llamar(recibirDevolucion, p._id, ajeno)).statusCode, 409);
+    assert.equal((await llamar(recibirDevolucion, p._id, vendedor)).statusCode, 200);
+    const actual = await Pedido.findById(p._id);
+    assert.equal(actual.estado, "cancelado"); assert.equal(actual.canceladoPor, "devolucion");
+    assert.equal(actual.devolucion.estado, "recibida"); assert.equal(String(actual.devolucion.recibidaPor), String(vendedor));
+    assert.equal(actual.reposicionStock.estado, "pendiente"); assert.equal(await stock(), 10);
+    assert.equal((await Usuario.findById(estudiante)).faltas, 0);
+    assert.equal((await resolver(p, [1, 0])).statusCode, 200); assert.equal(await stock(), 11);
+    assert.equal((await llamar(recibirDevolucion, p._id, vendedor)).statusCode, 409);
+    assert.equal(evaluarReportePedido({ pedido: actual, usuarioId: ajeno, motivo: "cliente_ausente" }).ok, true);
+  });
+  await t.test("solicitar devolución y confirmar entrega simultáneamente no crea estados contradictorios", async () => {
+    const p = await prepararDevolucion();
+    const resultados = await Promise.all([solicitar(p), llamar(confirmarEntrega, p._id, ajeno)]);
+    assert.deepEqual(resultados.map((r) => r.statusCode).sort(), [200, 409]);
+    const actual = await Pedido.findById(p._id);
+    assert.ok((actual.estado === "entregado" && !actual.devolucion) || (actual.estado === "en_camino" && actual.devolucion.estado === "pendiente"));
+  });
+  await t.test("las devoluciones pendientes solo se muestran al local propietario", async () => {
+    const p = await prepararDevolucion(); await solicitar(p);
+    let res = response(); await obtenerDevoluciones(request(p._id, vendedor), res); assert.equal(res.body.length, 1);
+    res = response(); await obtenerDevoluciones(request(p._id, estudiante), res); assert.deepEqual(res.body, []);
+  });
+
 });

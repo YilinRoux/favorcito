@@ -58,7 +58,7 @@ export default function ReposicionesPendientes({ onResuelta }) {
         {pedidos.slice((actual - 1) * 5, actual * 5).map((pedido) => (
           <form key={pedido._id} onSubmit={(e) => guardar(e, pedido)} className="rs-order">
             <h3>{pedido.alias || `Pedido #${pedido._id.slice(-6).toUpperCase()}`}</h3>
-            <p>Cancelado por {pedido.canceladoPor === "estudiante" ? "el estudiante" : "el vendedor"}. ¿Cuántas unidades puedes reponer?</p>
+            <p>Cancelado por {pedido.canceladoPor === "estudiante" ? "el estudiante" : pedido.canceladoPor === "devolucion" ? "devolución al local" : "el vendedor"}. ¿Cuántas unidades puedes reponer?</p>
             <fieldset disabled={guardando}>
               <legend className="rs-legend">Unidades que volverán al stock</legend>
               {pedido.productos.map((item, i) => <label key={i} className="rs-item">

@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { AuthContext } from "../../context/AuthContext";
+import { useContext, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import socket from "../../services/socket";
@@ -8,6 +9,11 @@ import "../../styles/repartidor/DetallePedido.css";
 
 function DetallePedido() {
   const { id } = useParams();
+  const { usuario } = useContext(AuthContext);
+  const [motivoDevolucion, setMotivoDevolucion] = useState("cliente_ausente");
+  const [conservoPedido, setConservoPedido] = useState(false);
+  const [solicitando, setSolicitando] = useState(false);
+  const [errorDevolucion, setErrorDevolucion] = useState("");
   const navigate = useNavigate();
   const [pedido, setPedido] = useState(null);
   const [cargando, setCargando] = useState(true);
@@ -27,8 +33,9 @@ function DetallePedido() {
   useEffect(() => {
     cargar();
     socket.emit("unirsePedido", id);
-    socket.on("estadoActualizado", () => cargar());
-    return () => socket.off("estadoActualizado");
+    const actualizar = () => cargar();
+    socket.on("estadoActualizado", actualizar);
+    return () => socket.off("estadoActualizado", actualizar);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
@@ -45,6 +52,17 @@ function DetallePedido() {
     }
   };
 
+  const solicitarDevolucion = async (e) => {
+    e.preventDefault();
+    if (!conservoPedido || solicitando) return;
+    setSolicitando(true); setErrorDevolucion("");
+    try {
+      const res = await api.put(`/pedidos/${id}/devolucion`, { motivo: motivoDevolucion, conservoPedido });
+      setPedido((prev) => ({ ...prev, ...res.data.pedido, local: prev.local, estudiante: prev.estudiante }));
+    } catch (err) { setErrorDevolucion(err.response?.data?.mensaje || "No se pudo solicitar la devolución"); }
+    finally { setSolicitando(false); }
+  };
+
   if (cargando) return (
     <div className="depd-wrap">
       <div className="depd-orb-1" /><div className="depd-orb-2" />
@@ -57,6 +75,8 @@ function DetallePedido() {
 
   if (!pedido) return null;
 
+  const esRepartidor = String(pedido.repartidor?._id || pedido.repartidor) === String(usuario?._id || usuario?.id);
+  const devolucionPendiente = pedido.devolucion?.estado === "pendiente";
   const subtotal = pedido.total - (pedido.costoEnvio || 0);
 
   return (
@@ -104,16 +124,18 @@ function DetallePedido() {
                 <polyline points="20 6 9 17 4 12"/>
               </svg>
             )}
-            {pedido.estado === "en_camino" ? "En camino" : "Entregado"}
+            {devolucionPendiente ? "Devolución pendiente" : pedido.devolucion?.estado === "recibida" ? "Devuelto al local" : pedido.estado === "en_camino" ? "En camino" : pedido.estado === "cancelado" ? "Cancelado" : "Entregado"}
           </div>
         </div>
 
+        {pedido.devolucion?.estado === "recibida" && <p className="st-delivery-notice" role="status">El vendedor confirmó la recepción. El pedido no se marcó como entregado al cliente; el local decidirá qué productos pueden reponerse.</p>}
+        {devolucionPendiente && <div className="st-delivery-notice" role="status"><h3>Vuelve al local con el pedido</h3><p>Coordina por chat con el vendedor y entrega la comida completa. El vendedor debe confirmar la recepción. No lo marques como entregado al cliente.</p><p>Si corresponde, envía el reporte por separado para revisión administrativa.</p></div>}
         {/* ── Recoger en ── */}
         <div className="depd-card">
-          <p className="depd-card-label">Recoger en</p>
+          <p className="depd-card-label">{pedido.devolucion ? "Local de devolución" : "Recoger en"}</p>
           <p className="depd-local-nombre">{pedido.local?.nombre}</p>
           {pedido.alias && (
-            <p className="alias-linea">Pide en el local: <AliasPedido alias={pedido.alias} grande /><small>Y al entregar pregunta: "¿Eres {pedido.alias}?"</small></p>
+            <p className="alias-linea">{pedido.devolucion ? "Identifica el pedido:" : "Pide en el local:"} <AliasPedido alias={pedido.alias} grande /><small>{pedido.devolucion ? "Entrega la comida al vendedor para que confirme la recepción." : `Y al entregar pregunta: «¿Eres ${pedido.alias}?»`}</small></p>
           )}
           <div className="depd-local-dir">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -125,7 +147,7 @@ function DetallePedido() {
 
         {/* ── Productos ── */}
         <div className="depd-card">
-          <p className="depd-section-title">Productos a entregar</p>
+          <p className="depd-section-title">{pedido.devolucion ? "Productos del pedido devuelto" : "Productos a entregar"}</p>
 
           <div className="depd-productos">
             {pedido.productos?.map((item, i) => (
@@ -150,7 +172,7 @@ function DetallePedido() {
               </div>
             )}
             <div className="depd-total-row depd-total-row--final">
-              <span>Total a cobrar</span>
+              <span>{pedido.devolucion ? "Importe original del pedido" : "Total a cobrar"}</span>
               <span className="depd-total-monto">${pedido.total}</span>
             </div>
           </div>
@@ -165,7 +187,7 @@ function DetallePedido() {
           )}
 
           {/* Aviso efectivo */}
-          <div className="depd-aviso-efectivo">
+          {!pedido.devolucion && <div className="depd-aviso-efectivo">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>
             </svg>
@@ -174,7 +196,7 @@ function DetallePedido() {
                 El cliente paga en efectivo al recibir — cobrar <strong>${pedido.total}</strong>
               </p>
             </div>
-          </div>
+          </div>}
         </div>
 
         {/* ── Estado entregado ── */}
@@ -198,10 +220,10 @@ function DetallePedido() {
             Chat con el local
           </button>
 
-          {pedido.estado === "en_camino" && (
+          {pedido.estado === "en_camino" && esRepartidor && !devolucionPendiente && (
             <button
               onClick={confirmarEntrega}
-              disabled={entregando}
+              disabled={entregando || solicitando}
               className={`depd-btn depd-btn--entregar${entregando ? " depd-btn--disabled" : ""}`}
             >
               {entregando ? (
@@ -220,7 +242,17 @@ function DetallePedido() {
             </button>
           )}
 
-          {["en_camino", "entregado"].includes(pedido.estado) && (
+          {pedido.estado === "en_camino" && esRepartidor && !devolucionPendiente && <details className="st-return-form">
+            <summary>No pude entregar el pedido</summary>
+            <p>Contacta primero al cliente por chat. Si conservas la comida, solicita regresar al local. Si ya entregaste el producto y solo falta el pago, usa el reporte; no solicites una devolución.</p>
+            <form onSubmit={solicitarDevolucion}>
+              <label>Motivo de la devolución<select value={motivoDevolucion} onChange={(e) => setMotivoDevolucion(e.target.value)}><option value="cliente_ausente">El cliente no apareció o no respondió</option><option value="no_recibio_pedido">El cliente rechazó el pedido</option><option value="no_pago">No pagó y no le entregué la comida</option></select></label>
+              <label className="st-return-check"><input type="checkbox" checked={conservoPedido} onChange={(e) => setConservoPedido(e.target.checked)} />Conservo el pedido completo y lo devolveré al local.</label>
+              {errorDevolucion && <p role="alert">{errorDevolucion}</p>}
+              <button type="submit" disabled={!conservoPedido || solicitando || entregando}>{solicitando ? "Solicitando…" : "Solicitar devolución al local"}</button>
+            </form>
+          </details>}
+          {esRepartidor && ["en_camino", "entregado", ...(pedido.devolucion ? ["cancelado"] : [])].includes(pedido.estado) && (
             <ReportarProblema pedidoId={pedido._id} rol="repartidor" />
           )}
         </div>
