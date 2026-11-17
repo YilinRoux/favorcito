@@ -3,7 +3,6 @@ import api from "../../services/api";
 import { NotificationContext } from "../../context/NotificationContext";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import socket from "../../services/socket";
-import { getImageUrl } from "../../utils/imageUrl";
 import { activarSonido, desactivarSonido, reanudarEnPrimerToque, sonar, sonidoActivado } from "../../utils/avisoPedidos";
 import hojas from "../../assets/dashboard/hojas-dashboard.png";
 import "../../styles/vendedor/DashboardVendedor.css";
@@ -115,7 +114,7 @@ function DashboardVendedor() {
   const [pedidos, setPedidos] = useState([]);
   const [local, setLocal] = useState(null);
   const [cargando, setCargando] = useState(true);
-  const [tab, setTab] = useState("nuevos");
+  const [tabElegida, setTab] = useState(null);
   const [pagina, setPagina] = useState(1);
   const pedidosPorPagina = 5;
   const [mostrarMensajes, setMostrarMensajes] = useState(false);
@@ -285,6 +284,9 @@ function DashboardVendedor() {
   const pedidosEnProceso = pedidos.filter((p) => ["aceptado", "en_preparacion", "listo", "en_camino"].includes(p.estado));
   const pedidosCompletados = pedidos.filter((p) => ["entregado", "cancelado"].includes(p.estado));
 
+  // Prioriza trabajo pendiente hasta que el vendedor elija una pestaña.
+  const tab = tabElegida ?? (pedidosNuevos.length ? "nuevos" : pedidosEnProceso.length ? "proceso" : "nuevos");
+
   const pedidosActivos =
     tab === "nuevos" ? pedidosNuevos :
     tab === "proceso" ? pedidosEnProceso :
@@ -300,6 +302,7 @@ function DashboardVendedor() {
   };
 
   const irPagina = (nuevaPagina) => {
+    setTab(tab);
     setPagina(Math.min(Math.max(nuevaPagina, 1), totalPaginas));
   };
 
@@ -332,10 +335,6 @@ function DashboardVendedor() {
 
   const hayPromo = Boolean(local?.promocionActiva && local?.imagenesAnuncios?.length > 0);
 
-  const verPedidos = () => {
-    cambiarTab("nuevos");
-    document.getElementById("pedidos")?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
 
   if (cargando) return (
     <div className={`dv-wrap dv-theme-${tema}${ligero ? " dv-ligero" : ""}`}>
@@ -452,8 +451,8 @@ function DashboardVendedor() {
         <header className="dv-top">
           <div className="dv-heading">
             <span className="dv-eyebrow">Panel del vendedor</span>
-            <h1>Bienvenido a <strong>Favorcito</strong></h1>
-            <p>Gestiona tu local, pedidos, menú y promociones desde un solo lugar.</p>
+            <h1>Pedidos de <strong>tu local</strong></h1>
+            <p>Acepta los nuevos pedidos y da seguimiento a los que estás preparando.</p>
           </div>
 
           <div className="dv-top-actions">
@@ -475,12 +474,14 @@ function DashboardVendedor() {
               ) : (
                 <Ic size={20}><path d="M11 5 6 9H2v6h4l5 4zM22 9l-6 6M16 9l6 6" /></Ic>
               )}
+              <span className="dv-sound-label">Sonido {sonido ? "activo" : "apagado"}</span>
             </button>
 
             <button
               type="button"
               className="dv-bell"
               aria-label={total > 0 ? `${total} mensajes sin leer` : "Sin mensajes nuevos"}
+              title={total > 0 ? `${total} mensajes sin leer` : "Sin mensajes nuevos"}
               aria-expanded={mostrarMensajes}
               onClick={() => total > 0 && setMostrarMensajes(!mostrarMensajes)}
             >
@@ -488,23 +489,13 @@ function DashboardVendedor() {
               {total > 0 && <i className="dv-bell-dot" />}
             </button>
 
-            {local && (
-              <div className="dv-user">
-                <span className="dv-user-avatar">
-                  <Ic size={18}><path d="M3 9l1.5-5h15L21 9M4 9v11h16V9M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0" /></Ic>
-                </span>
-                <span className="dv-user-text">
-                  <strong>{local.nombre}</strong>
-                  <small>Vendedor</small>
-                </span>
-              </div>
-            )}
 
             <button
               type="button"
               className={`dv-toggle is-${tema}`}
               onClick={cambiarTema}
               aria-label={tema === "claro" ? "Cambiar a modo oscuro" : "Cambiar a modo claro"}
+              title={tema === "claro" ? "Cambiar a modo oscuro" : "Cambiar a modo claro"}
               aria-pressed={tema === "oscuro"}
             >
               <span className="dv-toggle-opt dv-toggle-sun"><Ic size={16}><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.41M17.66 6.34l1.41-1.41" /></Ic></span>
@@ -553,56 +544,18 @@ function DashboardVendedor() {
         ) : (
         <>
         {local && (
-          <section className={`dv-hero ${hayPromo ? "has-promo" : "no-promo"}`}>
-            <div className="dv-hero-copy">
-              <div className="dv-hero-store" aria-hidden="true">
-                <svg viewBox="0 0 64 64" width="40" height="40" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M10 24 14 10h36l4 14" />
-                  <path d="M10 24c0 3.3 2.7 6 6 6s6-2.7 6-6c0 3.3 2.7 6 6 6s6-2.7 6-6c0 3.3 2.7 6 6 6s6-2.7 6-6c0 3.3 2.7 6 6 6s6-2.7 6-6" />
-                  <path d="M14 32v22h36V32" />
-                  <path d="M38 54V40h8v14" />
-                  <path d="M20 40h12v8H20z" />
-                </svg>
+          <section className="dv-local-strip" aria-label="Tu local">
+            <span className="dv-local-icon" aria-hidden="true">
+              <Ic size={24}><path d="M3 9l1.5-5h15L21 9M4 9v11h16V9M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0" /></Ic>
+            </span>
+            <div className="dv-local-info">
+              <div className="dv-local-header">
+                <h2 className="dv-local-nombre">{local.nombre}</h2>
+                <span className="dv-local-badge"><Ic size={13}><path d="m5 12 5 5 9-10" /></Ic>Aprobado</span>
               </div>
-              <div className="dv-hero-info">
-                <div className="dv-local-header">
-                  <h2 className="dv-local-nombre">{local.nombre}</h2>
-                  <span className="dv-local-badge"><Ic size={13}><path d="m5 12 5 5 9-10" /></Ic>Aprobado</span>
-                </div>
-                <p className="dv-local-desc">{local.descripcion}</p>
-                <p className="dv-local-dir">
-                  <Ic size={14}><path d="M12 21s7-6.2 7-11a7 7 0 0 0-14 0c0 4.8 7 11 7 11z" /><circle cx="12" cy="10" r="2.5" /></Ic>
-                  {local.direccion}
-                </p>
-                <div className="dv-local-links">
-                  <Link to="/vendedor/menu" className="dv-link-primary">
-                    <Ic size={16}><path d="M3 2v7a3 3 0 0 0 6 0V2M6 2v20M19 22V2c-2.5 1.5-4 4.5-4 8v4h4" /></Ic>
-                    Gestionar menú
-                  </Link>
-                  <Link to="/vendedor/promocion" className="dv-link-ghost">
-                    <Ic size={16}><path d="m3 11 18-5v12L3 14zM11.6 16.8a3 3 0 1 1-5.8-1.6" /></Ic>
-                    Promoción y Anuncios
-                  </Link>
-                </div>
-              </div>
+              <p className="dv-local-status">{hayPromo ? "Promoción con anuncio activo" : local.promocionActiva ? "Promoción activa" : "Sin promoción activa"}</p>
             </div>
-
-            {hayPromo ? (
-              <div className="dv-promo-visual">
-                <img
-                  src={getImageUrl(local.imagenesAnuncios[0])}
-                  className="dv-promo-image"
-                  alt={local.anuncio || "Promoción activa"}
-                />
-                {local.anuncio && <span className="dv-promo-caption">{local.anuncio}</span>}
-              </div>
-            ) : (
-              <div className="dv-hero-empty">
-                <img className="dv-leaf dv-leaf--hero" src={hojas} alt="" aria-hidden="true" />
-                <p>Sin promoción activa</p>
-                <Link to="/vendedor/promocion">Activar promoción</Link>
-              </div>
-            )}
+            <Link to="/vendedor/estado" className="dv-local-details">Ver estado del local <span aria-hidden="true">→</span></Link>
           </section>
         )}
 
@@ -639,16 +592,18 @@ function DashboardVendedor() {
           <div className="dv-stat-card">
             <span className="dv-stat-icon"><Ic size={26}><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0" /></Ic></span>
             <div>
-              <p className="dv-stat-label">Pedidos hoy</p>
+              <p className="dv-stat-label">Creados hoy</p>
               <p className="dv-stat-value">{pedidosHoy.length}</p>
+              <p className="dv-stat-hint">Todos los estados</p>
             </div>
             <img className="dv-leaf dv-leaf--stat" src={hojas} alt="" aria-hidden="true" />
           </div>
           <div className="dv-stat-card dv-stat-card--proceso">
             <span className="dv-stat-icon"><Ic size={26}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></Ic></span>
             <div>
-              <p className="dv-stat-label">En proceso</p>
+              <p className="dv-stat-label">En proceso · todos</p>
               <p className="dv-stat-value">{pedidosEnProceso.length}</p>
+              <p className="dv-stat-hint">Incluye días anteriores</p>
             </div>
             <img className="dv-leaf dv-leaf--stat" src={hojas} alt="" aria-hidden="true" />
           </div>
@@ -657,6 +612,7 @@ function DashboardVendedor() {
             <div>
               <p className="dv-stat-label">Ventas hoy</p>
               <p className="dv-stat-value">${ventasHoy}</p>
+              <p className="dv-stat-hint">Pedidos de hoy entregados</p>
             </div>
             <img className="dv-leaf dv-leaf--stat" src={hojas} alt="" aria-hidden="true" />
           </div>
@@ -667,7 +623,6 @@ function DashboardVendedor() {
             <div className="dv-panel-heading">
               <span className="dv-heading-icon"><Ic size={20}><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01" /></Ic></span>
               <h2>Actividad de pedidos</h2>
-              <span className="dv-orders-total">{pedidosActivos.length} en esta vista</span>
             </div>
 
             <div className="dv-tabs" role="tablist">
@@ -683,15 +638,16 @@ function DashboardVendedor() {
               </button>
               <button role="tab" aria-selected={tab === "completados"} onClick={() => cambiarTab("completados")} className={`dv-tab dv-tab--completados ${tab === "completados" ? "is-active" : ""}`}>
                 <Ic size={15}><circle cx="12" cy="12" r="9" /><path d="m8 12 3 3 5-6" /></Ic>
-                Completados
+                Historial
                 {pedidosCompletados.length > 0 && <span className="dv-tab-badge">{pedidosCompletados.length}</span>}
               </button>
             </div>
 
+            <p className="dv-orders-scope">{tab === "completados" ? "Entregados y cancelados · pedidos creados en los últimos 14 días." : "Pedidos pendientes de todos los días, hasta que se cierren."}</p>
             <div className="dv-tab-content">
               {pedidosActivos.length === 0 ? (
                 <p className="dv-empty-msg">
-                  {tab === "nuevos" ? "Sin pedidos nuevos." : tab === "proceso" ? "Sin pedidos en proceso." : "Sin pedidos completados."}
+                  {tab === "nuevos" ? "Sin pedidos nuevos." : tab === "proceso" ? "Sin pedidos en proceso." : "Sin pedidos entregados ni cancelados en los últimos 14 días."}
                 </p>
               ) : (
                 <>
@@ -727,34 +683,7 @@ function DashboardVendedor() {
             </div>
           </div>
 
-          <aside className="dv-summary-card">
-            <div className="dv-panel-heading">
-              <span className="dv-heading-icon"><Ic size={20}><path d="m12 2 10 5-10 5L2 7zM2 12l10 5 10-5M2 17l10 5 10-5" /></Ic></span>
-              <h2>Resumen del día</h2>
-            </div>
-            <div className="dv-summary-list">
-              <div className="dv-summary-row"><span>Nuevos</span><strong>{pedidosNuevos.length}</strong></div>
-              <div className="dv-summary-row"><span>En proceso</span><strong>{pedidosEnProceso.length}</strong></div>
-              <div className="dv-summary-row"><span>Completados</span><strong>{pedidosCompletados.length}</strong></div>
-            </div>
 
-            <h3 className="dv-quick-title"><Ic size={16}><path d="M13 2 3 14h9l-1 8 10-12h-9z" /></Ic>Acciones rápidas</h3>
-            <div className="dv-quick-grid">
-              <Link to="/vendedor/menu" className="dv-quick">
-                <Ic size={22}><path d="M3 2v7a3 3 0 0 0 6 0V2M6 2v20M19 22V2c-2.5 1.5-4 4.5-4 8v4h4" /></Ic>
-                <span>Editar menú</span>
-              </Link>
-              <Link to="/vendedor/promocion" className="dv-quick">
-                <Ic size={22}><path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8zM7 7h.01" /></Ic>
-                <span>Crear promoción</span>
-              </Link>
-              <button type="button" className="dv-quick" onClick={verPedidos}>
-                <Ic size={22}><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0" /></Ic>
-                <span>Ver pedidos</span>
-                {pedidosNuevos.length > 0 && <em className="dv-quick-badge">{pedidosNuevos.length}</em>}
-              </button>
-            </div>
-          </aside>
         </section>
         </>
         )}
