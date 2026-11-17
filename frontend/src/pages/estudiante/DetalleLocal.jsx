@@ -23,22 +23,24 @@ function DetalleLocal() {
   const [motivo, setMotivo] = useState("");
   const [mensaje, setMensaje] = useState("");
 
-  const cargarLocal = async () => {
-    try {
-      const localRes = await api.get(`/locales/${id}`);
-      setLocal(localRes.data);
-      const productosRes = await api.get(`/productos/local/${id}`);
-      setProductos(productosRes.data);
-    } catch {
-      navigate("/menu");
-    } finally {
-      setCargando(false);
-    }
-  };
-
   useEffect(() => {
+    let vigente = true;
+    const cargarLocal = async () => {
+      try {
+        const localRes = await api.get(`/locales/${id}`);
+        if (!vigente) return;
+        setLocal(localRes.data);
+        const productosRes = await api.get(`/productos/local/${id}`);
+        if (vigente) setProductos(productosRes.data);
+      } catch {
+        if (vigente) navigate("/menu");
+      } finally {
+        if (vigente) setCargando(false);
+      }
+    };
     cargarLocal();
-  }, [id]);
+    return () => { vigente = false; };
+  }, [id, navigate]);
 
   const agregarAlCarrito = (producto) => {
     setCarrito((prev) => {

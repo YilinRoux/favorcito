@@ -7,10 +7,14 @@ import { getApiBaseUrl } from "../utils/runtimeUrls";
 export const NotificationContext = createContext();
 
 export function NotificationProvider({ children }) {
+  const { usuario } = useContext(AuthContext);
+  const identidad = `${usuario?.id || usuario?._id || "anonimo"}:${usuario?.rol || ""}`;
+  return <NotificationSession key={identidad} usuario={usuario}>{children}</NotificationSession>;
+}
+
+function NotificationSession({ children, usuario }) {
   const [notificaciones, setNotificaciones] = useState({});
   const [chatActivo, setChatActivo] = useState(null);
-  const { usuario } = useContext(AuthContext);
-
   useEffect(() => {
     if (!usuario) {
       socket.disconnect();
@@ -82,7 +86,6 @@ export function NotificationProvider({ children }) {
   // Reconciliar con la base de datos: los eventos de socket pueden perderse.
   useEffect(() => {
     if (!usuario || !["estudiante", "vendedor"].includes(usuario.rol)) {
-      setNotificaciones({});
       return;
     }
 
