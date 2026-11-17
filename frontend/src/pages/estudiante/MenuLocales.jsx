@@ -161,7 +161,7 @@ function MenuLocales() {
         {recomendados.length > 0 && (
           <div className="ml-recomendados">
             <div className="ml-recomendados-header">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FF5C0A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
               </svg>
               <div>
@@ -261,8 +261,8 @@ function MenuLocales() {
                       <div className="ml-stars-mini">
                         {[1,2,3,4,5].map(n => (
                           <svg key={n} width="11" height="11" viewBox="0 0 24 24"
-                            fill={n <= Math.round(local.calificacionPromedio || 0) ? "#FF5C0A" : "none"}
-                            stroke={n <= Math.round(local.calificacionPromedio || 0) ? "#FF5C0A" : "rgba(255,255,255,0.18)"}
+                            fill={n <= Math.round(local.calificacionPromedio || 0) ? "var(--orange)" : "none"}
+                            stroke={n <= Math.round(local.calificacionPromedio || 0) ? "var(--orange)" : "rgba(255,255,255,0.18)"}
                             strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                           </svg>

@@ -65,13 +65,13 @@ function Navbar() {
   const vendedorDashboard = usuario?.rol === "vendedor" && location.pathname.startsWith("/vendedor/");
 
   return (
-    <nav className={`nb-bar ${vendedorDashboard ? `nb-bar--vendor-dashboard nb-bar--${temaActual}` : ""}`}>
+    <nav className={`nb-bar ${vendedorDashboard ? `nb-bar--vendor-dashboard nb-bar--${temaActual}` : usuario?.rol === "estudiante" ? `nb-bar--student nb-bar--${temaActual}` : ""}`}>
       <div className="nb-inner">
 
         {/* Logo */}
         <Link to="/" className="nb-logo" onClick={closeMenu}>
           <div className="nb-logo-icon">
-            {vendedorDashboard ? (
+            {vendedorDashboard || usuario?.rol === "estudiante" ? (
               <img
                 src={temaActual === "claro" ? logoClaro : logoOscuro}
                 alt=""

@@ -1,3 +1,4 @@
+import MarcoEstudiante from "./components/estudiante/MarcoEstudiante";
 import { lazy, Suspense } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/layout/Navbar";
@@ -81,16 +82,16 @@ function App() {
           <Route path="/recuperar-contrasena" element={<RecuperarContrasena />} />
 
           {/* ESTUDIANTE */}
-          <Route path="/menu" element={<MenuLocales />} />
-          <Route path="/local/:id" element={<DetalleLocal />} />
-          <Route path="/confirmar" element={<ConfirmarPedido />} />
-          <Route path="/mis-pedidos" element={<MisPedidos />} />
-          <Route path="/rastreo/:id" element={<RastreoPedido />} />
-          <Route path="/calificar/:id" element={<CalificarPedido />} />
-          <Route path="/perfil" element={<Perfil />} />
-          <Route path="/onboarding" element={<Onboarding />} />
-          <Route path="/onboarding/habitos" element={<OnboardingHabitos />} />
-          <Route path="/onboarding/confirmacion" element={<OnboardingConfirmacion />} />
+          <Route path="/menu" element={<MarcoEstudiante><MenuLocales /></MarcoEstudiante>} />
+          <Route path="/local/:id" element={<MarcoEstudiante><DetalleLocal /></MarcoEstudiante>} />
+          <Route path="/confirmar" element={<MarcoEstudiante><ConfirmarPedido /></MarcoEstudiante>} />
+          <Route path="/mis-pedidos" element={<MarcoEstudiante><MisPedidos /></MarcoEstudiante>} />
+          <Route path="/rastreo/:id" element={<MarcoEstudiante><RastreoPedido /></MarcoEstudiante>} />
+          <Route path="/calificar/:id" element={<MarcoEstudiante><CalificarPedido /></MarcoEstudiante>} />
+          <Route path="/perfil" element={<MarcoEstudiante><Perfil /></MarcoEstudiante>} />
+          <Route path="/onboarding" element={<MarcoEstudiante><Onboarding /></MarcoEstudiante>} />
+          <Route path="/onboarding/habitos" element={<MarcoEstudiante><OnboardingHabitos /></MarcoEstudiante>} />
+          <Route path="/onboarding/confirmacion" element={<MarcoEstudiante><OnboardingConfirmacion /></MarcoEstudiante>} />
 
           {/* VENDEDOR */}
           <Route path="/vendedor/dashboard" element={<DashboardVendedor />} />
@@ -100,9 +101,9 @@ function App() {
           <Route path="/vendedor/promocion" element={<PromocionAnuncios />} />
 
           {/* REPARTIDOR */}
-          <Route path="/favorcito" element={<Favorcito />} />
-          <Route path="/pedido/:id" element={<DetallePedido />} />
-          <Route path="/mis-entregas" element={<MisEntregas />} />
+          <Route path="/favorcito" element={<MarcoEstudiante><Favorcito /></MarcoEstudiante>} />
+          <Route path="/pedido/:id" element={<MarcoEstudiante><DetallePedido /></MarcoEstudiante>} />
+          <Route path="/mis-entregas" element={<MarcoEstudiante><MisEntregas /></MarcoEstudiante>} />
 
           {/* ADMIN */}
           <Route path="/admin/dashboard" element={<LayoutAdmin><DashboardAdmin /></LayoutAdmin>} />

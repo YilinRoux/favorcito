@@ -136,8 +136,8 @@ function DetalleLocal() {
                 <div className="dl-stars-row">
                   {[1,2,3,4,5].map(n => (
                     <svg key={n} width="14" height="14" viewBox="0 0 24 24"
-                      fill={n <= Math.round(local.calificacionPromedio || 0) ? "#FF5C0A" : "none"}
-                      stroke={n <= Math.round(local.calificacionPromedio || 0) ? "#FF5C0A" : "rgba(255,255,255,0.2)"}
+                      fill={n <= Math.round(local.calificacionPromedio || 0) ? "var(--orange)" : "none"}
+                      stroke={n <= Math.round(local.calificacionPromedio || 0) ? "var(--orange)" : "rgba(255,255,255,0.2)"}
                       strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                       <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                     </svg>
@@ -291,8 +291,8 @@ function DetalleLocal() {
                 {[1, 2, 3, 4, 5].map((e) => (
                   <button key={e} onClick={() => handleCalificar(e)} className={`dl-star-pick${e <= estrellas ? " dl-star-pick--active" : ""}`} aria-label={`${e} estrellas`}>
                     <svg width="30" height="30" viewBox="0 0 24 24"
-                      fill={e <= estrellas ? "#FF5C0A" : "none"}
-                      stroke={e <= estrellas ? "#FF5C0A" : "rgba(255,255,255,0.2)"}
+                      fill={e <= estrellas ? "var(--orange)" : "none"}
+                      stroke={e <= estrellas ? "var(--orange)" : "rgba(255,255,255,0.2)"}
                       strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                       <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                     </svg>

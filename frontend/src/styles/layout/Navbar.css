@@ -209,3 +209,14 @@
   .nb-bar--vendor-dashboard .nb-links{display:none!important}
   .nb-bar--vendor-dashboard .nb-hamburger{display:block!important}
 }
+
+/* El estudiante conserva navegación horizontal, con la paleta del vendedor. */
+.nb-bar--student{background:var(--sb-solid)!important;border-color:var(--sb-line)!important}
+.nb-bar--student .nb-logo-icon{background:transparent!important;width:40px!important;height:40px!important}
+.nb-bar--student .nb-logo-image{width:100%;height:100%;object-fit:contain}
+.nb-bar--student .nb-logo-text{color:var(--sb-ink)!important}
+.nb-bar--student .nb-link,.nb-bar--student .nb-logout,.nb-bar--student .nb-mobile-link{color:var(--sb-muted)!important}
+.nb-bar--student .nb-link:hover{color:var(--sb-ink)!important;background:var(--sb-hover)!important}
+.nb-bar--student .nb-link--active,.nb-bar--student .nb-mobile-link--active{background:var(--sb-active)!important;color:#fff!important}
+.nb-bar--student .nb-mobile-menu{background:var(--sb-solid)!important}
+.nb-bar--student .nb-hamburger span{background:var(--sb-ink)!important}

@@ -3,39 +3,17 @@
    Favorcito · Módulo Estudiante
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+
 
 /* ── Variables ─────────────────────────────────────────────── */
-:root {
-  --orange:        #FF5C0A;
-  --orange-bright: #FF7A30;
-  --orange-hover:  #e04e00;
-  --orange-glow:   rgba(255, 92, 10, 0.18);
-  --green:         #22C55E;
-  --green-glow:    rgba(34, 197, 94, 0.15);
-  --bg:            #080808;
-  --bg-card:       #111111;
-  --bg-card-inner: #181818;
-  --bg-input:      #0E0E0E;
-  --text:          #FFFFFF;
-  --text-muted:    #666666;
-  --text-label:    #BBBBBB;
-  --border:        rgba(255, 255, 255, 0.07);
-  --border-input:  rgba(255, 255, 255, 0.08);
-  --radius-card:   24px;
-  --radius-input:  10px;
-  --radius-btn:    10px;
-  --radius-chip:   100px;
-  --shadow-card:   0 40px 100px rgba(0,0,0,0.65);
-  --shadow-btn:    0 6px 24px rgba(255,92,10,0.3);
-}
+/* La paleta se hereda de MarcoEstudiante; no modifica otras áreas. */
 
 /* ── Reset anti-Tailwind ───────────────────────────────────── */
 .pf-wrap input,
 .pf-wrap textarea,
 .pf-wrap button,
 .pf-wrap select {
-  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  font-family: 'DM Sans', sans-serif !important;
   -webkit-appearance: none !important;
   appearance: none !important;
   box-sizing: border-box !important;
@@ -46,7 +24,7 @@
   position: relative;
   min-height: 100vh;
   background-color: var(--bg) !important;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -57,7 +35,7 @@
 .pf-wrap::before {
   content: '';
   position: absolute; inset: 0;
-  background-image: radial-gradient(circle, rgba(255,255,255,0.055) 1px, transparent 1px);
+  background-image: radial-gradient(circle, color-mix(in srgb, var(--text) 5.5%, transparent) 1px, transparent 1px);
   background-size: 32px 32px;
   pointer-events: none; z-index: 0;
   animation: pf-gf 6s ease-in-out infinite;
@@ -78,7 +56,7 @@
   width: 600px; height: 600px;
   top: -220px; left: 50%;
   transform: translateX(-50%);
-  background: radial-gradient(circle, rgba(255,92,10,0.2) 0%, transparent 65%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--orange) 20%, transparent) 0%, transparent 65%);
   filter: blur(72px);
   animation: pf-o1 7s ease-in-out infinite;
 }
@@ -91,7 +69,7 @@
 .pf-orb-2 {
   width: 300px; height: 300px;
   bottom: -80px; right: -60px;
-  background: radial-gradient(circle, rgba(255,92,10,0.08) 0%, transparent 65%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--orange) 8%, transparent) 0%, transparent 65%);
   filter: blur(60px);
 }
 
@@ -103,7 +81,7 @@
 
 .pf-p {
   position: absolute; border-radius: 50%;
-  background: #FF5C0A; opacity: 0;
+  background: var(--orange); opacity: 0;
   animation: pf-fp var(--dur, 7s) var(--delay, 0s) ease-in-out infinite;
 }
 
@@ -149,7 +127,7 @@
 .pf-logo-icon::before {
   content: '';
   position: absolute; inset: -2px; border-radius: 16px;
-  background: conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0.3) 25%, transparent 50%);
+  background: conic-gradient(from 0deg, transparent 0%, color-mix(in srgb, var(--text) 30%, transparent) 25%, transparent 50%);
   animation: pf-halo 2.5s linear infinite;
 }
 
@@ -187,7 +165,7 @@
 .pf-card::before {
   content: '';
   position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, transparent 0%, #FF5C0A 30%, #FF7A30 50%, #FF5C0A 70%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, var(--orange) 30%, var(--orange-bright) 50%, var(--orange) 70%, transparent 100%);
   background-size: 200%;
   animation: pf-bf 3s linear infinite;
 }
@@ -214,7 +192,7 @@
 .pf-avatar {
   width: 72px; height: 72px;
   background: var(--orange-glow) !important;
-  border: 2px solid rgba(255,92,10,0.3);
+  border: 2px solid color-mix(in srgb, var(--orange) 30%, transparent);
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   color: var(--orange);
@@ -225,7 +203,7 @@
   position: absolute;
   inset: -6px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,92,10,0.15) 0%, transparent 70%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--orange) 15%, transparent) 0%, transparent 70%);
   animation: pf-avatar-pulse 3s ease-in-out infinite;
 }
 
@@ -268,20 +246,20 @@
 
 .pf-rol-chip--estudiante {
   background: var(--orange-glow) !important;
-  border: 1px solid rgba(255,92,10,0.25);
+  border: 1px solid color-mix(in srgb, var(--orange) 25%, transparent);
   color: var(--orange) !important;
 }
 
 .pf-rol-chip--vendedor {
   background: var(--green-glow) !important;
-  border: 1px solid rgba(34,197,94,0.25);
+  border: 1px solid color-mix(in srgb, var(--green) 25%, transparent);
   color: var(--green) !important;
 }
 
 .pf-rol-chip--admin {
-  background: rgba(168,85,247,0.1) !important;
-  border: 1px solid rgba(168,85,247,0.22);
-  color: #c084fc !important;
+  background: color-mix(in srgb, var(--orange) 10%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--orange) 22%, transparent);
+  color: var(--orange) !important;
 }
 
 /* ── Card opciones ─────────────────────────────────────────── */
@@ -338,7 +316,7 @@
 
 .pf-opcion:hover .pf-opcion-icono {
   background: var(--orange-glow) !important;
-  border-color: rgba(255,92,10,0.25) !important;
+  border-color: color-mix(in srgb, var(--orange) 25%, transparent) !important;
   color: var(--orange);
 }
 
@@ -374,14 +352,14 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: rgba(239,68,68,0.07) !important;
-  border: 1px solid rgba(239,68,68,0.18) !important;
+  background: color-mix(in srgb, var(--st-red) 7%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--st-red) 18%, transparent) !important;
   border-radius: var(--radius-card) !important;
   border-top-left-radius: var(--radius-card) !important;
   border-top-right-radius: var(--radius-card) !important;
   border-bottom-left-radius: var(--radius-card) !important;
   border-bottom-right-radius: var(--radius-card) !important;
-  color: #f87171 !important;
+  color: var(--st-red) !important;
   font-size: 0.9rem; font-weight: 700;
   padding: 16px !important;
   cursor: pointer;
@@ -389,8 +367,8 @@
 }
 
 .pf-btn-logout:hover {
-  background: rgba(239,68,68,0.13) !important;
-  border-color: rgba(239,68,68,0.3) !important;
+  background: color-mix(in srgb, var(--st-red) 13%, transparent) !important;
+  border-color: color-mix(in srgb, var(--st-red) 30%, transparent) !important;
   transform: translateY(-2px);
 }
 
@@ -398,23 +376,23 @@
 .pf-card--confirmar {
   padding: 28px 24px;
   text-align: center;
-  border-color: rgba(239,68,68,0.15) !important;
+  border-color: color-mix(in srgb, var(--st-red) 15%, transparent) !important;
   animation: pf-rise 0.3s ease both;
 }
 
 .pf-card--confirmar::before {
-  background: linear-gradient(90deg, transparent 0%, #ef4444 30%, #f97316 50%, #ef4444 70%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, var(--st-red) 30%, var(--orange) 50%, var(--st-red) 70%, transparent 100%);
   background-size: 200%;
   animation: pf-bf 3s linear infinite;
 }
 
 .pf-confirmar-icon {
   width: 56px; height: 56px;
-  background: rgba(239,68,68,0.08) !important;
-  border: 1px solid rgba(239,68,68,0.18);
+  background: color-mix(in srgb, var(--st-red) 8%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--st-red) 18%, transparent);
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  color: #f87171;
+  color: var(--st-red);
   margin: 0 auto 14px;
 }
 
@@ -447,15 +425,15 @@
 }
 
 .pf-btn--salir {
-  background: #ef4444 !important;
-  color: #fff !important;
-  box-shadow: 0 6px 20px rgba(239,68,68,0.3);
+  background: var(--st-red) !important;
+  color: var(--text) !important;
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--st-red) 30%, transparent);
 }
 
 .pf-btn--salir::before {
   content: '';
   position: absolute; top: 0; left: -100%; width: 55%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--text) 18%, transparent), transparent);
   transform: skewX(-20deg);
   animation: pf-sh 2.5s ease-in-out infinite;
 }
@@ -467,9 +445,9 @@
 }
 
 .pf-btn--salir:hover {
-  background: #dc2626 !important;
+  background: var(--st-red) !important;
   transform: translateY(-2px) !important;
-  box-shadow: 0 10px 28px rgba(239,68,68,0.4) !important;
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--st-red) 40%, transparent) !important;
 }
 
 .pf-btn--cancelar {
@@ -479,8 +457,8 @@
 }
 
 .pf-btn--cancelar:hover {
-  background: rgba(255,255,255,0.07) !important;
-  border-color: rgba(255,255,255,0.12) !important;
+  background: color-mix(in srgb, var(--text) 7%, transparent) !important;
+  border-color: color-mix(in srgb, var(--text) 12%, transparent) !important;
   transform: translateY(-2px);
 }
 
@@ -498,8 +476,8 @@
   gap: 14px;
   align-items: flex-start;
   background: linear-gradient(135deg, #fff7ed, #fef3c7);
-  border: 1.5px solid #f59e0b;
-  border-left: 4px solid #f59e0b;
+  border: 1.5px solid var(--st-amber);
+  border-left: 4px solid var(--st-amber);
   border-radius: 14px;
   padding: 16px 18px;
   margin-bottom: 16px;
@@ -510,7 +488,7 @@
   flex-shrink: 0;
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  background: linear-gradient(135deg, var(--st-amber), #d97706);
   border-radius: 50%;
   display: flex;
   align-items: center;

@@ -1,22 +1,22 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+
 
 .ob-wrap {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #080808;
+  background: var(--bg);
   position: relative;
   overflow: hidden;
   padding: 92px 18px 42px;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'DM Sans', sans-serif;
 }
 
 .ob-wrap::before {
   content: "";
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(circle, rgba(255,255,255,0.055) 1px, transparent 1px);
+  background-image: radial-gradient(circle, color-mix(in srgb, var(--text) 5.5%, transparent) 1px, transparent 1px);
   background-size: 30px 30px;
   pointer-events: none;
 }
@@ -31,7 +31,7 @@
 .ob-orb-1 {
   width: 460px;
   height: 460px;
-  background: rgba(255, 92, 10, 0.14);
+  background: color-mix(in srgb, var(--orange) 14%, transparent);
   top: -130px;
   left: -120px;
 }
@@ -39,7 +39,7 @@
 .ob-orb-2 {
   width: 340px;
   height: 340px;
-  background: rgba(34, 197, 94, 0.07);
+  background: color-mix(in srgb, var(--green) 7%, transparent);
   right: -110px;
   bottom: -90px;
 }
@@ -47,8 +47,8 @@
 .ob-card {
   position: relative;
   z-index: 1;
-  background: #111111;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-card);
+  border: 1px solid color-mix(in srgb, var(--text) 8%, transparent);
   border-radius: 24px;
   padding: 40px 34px;
   max-width: 520px;
@@ -65,7 +65,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent, #FF5C0A, #FF7A30, #FF5C0A, transparent);
+  background: linear-gradient(90deg, transparent, var(--orange), var(--orange-bright), var(--orange), transparent);
   background-size: 200% 100%;
   animation: ob-top-border 3s linear infinite;
 }
@@ -86,13 +86,13 @@
 .ob-logo-icon {
   width: 42px;
   height: 42px;
-  color: #ffffff;
-  background: #FF5C0A;
+  color: var(--text);
+  background: var(--orange);
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 10px 24px rgba(255, 92, 10, 0.28);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--orange) 28%, transparent);
 }
 
 .ob-logo-svg {
@@ -104,28 +104,28 @@
 .ob-logo-text {
   font-weight: 800;
   font-size: 20px;
-  color: #ffffff;
+  color: var(--text);
 }
 
 .ob-title {
   font-size: 28px;
   font-weight: 900;
-  color: #ffffff;
+  color: var(--text);
   margin: 0 0 8px;
   letter-spacing: 0;
 }
 
 .ob-subtitle {
   font-size: 15px;
-  color: #777777;
+  color: var(--text-muted);
   margin: 0 0 26px;
   line-height: 1.5;
 }
 
 .ob-error {
-  background: rgba(239, 68, 68, 0.12);
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.28);
+  background: color-mix(in srgb, var(--st-red) 12%, transparent);
+  color: var(--st-red);
+  border: 1px solid color-mix(in srgb, var(--st-red) 28%, transparent);
   padding: 11px 14px;
   border-radius: 12px;
   font-size: 13px;
@@ -144,9 +144,9 @@
 .ob-chip {
   padding: 10px 16px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: #181818;
-  color: #bbbbbb;
+  border: 1px solid color-mix(in srgb, var(--text) 10%, transparent);
+  background: var(--bg-card-inner);
+  color: var(--text-label);
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
@@ -154,16 +154,16 @@
 }
 
 .ob-chip:hover {
-  border-color: rgba(255, 92, 10, 0.35);
-  color: #ffffff;
+  border-color: color-mix(in srgb, var(--orange) 35%, transparent);
+  color: var(--text);
   transform: translateY(-1px);
 }
 
 .ob-chip-activa {
-  background: #FF5C0A;
-  border-color: #FF5C0A;
-  color: #ffffff;
-  box-shadow: 0 8px 22px rgba(255, 92, 10, 0.24);
+  background: var(--orange);
+  border-color: var(--orange);
+  color: var(--text);
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--orange) 24%, transparent);
 }
 
 .ob-btn {
@@ -171,19 +171,19 @@
   padding: 15px;
   border: none;
   border-radius: 12px;
-  background: #FF5C0A;
-  color: #ffffff;
+  background: var(--orange);
+  color: var(--text);
   font-weight: 800;
   font-size: 15px;
   cursor: pointer;
-  box-shadow: 0 10px 30px rgba(255, 92, 10, 0.28);
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--orange) 28%, transparent);
   transition: background 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease;
 }
 
 .ob-btn:hover:not(:disabled) {
-  background: #e04e00;
+  background: var(--orange-hover);
   transform: translateY(-2px);
-  box-shadow: 0 14px 38px rgba(255, 92, 10, 0.36);
+  box-shadow: 0 14px 38px color-mix(in srgb, var(--orange) 36%, transparent);
 }
 
 .ob-btn:disabled {
@@ -197,7 +197,7 @@
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #FF5C0A;
+  color: var(--orange);
   margin: 0 0 8px;
 }
 
@@ -208,7 +208,7 @@
 .ob-section-label {
   font-size: 13px;
   font-weight: 800;
-  color: #bbbbbb;
+  color: var(--text-label);
   text-align: left;
   margin: 0 0 10px;
 }
@@ -216,10 +216,10 @@
 .ob-btn-secundario {
   width: 100%;
   padding: 13px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid color-mix(in srgb, var(--text) 10%, transparent);
   border-radius: 12px;
-  background: #151515;
-  color: #dddddd;
+  background: var(--bg-card-inner);
+  color: var(--text-label);
   font-weight: 800;
   font-size: 14px;
   cursor: pointer;
@@ -228,20 +228,20 @@
 }
 
 .ob-btn-secundario:hover {
-  border-color: rgba(255, 92, 10, 0.35);
-  color: #ffffff;
-  background: #1b1b1b;
+  border-color: color-mix(in srgb, var(--orange) 35%, transparent);
+  color: var(--text);
+  background: var(--bg-card-inner);
 }
 
 .ob-resumen {
-  background: #0d0d0d;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-input);
+  border: 1px solid color-mix(in srgb, var(--text) 8%, transparent);
   border-radius: 14px;
   padding: 17px;
   text-align: left;
   margin-bottom: 24px;
   font-size: 13px;
-  color: #bbbbbb;
+  color: var(--text-label);
   line-height: 1.85;
 }
 
@@ -254,20 +254,20 @@
 }
 
 .ob-resumen strong {
-  color: #ffffff;
+  color: var(--text);
 }
 
 .ob-check-icono {
   width: 60px;
   height: 60px;
   border-radius: 18px;
-  background: rgba(34, 197, 94, 0.12);
-  border: 1px solid rgba(34, 197, 94, 0.28);
+  background: color-mix(in srgb, var(--green) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--green) 28%, transparent);
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto 18px;
-  color: #22C55E;
+  color: var(--green);
 }
 
 @media (max-width: 520px) {

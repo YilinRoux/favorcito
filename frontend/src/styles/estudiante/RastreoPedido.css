@@ -3,39 +3,17 @@
    Favorcito · Módulo Estudiante
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+
 
 /* ── Variables ─────────────────────────────────────────────── */
-:root {
-  --orange:        #FF5C0A;
-  --orange-bright: #FF7A30;
-  --orange-hover:  #e04e00;
-  --orange-glow:   rgba(255, 92, 10, 0.18);
-  --green:         #22C55E;
-  --green-glow:    rgba(34, 197, 94, 0.15);
-  --bg:            #080808;
-  --bg-card:       #111111;
-  --bg-card-inner: #181818;
-  --bg-input:      #0E0E0E;
-  --text:          #FFFFFF;
-  --text-muted:    #666666;
-  --text-label:    #BBBBBB;
-  --border:        rgba(255, 255, 255, 0.07);
-  --border-input:  rgba(255, 255, 255, 0.08);
-  --radius-card:   24px;
-  --radius-input:  10px;
-  --radius-btn:    10px;
-  --radius-chip:   100px;
-  --shadow-card:   0 40px 100px rgba(0,0,0,0.65);
-  --shadow-btn:    0 6px 24px rgba(255,92,10,0.3);
-}
+/* La paleta se hereda de MarcoEstudiante; no modifica otras áreas. */
 
 /* ── Reset anti-Tailwind ───────────────────────────────────── */
 .rp-wrap input,
 .rp-wrap textarea,
 .rp-wrap button,
 .rp-wrap select {
-  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  font-family: 'DM Sans', sans-serif !important;
   -webkit-appearance: none !important;
   appearance: none !important;
   box-sizing: border-box !important;
@@ -46,7 +24,7 @@
   position: relative;
   min-height: 100vh;
   background-color: var(--bg) !important;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -57,7 +35,7 @@
 .rp-wrap::before {
   content: '';
   position: absolute; inset: 0;
-  background-image: radial-gradient(circle, rgba(255,255,255,0.055) 1px, transparent 1px);
+  background-image: radial-gradient(circle, color-mix(in srgb, var(--text) 5.5%, transparent) 1px, transparent 1px);
   background-size: 32px 32px;
   pointer-events: none; z-index: 0;
   animation: rp-gf 6s ease-in-out infinite;
@@ -78,7 +56,7 @@
   width: 600px; height: 600px;
   top: -220px; left: 50%;
   transform: translateX(-50%);
-  background: radial-gradient(circle, rgba(255,92,10,0.2) 0%, transparent 65%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--orange) 20%, transparent) 0%, transparent 65%);
   filter: blur(72px);
   animation: rp-o1 7s ease-in-out infinite;
 }
@@ -91,7 +69,7 @@
 .rp-orb-2 {
   width: 300px; height: 300px;
   bottom: -80px; right: -60px;
-  background: radial-gradient(circle, rgba(255,92,10,0.08) 0%, transparent 65%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--orange) 8%, transparent) 0%, transparent 65%);
   filter: blur(60px);
 }
 
@@ -103,7 +81,7 @@
 
 .rp-p {
   position: absolute; border-radius: 50%;
-  background: #FF5C0A; opacity: 0;
+  background: var(--orange); opacity: 0;
   animation: rp-fp var(--dur, 7s) var(--delay, 0s) ease-in-out infinite;
 }
 
@@ -175,7 +153,7 @@
 .rp-logo-icon::before {
   content: '';
   position: absolute; inset: -2px; border-radius: 16px;
-  background: conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0.3) 25%, transparent 50%);
+  background: conic-gradient(from 0deg, transparent 0%, color-mix(in srgb, var(--text) 30%, transparent) 25%, transparent 50%);
   animation: rp-halo 2.5s linear infinite;
 }
 
@@ -201,8 +179,8 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  background: rgba(34,197,94,0.08) !important;
-  border: 1px solid rgba(34,197,94,0.2);
+  background: color-mix(in srgb, var(--green) 8%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--green) 20%, transparent);
   border-radius: var(--radius-chip) !important;
   border-top-left-radius: var(--radius-chip) !important;
   border-top-right-radius: var(--radius-chip) !important;
@@ -223,8 +201,8 @@
 }
 
 @keyframes rp-live-pulse {
-  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34,197,94,0.6); }
-  50%       { transform: scale(1.15); box-shadow: 0 0 0 5px rgba(34,197,94,0); }
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 color-mix(in srgb, var(--green) 60%, transparent); }
+  50%       { transform: scale(1.15); box-shadow: 0 0 0 5px color-mix(in srgb, var(--green) 0%, transparent); }
 }
 
 /* ── Cards ─────────────────────────────────────────────────── */
@@ -245,7 +223,7 @@
 .rp-card::before {
   content: '';
   position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, transparent 0%, #FF5C0A 30%, #FF7A30 50%, #FF5C0A 70%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, var(--orange) 30%, var(--orange-bright) 50%, var(--orange) 70%, transparent 100%);
   background-size: 200%;
   animation: rp-bf 3s linear infinite;
 }
@@ -282,7 +260,7 @@
   align-items: center;
   gap: 5px;
   background: var(--green-glow) !important;
-  border: 1px solid rgba(34,197,94,0.2);
+  border: 1px solid color-mix(in srgb, var(--green) 20%, transparent);
   border-radius: var(--radius-chip) !important;
   border-top-left-radius: var(--radius-chip) !important;
   border-top-right-radius: var(--radius-chip) !important;
@@ -295,30 +273,30 @@
 
 /* ── Card cancelado ────────────────────────────────────────── */
 .rp-card--cancelado {
-  border-color: rgba(239,68,68,0.2) !important;
+  border-color: color-mix(in srgb, var(--st-red) 20%, transparent) !important;
   text-align: center;
   padding: 32px 24px;
 }
 
 .rp-card--cancelado::before {
-  background: linear-gradient(90deg, transparent 0%, #ef4444 30%, #f97316 50%, #ef4444 70%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, var(--st-red) 30%, var(--orange) 50%, var(--st-red) 70%, transparent 100%);
   background-size: 200%;
   animation: rp-bf 3s linear infinite;
 }
 
 .rp-cancelado-icon {
   width: 64px; height: 64px;
-  background: rgba(239,68,68,0.08) !important;
-  border: 1px solid rgba(239,68,68,0.2);
+  background: color-mix(in srgb, var(--st-red) 8%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--st-red) 20%, transparent);
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  color: #f87171;
+  color: var(--st-red);
   margin: 0 auto 12px;
 }
 
 .rp-cancelado-txt {
   font-size: 1rem; font-weight: 700;
-  color: #f87171 !important;
+  color: var(--st-red) !important;
   margin: 0;
 }
 
@@ -362,7 +340,7 @@
   background: linear-gradient(90deg, var(--orange), var(--orange-bright));
   border-radius: var(--radius-chip) !important;
   transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-  box-shadow: 0 0 8px rgba(255,92,10,0.5);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--orange) 50%, transparent);
 }
 
 /* ── Timeline ──────────────────────────────────────────────── */
@@ -391,7 +369,7 @@
 }
 
 .rp-paso-linea--done {
-  background: rgba(34,197,94,0.4);
+  background: color-mix(in srgb, var(--green) 40%, transparent);
 }
 
 /* Círculo de estado */
@@ -405,7 +383,7 @@
 }
 
 .rp-paso-circulo--done {
-  background: rgba(34,197,94,0.15) !important;
+  background: color-mix(in srgb, var(--green) 15%, transparent) !important;
   border: 2px solid var(--green);
   color: var(--green);
 }
@@ -547,21 +525,21 @@
 
 .rp-btn--chat:hover {
   background: var(--bg-card-inner) !important;
-  border-color: rgba(255,255,255,0.12) !important;
+  border-color: color-mix(in srgb, var(--text) 12%, transparent) !important;
   transform: translateY(-2px);
 }
 
 .rp-btn--calificar {
   background: var(--orange) !important;
   border: none !important;
-  color: #fff !important;
+  color: var(--text) !important;
   box-shadow: var(--shadow-btn);
 }
 
 .rp-btn--calificar::before {
   content: '';
   position: absolute; top: 0; left: -100%; width: 55%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--text) 18%, transparent), transparent);
   transform: skewX(-20deg);
   animation: rp-sh 2.5s ease-in-out infinite;
 }
@@ -575,7 +553,7 @@
 .rp-btn--calificar:hover {
   background: var(--orange-hover) !important;
   transform: translateY(-2px) !important;
-  box-shadow: 0 10px 28px rgba(255,92,10,0.4) !important;
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--orange) 40%, transparent) !important;
 }
 
 /* ── Loading ───────────────────────────────────────────────── */
@@ -589,7 +567,7 @@
 
 .rp-loading-spinner {
   width: 36px; height: 36px;
-  border: 3px solid rgba(255,92,10,0.15);
+  border: 3px solid color-mix(in srgb, var(--orange) 15%, transparent);
   border-top-color: var(--orange);
   border-radius: 50%;
   animation: rp-spin 0.8s linear infinite;

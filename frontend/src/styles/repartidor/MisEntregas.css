@@ -3,39 +3,17 @@
    Favorcito · Módulo Repartidor
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+
 
 /* ── Variables ─────────────────────────────────────────────── */
-:root {
-  --orange:        #FF5C0A;
-  --orange-bright: #FF7A30;
-  --orange-hover:  #e04e00;
-  --orange-glow:   rgba(255, 92, 10, 0.18);
-  --green:         #22C55E;
-  --green-glow:    rgba(34, 197, 94, 0.15);
-  --bg:            #080808;
-  --bg-card:       #111111;
-  --bg-card-inner: #181818;
-  --bg-input:      #0E0E0E;
-  --text:          #FFFFFF;
-  --text-muted:    #666666;
-  --text-label:    #BBBBBB;
-  --border:        rgba(255, 255, 255, 0.07);
-  --border-input:  rgba(255, 255, 255, 0.08);
-  --radius-card:   24px;
-  --radius-input:  10px;
-  --radius-btn:    10px;
-  --radius-chip:   100px;
-  --shadow-card:   0 40px 100px rgba(0,0,0,0.65);
-  --shadow-btn:    0 6px 24px rgba(255,92,10,0.3);
-}
+/* La paleta se hereda de MarcoEstudiante; no modifica otras áreas. */
 
 /* ── Reset anti-Tailwind ───────────────────────────────────── */
 .me-wrap input,
 .me-wrap textarea,
 .me-wrap button,
 .me-wrap select {
-  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  font-family: 'DM Sans', sans-serif !important;
   -webkit-appearance: none !important;
   appearance: none !important;
   box-sizing: border-box !important;
@@ -46,7 +24,7 @@
   position: relative;
   min-height: 100vh;
   background-color: var(--bg) !important;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -57,7 +35,7 @@
 .me-wrap::before {
   content: '';
   position: absolute; inset: 0;
-  background-image: radial-gradient(circle, rgba(255,255,255,0.055) 1px, transparent 1px);
+  background-image: radial-gradient(circle, color-mix(in srgb, var(--text) 5.5%, transparent) 1px, transparent 1px);
   background-size: 32px 32px;
   pointer-events: none; z-index: 0;
   animation: me-gf 6s ease-in-out infinite;
@@ -78,7 +56,7 @@
   width: 600px; height: 600px;
   top: -220px; left: 50%;
   transform: translateX(-50%);
-  background: radial-gradient(circle, rgba(255,92,10,0.2) 0%, transparent 65%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--orange) 20%, transparent) 0%, transparent 65%);
   filter: blur(72px);
   animation: me-o1 7s ease-in-out infinite;
 }
@@ -91,7 +69,7 @@
 .me-orb-2 {
   width: 300px; height: 300px;
   bottom: -80px; right: -60px;
-  background: radial-gradient(circle, rgba(255,92,10,0.08) 0%, transparent 65%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--orange) 8%, transparent) 0%, transparent 65%);
   filter: blur(60px);
 }
 
@@ -103,7 +81,7 @@
 
 .me-p {
   position: absolute; border-radius: 50%;
-  background: #FF5C0A; opacity: 0;
+  background: var(--orange); opacity: 0;
   animation: me-fp var(--dur, 7s) var(--delay, 0s) ease-in-out infinite;
 }
 
@@ -149,7 +127,7 @@
 .me-logo-icon::before {
   content: '';
   position: absolute; inset: -2px; border-radius: 16px;
-  background: conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0.3) 25%, transparent 50%);
+  background: conic-gradient(from 0deg, transparent 0%, color-mix(in srgb, var(--text) 30%, transparent) 25%, transparent 50%);
   animation: me-halo 2.5s linear infinite;
 }
 
@@ -188,7 +166,7 @@
 .me-empty::before {
   content: '';
   position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, transparent 0%, #FF5C0A 30%, #FF7A30 50%, #FF5C0A 70%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, var(--orange) 30%, var(--orange-bright) 50%, var(--orange) 70%, transparent 100%);
   background-size: 200%;
   animation: me-bf 3s linear infinite;
 }
@@ -244,7 +222,7 @@
 
 .me-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(255,255,255,0.1) !important;
+  border-color: color-mix(in srgb, var(--text) 10%, transparent) !important;
 }
 
 @keyframes me-card-in {
@@ -256,15 +234,15 @@
 .me-card::before {
   content: '';
   position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, transparent 0%, #FF5C0A 30%, #FF7A30 50%, #FF5C0A 70%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, var(--orange) 30%, var(--orange-bright) 50%, var(--orange) 70%, transparent 100%);
   background-size: 200%;
   animation: me-bf 3s linear infinite;
 }
 
 /* Acento por estado en borde izquierdo */
-.me-card--entregado  { border-left: 3px solid rgba(34,197,94,0.45) !important; }
-.me-card--en_camino  { border-left: 3px solid rgba(168,85,247,0.45) !important; }
-.me-card--cancelado  { border-left: 3px solid rgba(239,68,68,0.35) !important; }
+.me-card--entregado  { border-left: 3px solid color-mix(in srgb, var(--green) 45%, transparent) !important; }
+.me-card--en_camino  { border-left: 3px solid color-mix(in srgb, var(--orange) 45%, transparent) !important; }
+.me-card--cancelado  { border-left: 3px solid color-mix(in srgb, var(--st-red) 35%, transparent) !important; }
 
 /* ── Top de la card ────────────────────────────────────────── */
 .me-card-top {
@@ -317,20 +295,20 @@
 
 .me-estado-chip--entregado {
   background: var(--green-glow) !important;
-  border: 1px solid rgba(34,197,94,0.22);
+  border: 1px solid color-mix(in srgb, var(--green) 22%, transparent);
   color: var(--green) !important;
 }
 
 .me-estado-chip--en_camino {
-  background: rgba(168,85,247,0.1) !important;
-  border: 1px solid rgba(168,85,247,0.22);
-  color: #c084fc !important;
+  background: color-mix(in srgb, var(--orange) 10%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--orange) 22%, transparent);
+  color: var(--orange) !important;
 }
 
 .me-estado-chip--cancelado {
-  background: rgba(239,68,68,0.08) !important;
-  border: 1px solid rgba(239,68,68,0.18);
-  color: #f87171 !important;
+  background: color-mix(in srgb, var(--st-red) 8%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--st-red) 18%, transparent);
+  color: var(--st-red) !important;
 }
 
 /* ── Productos ─────────────────────────────────────────────── */
@@ -375,14 +353,14 @@
 /* CTA vacío — naranja */
 .me-btn--cta {
   background: var(--orange) !important;
-  color: #fff !important;
+  color: var(--text) !important;
   box-shadow: var(--shadow-btn);
 }
 
 .me-btn--cta::before {
   content: '';
   position: absolute; top: 0; left: -100%; width: 55%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--text) 18%, transparent), transparent);
   transform: skewX(-20deg);
   animation: me-sh 2.5s ease-in-out infinite;
 }
@@ -396,24 +374,24 @@
 .me-btn--cta:hover {
   background: var(--orange-hover) !important;
   transform: translateY(-2px) !important;
-  box-shadow: 0 10px 28px rgba(255,92,10,0.4) !important;
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--orange) 40%, transparent) !important;
 }
 
 /* Ver entrega activa — púrpura */
 .me-btn--activa {
   width: 100% !important;
-  background: rgba(168,85,247,0.12) !important;
-  border: 1px solid rgba(168,85,247,0.25) !important;
-  color: #c084fc !important;
+  background: color-mix(in srgb, var(--orange) 12%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--orange) 25%, transparent) !important;
+  color: var(--orange) !important;
   margin-top: 12px;
   font-size: 0.84rem;
 }
 
 .me-btn--activa:hover {
-  background: rgba(168,85,247,0.2) !important;
-  border-color: rgba(168,85,247,0.4) !important;
+  background: color-mix(in srgb, var(--orange) 20%, transparent) !important;
+  border-color: color-mix(in srgb, var(--orange) 40%, transparent) !important;
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(168,85,247,0.2);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--orange) 20%, transparent);
 }
 
 /* ── Loading ───────────────────────────────────────────────── */
@@ -427,7 +405,7 @@
 
 .me-loading-spinner {
   width: 36px; height: 36px;
-  border: 3px solid rgba(255,92,10,0.15);
+  border: 3px solid color-mix(in srgb, var(--orange) 15%, transparent);
   border-top-color: var(--orange);
   border-radius: 50%;
   animation: me-spin 0.8s linear infinite;
