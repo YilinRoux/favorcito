@@ -233,6 +233,7 @@ export const verPedidosDisponiblesFavorcito = async (req, res) => {
       tipoEntrega: "favorcito",
       estado: "listo",
       repartidor: null,
+      estudiante: { $ne: req.usuario.id },
     })
       .populate("local", "nombre direccion")
       .sort({ createdAt: -1 });
@@ -270,7 +271,7 @@ export const confirmarEntrega = async (req, res) => {
     const estudianteId = req.usuario.id;
 
     const pedido = await Pedido.findOneAndUpdate(
-      { _id: pedidoId, repartidor: estudianteId, estado: "en_camino", "devolucion.estado": { $ne: "pendiente" } },
+      { _id: pedidoId, repartidor: estudianteId, estudiante: { $ne: estudianteId }, estado: "en_camino", "devolucion.estado": { $ne: "pendiente" } },
       { $set: { estado: "entregado" }, $push: { historialEstados: { estado: "entregado" } } },
       { new: true }
     );
