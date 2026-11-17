@@ -1,6 +1,6 @@
 import ImagenPromocion from "../../components/estudiante/ImagenPromocion";
 import { useEffect, useState, useContext } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import { AuthContext } from "../../context/AuthContext";
 import "../../styles/estudiante/DetalleLocal.css";
@@ -124,6 +124,7 @@ function DetalleLocal() {
 
       <div className="dl-inner">
 
+        <Link to="/menu" className="dl-back-locales">← Todos los locales</Link>
         {/* ── Info del local ── */}
         <div className="dl-card dl-card--local">
           <div className="dl-local-header">
@@ -259,7 +260,7 @@ function DetalleLocal() {
                       <p className="dl-producto-nombre">{producto.nombre}</p>
                       {producto.descripcion && <p className="dl-producto-desc">{producto.descripcion}</p>}
                       <p className="dl-producto-precio">${producto.precio}</p>
-                      <p className="dl-producto-stock">Stock: {producto.stock}</p>
+                      <p className="dl-producto-stock">Disponibles: {producto.stock}</p>
                     </div>
                     <div className="dl-carrito-ctrl">
                       {enCarrito ? (
