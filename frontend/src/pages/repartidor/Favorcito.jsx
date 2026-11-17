@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import socket from "../../services/socket";
+import AliasPedido from "../../components/common/AliasPedido";
 import "../../styles/repartidor/Favorcito.css";
 
 function Favorcito() {
@@ -9,6 +10,9 @@ function Favorcito() {
   const [cargando, setCargando] = useState(true);
   const [actualizando, setActualizando] = useState(false);
   const navigate = useNavigate();
+  const [aceptando, setAceptando] = useState(null);
+  const [aviso, setAviso] = useState("");
+  const bloqueoAceptacion = useRef(false);
 
   const cargar = async () => {
     try {
@@ -29,23 +33,30 @@ function Favorcito() {
 
   useEffect(() => {
     cargar();
-    socket.on("estadoActualizado", ({ estado }) => {
-      if (estado === "listo") cargar();
-    });
+    const actualizarDisponibles = () => cargar();
+    socket.on("estadoActualizado", actualizarDisponibles);
     const interval = setInterval(cargar, 10000);
     return () => {
-      socket.off("estadoActualizado");
+      socket.off("estadoActualizado", actualizarDisponibles);
       clearInterval(interval);
     };
   }, []);
 
   const aceptar = async (pedidoId) => {
-    if (!confirm("¿Aceptar este favorcito?")) return;
+    if (bloqueoAceptacion.current || !confirm("¿Aceptar este favorcito?")) return;
+    bloqueoAceptacion.current = true;
+    setAceptando(pedidoId); setAviso("");
     try {
       await api.put(`/pedidos/favorcito/${pedidoId}/aceptar`);
       navigate(`/pedido/${pedidoId}`);
-    } catch {
-      alert("Error al aceptar pedido");
+    } catch (error) {
+      if (error.response?.status === 409) {
+        setPedidos((prev) => prev.filter((p) => p._id !== pedidoId));
+        setAviso("Este Favorcito ya no está disponible. Otro estudiante pudo haberlo aceptado o el pedido cambió. Actualizamos la lista.");
+        await cargar();
+      } else { alert("No se pudo aceptar el pedido. Intenta nuevamente."); }
+    } finally {
+      bloqueoAceptacion.current = false; setAceptando(null);
     }
   };
 
@@ -70,6 +81,7 @@ function Favorcito() {
       </div>
 
       <div className="fav-inner">
+        {aviso && <p className="st-delivery-notice" role="status">{aviso}</p>}
 
         {/* ── Header ── */}
         <div className="fav-header">
@@ -105,6 +117,11 @@ function Favorcito() {
         </div>
 
         {/* ── Vacío ── */}
+        <ol className="st-courier-guide" aria-label="Cómo hacer un favorcito">
+          <li><span>1</span><div><strong>Elige un pedido</strong><small>Revisa el local y el importe antes de aceptar.</small></div></li>
+          <li><span>2</span><div><strong>Recoge en el local</strong><small>Identifica el pedido con su alias.</small></div></li>
+          <li><span>3</span><div><strong>Entrega y confirma</strong><small>Cobra en efectivo y confirma al entregarlo.</small></div></li>
+        </ol>
         {pedidos.length === 0 ? (
           <div className="fav-empty">
             <div className="fav-empty-icon">
@@ -125,7 +142,7 @@ function Favorcito() {
                 {/* ── Cabecera de la card ── */}
                 <div className="fav-card-top">
                   <div className="fav-card-local">
-                    <p className="fav-local-nombre">{pedido.local?.nombre}</p>
+                    <p className="fav-local-nombre">{pedido.local?.nombre} <AliasPedido alias={pedido.alias} /></p>
                     <div className="fav-local-dir">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
@@ -176,13 +193,13 @@ function Favorcito() {
                 )}
 
                 {/* ── Botón aceptar ── */}
-                <button onClick={() => aceptar(pedido._id)} className="fav-btn-aceptar">
+                <button onClick={() => aceptar(pedido._id)} className="fav-btn-aceptar" disabled={aceptando !== null} aria-busy={aceptando === pedido._id}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="1" y="3" width="15" height="13"/>
                     <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
                     <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
                   </svg>
-                  Aceptar favorcito
+                  {aceptando === pedido._id ? "Aceptando…" : "Aceptar favorcito"}
                 </button>
 
               </div>

@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { mock } from "node:test";
 import Pedido from "../models/Pedido.js";
-import { aceptarFavorcito, confirmarEntrega } from "../controllers/pedidoController.js";
+import { aceptarFavorcito, confirmarEntrega, verPedidosDisponiblesFavorcito } from "../controllers/pedidoController.js";
 
 const estudianteId = "507f1f77bcf86cd799439011";
 const pedidoId = "507f1f77bcf86cd799439012";
@@ -39,6 +39,7 @@ test("aceptar reparto exige pedido disponible y excluye pedido propio", async ()
 test("confirmar entrega exige repartidor asignado y estado en camino", async () => {
   const stub = mock.method(Pedido, "findOneAndUpdate", async (filter, update) => {
     assert.equal(filter.repartidor, estudianteId);
+    assert.deepEqual(filter.estudiante, { $ne: estudianteId });
     assert.equal(filter.estado, "en_camino");
     assert.equal(update.$set.estado, "entregado");
     return null;
@@ -49,4 +50,16 @@ test("confirmar entrega exige repartidor asignado y estado en camino", async () 
     assert.equal(res.statusCode, 409);
     assert.equal(stub.mock.callCount(), 1);
   } finally { stub.mock.restore(); }
+});
+
+test("la lista de repartos disponibles excluye los pedidos del usuario autenticado", async (t) => {
+  t.mock.method(Pedido, "find", (filter) => {
+    assert.deepEqual(filter.estudiante, { $ne: estudianteId });
+    assert.equal(filter.estado, "listo");
+    assert.equal(filter.repartidor, null);
+    return { populate: () => ({ sort: async () => [] }) };
+  });
+  const res = response();
+  await verPedidosDisponiblesFavorcito(request(), res);
+  assert.deepEqual(res.body, []);
 });

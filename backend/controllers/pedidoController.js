@@ -1,3 +1,4 @@
+import { aliasPedido, diaMexico, limpiarAtiende, limpiarNotas, siguienteNumero } from "../services/numeracion.js";
 import Pedido from "../models/Pedido.js";
 import Producto from "../models/Producto.js";
 import Local from "../models/Local.js";
@@ -5,8 +6,12 @@ import Usuario from "../models/Usuario.js";
 
 export const crearPedido = async (req, res) => {
   try {
-    const { productos, tipoEntrega } = req.body;
+    const { productos, tipoEntrega, notas } = req.body;
     const estudianteId = req.usuario.id;
+
+    if (req.usuario.bloqueoPorPago) {
+      return res.status(403).json({ mensaje: "Tienes un pago pendiente reportado por un repartidor. Contacta a la administración para poder pedir de nuevo." });
+    }
 
     if (!Array.isArray(productos) || productos.length === 0 || productos.length > 50) {
       return res.status(400).json({ mensaje: "Debe agregar al menos un producto" });
@@ -81,15 +86,31 @@ total += costoEnvio;
           );
           if (resultado.modifiedCount !== 1) throw new Error("STOCK_INSUFICIENTE");
         }
+        const dia = diaMexico();
+        const numero = await siguienteNumero(localId, dia, session);
         const creados = await Pedido.create([{
           estudiante: estudianteId, local: localId, productos: productosFinal,
           total, costoEnvio, tipoEntrega, promocionAplicada,
+          numero, dia, alias: aliasPedido(req.usuario.nombre_completo, numero),
+          notas: limpiarNotas(notas),
           historialEstados: [{ estado: "enviado" }],
         }], { session });
         nuevoPedido = creados[0];
       });
     } finally {
       await session.endSession();
+    }
+
+    // Aviso en tiempo real al local. Es opcional: si falla, el panel igual se entera por su refresco periódico.
+    try {
+      const io = req.app?.get?.("io");
+      if (io) {
+        const sala = `local:${localId}`;
+        io.in(sala).socketsJoin(String(nuevoPedido._id));
+        io.to(sala).emit("nuevoPedido", { pedidoId: String(nuevoPedido._id) });
+      }
+    } catch (errorSocket) {
+      console.error("No se pudo avisar del pedido nuevo:", errorSocket.message);
     }
 
     res.status(201).json({ mensaje: "Pedido creado correctamente", pedido: nuevoPedido });
@@ -99,26 +120,34 @@ total += costoEnvio;
   }
 };
 
+const ESTADOS_ACTIVOS = ["enviado", "aceptado", "en_preparacion", "listo", "en_camino"];
+const DIAS_HISTORIAL_VENDEDOR = 14;
+
 export const obtenerPedidosVendedor = async (req, res) => {
   try {
     const vendedorId = req.usuario.id;
     const locales = await Local.find({ vendedor: vendedorId });
     const localesIds = locales.map((l) => l._id);
 
-    const pedidos = await Pedido.find({ local: { $in: localesIds } })
+    // Todo lo que sigue abierto + el historial reciente. Así la respuesta no crece para siempre.
+    const desde = new Date(Date.now() - DIAS_HISTORIAL_VENDEDOR * 864e5);
+    const pedidos = await Pedido.find({
+      local: { $in: localesIds },
+      $or: [{ estado: { $in: ESTADOS_ACTIVOS } }, { createdAt: { $gte: desde } }],
+    })
       .populate("estudiante", "nombre_completo email cancelaciones sospechoso")
       .sort({ createdAt: -1 });
 
     res.json(pedidos);
   } catch (error) {
-    res.status(500).json({ mensaje: "Error al obtener pedidos", error: error.message });
+    res.status(500).json({ mensaje: "Error al obtener pedidos" });
   }
 };
 
 export const aceptarPedido = async (req, res) => {
   try {
     const { pedidoId } = req.params;
-    const { tiempoEstimado } = req.body;
+    const { tiempoEstimado, atiende } = req.body;
     const vendedorId = req.usuario.id;
 
     const pedido = await Pedido.findById(pedidoId).populate("local");
@@ -135,17 +164,24 @@ export const aceptarPedido = async (req, res) => {
     if (tiempoEstimado !== undefined && (!Number.isSafeInteger(tiempoEstimado) || tiempoEstimado < 1 || tiempoEstimado > 240)) return res.status(400).json({ mensaje: "Tiempo estimado inválido" });
     const actualizado = await Pedido.findOneAndUpdate(
       { _id: pedidoId, estado: "enviado" },
-      { $set: { estado: "aceptado", ...(tiempoEstimado !== undefined ? { tiempoEstimado } : {}) }, $push: { historialEstados: { estado: "aceptado" } } },
+      {
+        $set: {
+          estado: "en_preparacion",
+          ...(tiempoEstimado !== undefined ? { tiempoEstimado } : {}),
+          ...(limpiarAtiende(atiende) ? { atendidoPor: limpiarAtiende(atiende) } : {}),
+        },
+        $push: { historialEstados: { $each: [{ estado: "aceptado" }, { estado: "en_preparacion" }] } },
+      },
       { new: true }
     );
     if (!actualizado) return res.status(409).json({ mensaje: "El pedido ya fue procesado" });
 
     const io = req.app.get("io");
-    io.to(pedidoId).emit("estadoActualizado", { estado: "aceptado" });
+    io.to(pedidoId).emit("estadoActualizado", { estado: "en_preparacion" });
 
-    res.json({ mensaje: "Pedido aceptado correctamente", pedido: actualizado });
+    res.json({ mensaje: "Pedido aceptado y en preparación", pedido: actualizado });
   } catch (error) {
-    res.status(500).json({ mensaje: "Error al aceptar pedido", error: error.message });
+    res.status(500).json({ mensaje: "Error al aceptar pedido" });
   }
 };
 
@@ -187,7 +223,7 @@ export const cambiarEstadoPedido = async (req, res) => {
 
     res.json({ mensaje: "Estado actualizado", pedido: actualizado });
   } catch (error) {
-    res.status(500).json({ mensaje: "Error al cambiar estado", error: error.message });
+    res.status(500).json({ mensaje: "Error al cambiar estado" });
   }
 };
 
@@ -197,13 +233,14 @@ export const verPedidosDisponiblesFavorcito = async (req, res) => {
       tipoEntrega: "favorcito",
       estado: "listo",
       repartidor: null,
+      estudiante: { $ne: req.usuario.id },
     })
       .populate("local", "nombre direccion")
       .sort({ createdAt: -1 });
 
     res.json(pedidos);
   } catch (error) {
-    res.status(500).json({ mensaje: "Error al obtener pedidos disponibles", error: error.message });
+    res.status(500).json({ mensaje: "Error al obtener pedidos disponibles" });
   }
 };
 
@@ -224,7 +261,7 @@ export const aceptarFavorcito = async (req, res) => {
 
     res.json({ mensaje: "Pedido aceptado como favorcito", pedido });
   } catch (error) {
-    res.status(500).json({ mensaje: "Error al aceptar pedido", error: error.message });
+    res.status(500).json({ mensaje: "Error al aceptar pedido" });
   }
 };
 
@@ -234,7 +271,7 @@ export const confirmarEntrega = async (req, res) => {
     const estudianteId = req.usuario.id;
 
     const pedido = await Pedido.findOneAndUpdate(
-      { _id: pedidoId, repartidor: estudianteId, estado: "en_camino" },
+      { _id: pedidoId, repartidor: estudianteId, estudiante: { $ne: estudianteId }, estado: "en_camino", "devolucion.estado": { $ne: "pendiente" } },
       { $set: { estado: "entregado" }, $push: { historialEstados: { estado: "entregado" } } },
       { new: true }
     );
@@ -245,7 +282,7 @@ export const confirmarEntrega = async (req, res) => {
 
     res.json({ mensaje: "Pedido entregado correctamente", pedido });
   } catch (error) {
-    res.status(500).json({ mensaje: "Error al confirmar entrega", error: error.message });
+    res.status(500).json({ mensaje: "Error al confirmar entrega" });
   }
 };
 
@@ -273,14 +310,11 @@ export const cancelarPedido = async (req, res) => {
       await session.withTransaction(async () => {
         const actualizado = await Pedido.findOneAndUpdate(
           { _id: pedidoId, estudiante: estudianteId, estado: "enviado" },
-          { $set: { estado: "cancelado", canceladoPor: "estudiante" },
+          { $set: { estado: "cancelado", canceladoPor: "estudiante", reposicionStock: { estado: "pendiente" } },
             $push: { historialEstados: { estado: "cancelado" } } },
           { new: true, session }
         );
         if (!actualizado) throw new Error("CANCELACION_NO_DISPONIBLE");
-        for (const item of actualizado.productos) {
-          await Producto.updateOne({ _id: item.producto }, { $inc: { stock: item.cantidad } }, { session });
-        }
         usuario = await Usuario.findByIdAndUpdate(
           estudianteId, { $inc: { cancelaciones: 1 } }, { new: true, session }
         );
@@ -316,7 +350,7 @@ export const obtenerMisPedidos = async (req, res) => {
 
     res.json(pedidos);
   } catch (error) {
-    res.status(500).json({ mensaje: "Error al obtener pedidos", error: error.message });
+    res.status(500).json({ mensaje: "Error al obtener pedidos" });
   }
 };
 
@@ -329,7 +363,7 @@ export const obtenerPedidosFavorcito = async (req, res) => {
 
     res.json(pedidos);
   } catch (error) {
-    res.status(500).json({ mensaje: "Error al obtener entregas", error: error.message });
+    res.status(500).json({ mensaje: "Error al obtener entregas" });
   }
 };
 
@@ -349,7 +383,7 @@ export const obtenerPedidoPorId = async (req, res) => {
     if (!esEstudiante && !esRepartidor && !esVendedor && req.usuario.rol !== "admin") return res.status(403).json({ mensaje: "No autorizado" });
     res.json(pedido);
   } catch (error) {
-    res.status(500).json({ mensaje: "Error al obtener pedido", error: error.message });
+    res.status(500).json({ mensaje: "Error al obtener pedido" });
   }
 };
 
@@ -360,6 +394,7 @@ export const cancelarPedidoVendedor = async (req, res) => {
     const pedido = await Pedido.findById(pedidoId).populate("local");
     if (!pedido) return res.status(404).json({ mensaje: "Pedido no encontrado" });
     if (!pedido.local || String(pedido.local.vendedor) !== vendedorId) return res.status(403).json({ mensaje: "No autorizado" });
+    if (pedido.devolucion?.estado === "pendiente") return res.status(409).json({ mensaje: "Confirma la recepción de la devolución antes de revisar el inventario" });
     if (["cancelado", "entregado"].includes(pedido.estado)) return res.status(400).json({ mensaje: "No se puede cancelar este pedido" });
 
     const session = await Pedido.startSession();
@@ -367,22 +402,11 @@ export const cancelarPedidoVendedor = async (req, res) => {
     try {
       await session.withTransaction(async () => {
         actualizado = await Pedido.findOneAndUpdate(
-          { _id: pedidoId, estado: { $nin: ["cancelado", "entregado"] } },
-          { $set: { estado: "cancelado", canceladoPor: "vendedor" }, $push: { historialEstados: { estado: "cancelado" } } },
+          { _id: pedidoId, estado: { $nin: ["cancelado", "entregado"] }, "devolucion.estado": { $ne: "pendiente" } },
+          { $set: { estado: "cancelado", canceladoPor: "vendedor", reposicionStock: { estado: "pendiente" } }, $push: { historialEstados: { estado: "cancelado" } } },
           { new: true, session }
         );
         if (!actualizado) throw new Error("CANCELACION_NO_DISPONIBLE");
-        for (const item of actualizado.productos) {
-          await Producto.updateOne({ _id: item.producto }, { $inc: { stock: item.cantidad } }, { session });
-        }
-        const usuario = await Usuario.findByIdAndUpdate(
-          actualizado.estudiante,
-          { $inc: { cancelaciones: 1 } },
-          { new: true, session }
-        );
-        if (usuario && usuario.cancelaciones >= 3) {
-          await Usuario.updateOne({ _id: actualizado.estudiante }, { $set: { sospechoso: true } }, { session });
-        }
       });
     } finally {
       await session.endSession();

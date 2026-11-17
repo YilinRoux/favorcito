@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import socket from "../../services/socket";
+import ReportarProblema from "../../components/common/ReportarProblema";
+import AliasPedido from "../../components/common/AliasPedido";
 import "../../styles/estudiante/RastreoPedido.css";
 
 const estadoLabel = {
@@ -119,6 +121,7 @@ function RastreoPedido() {
       </div>
 
       <div className="rp-inner">
+        {pedido.devolucion && <p className="st-delivery-notice" role="status">{pedido.devolucion.estado === "pendiente" ? "La entrega no se completó. El estudiante que reparte está devolviendo el pedido al local; falta que el vendedor confirme la recepción." : "El local confirmó que recibió la devolución. El pedido no fue entregado al cliente. Cualquier reporte será revisado por administración."}</p>}
 
         {/* ── Back + Header ── */}
         <div className="rp-topbar">
@@ -148,8 +151,11 @@ function RastreoPedido() {
         </div>
 
         {/* ── Info del pedido ── */}
-        <div className="rp-card">
+        <div className="rp-card st-tracking-summary">
           <p className="rp-local-nombre">{pedido.local?.nombre}</p>
+          {pedido.alias && (
+            <p className="alias-linea">Tu pedido: <AliasPedido alias={pedido.alias} grande /><small>Dilo al recoger o al recibirlo</small></p>
+          )}
           <div className="rp-entrega-tipo">
             {esFavorcito ? (
               <>
@@ -251,7 +257,7 @@ function RastreoPedido() {
         )}
 
         {/* ── Productos ── */}
-        <div className="rp-card">
+        <div className="rp-card st-tracking-products">
           <p className="rp-section-title">Productos</p>
           <div className="rp-productos">
             {pedido.productos?.map((item, i) => (
@@ -284,6 +290,10 @@ function RastreoPedido() {
               </svg>
               Calificar pedido
             </button>
+          )}
+
+          {esFavorcito && pedido.repartidor && ["en_camino", "entregado"].includes(pedido.estado) && (
+            <ReportarProblema pedidoId={pedido._id} rol="cliente" />
           )}
         </div>
 

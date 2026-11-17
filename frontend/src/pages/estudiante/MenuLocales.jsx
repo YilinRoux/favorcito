@@ -1,5 +1,6 @@
+import ImagenPromocion from "../../components/estudiante/ImagenPromocion";
 import { useContext, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import "../../styles/estudiante/MenuLocales.css";
 import { getImageUrl } from "../../utils/imageUrl";
@@ -8,6 +9,8 @@ import { AuthContext } from "../../context/AuthContext";
 
 function MenuLocales() {
   const [locales, setLocales] = useState([]);
+  const [busqueda, setBusqueda] = useState("");
+  const [soloPromo, setSoloPromo] = useState(false);
   const [cargando, setCargando] = useState(true);
   const [imagenActiva, setImagenActiva] = useState(0);
   const [recomendados, setRecomendados] = useState([]);
@@ -54,6 +57,9 @@ function MenuLocales() {
     cargarRecomendados();
   }, [usuario]);
 
+  const consulta = busqueda.trim().toLocaleLowerCase("es-MX");
+  const localesVisibles = locales.filter((l) => (!soloPromo || l.promocionActiva) && `${l.nombre} ${l.descripcion || ""} ${l.direccion || ""}`.toLocaleLowerCase("es-MX").includes(consulta));
+
   const imagenesPromo = locales
     .filter((l) => l.promocionActiva && l.imagenesAnuncios?.length > 0)
     .flatMap((local) =>
@@ -66,13 +72,8 @@ function MenuLocales() {
       }))
     );
 
-  useEffect(() => {
-    if (imagenesPromo.length === 0) return;
-    const interval = setInterval(() => {
-      setImagenActiva((prev) => (prev + 1) % imagenesPromo.length);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [imagenesPromo.length]);
+  const promoActiva = imagenesPromo.length ? imagenesPromo[imagenActiva % imagenesPromo.length] : null;
+
 
   if (cargando) return (
     <div className="ml-wrap">
@@ -110,49 +111,48 @@ function MenuLocales() {
           </div>
         </div>
 
+        <div className="st-local-search">
+          <label>Busca tu comida o local<input type="search" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Nombre, comida o ubicación" /></label>
+          <label className="st-promo-filter"><input type="checkbox" checked={soloPromo} onChange={(e) => setSoloPromo(e.target.checked)} />Con promoción de envío</label>
+        </div>
+        <p className="st-result-count" role="status">{localesVisibles.length} {localesVisibles.length === 1 ? "local disponible" : "locales disponibles"}</p>
+        {locales.length > 0 && localesVisibles.length === 0 && <p className="st-no-results">No encontramos coincidencias. Prueba otra búsqueda o quita el filtro de promoción.</p>}
         {/* Carrusel de promociones */}
         {imagenesPromo.length > 0 && (
           <div className="ml-carrusel">
             <div className="ml-carrusel-img-wrap">
-              <ImageWithFallback
-                src={getImageUrl(imagenesPromo[imagenActiva].imagen)}
-                alt="Promocion"
+              <ImagenPromocion
+                src={getImageUrl(promoActiva.imagen)}
+                alt={`Promoción de ${promoActiva.localNombre}`}
                 className="ml-carrusel-img"
               />
-              <div className="ml-carrusel-overlay" />
-              {/* Puntos de navegacion */}
-              {imagenesPromo.length > 1 && (
-                <div className="ml-carrusel-dots">
-                  {imagenesPromo.map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setImagenActiva(i)}
-                      className={`ml-dot${i === imagenActiva ? " ml-dot--active" : ""}`}
-                      aria-label={`Ir a promocion ${i + 1}`}
-                    />
-                  ))}
-                </div>
-              )}
             </div>
             <div className="ml-carrusel-info">
+              <p className="st-section-kicker">Promoción del local</p>
               <div className="ml-carrusel-badge">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12"/>
                 </svg>
-                Envio gratis
+                Envío gratis
               </div>
               <p className="ml-carrusel-nombre">
-                {imagenesPromo[imagenActiva].localNombre}
-                <span className="ml-carrusel-monto">en pedidos +${imagenesPromo[imagenActiva].monto}</span>
+                {promoActiva.localNombre}
+                <span className="ml-carrusel-monto">en pedidos +${promoActiva.monto}</span>
               </p>
-              {imagenesPromo[imagenActiva].anuncio && (
+              {promoActiva.anuncio && (
                 <p className="ml-carrusel-anuncio">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/>
                   </svg>
-                  {imagenesPromo[imagenActiva].anuncio}
+                  {promoActiva.anuncio}
                 </p>
               )}
+              <Link className="st-promo-local-link" to={`/local/${promoActiva.localId}`}>Ver menú de este local →</Link>
+              {imagenesPromo.length > 1 && <div className="st-promo-controls" aria-label="Cambiar promoción">
+                <button type="button" aria-label="Promoción anterior" onClick={() => setImagenActiva((prev) => (prev % imagenesPromo.length - 1 + imagenesPromo.length) % imagenesPromo.length)}>←</button>
+                <span aria-live="polite">{imagenActiva % imagenesPromo.length + 1} de {imagenesPromo.length}</span>
+                <button type="button" aria-label="Promoción siguiente" onClick={() => setImagenActiva((prev) => (prev + 1) % imagenesPromo.length)}>→</button>
+              </div>}
             </div>
           </div>
         )}
@@ -161,7 +161,7 @@ function MenuLocales() {
         {recomendados.length > 0 && (
           <div className="ml-recomendados">
             <div className="ml-recomendados-header">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FF5C0A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
               </svg>
               <div>
@@ -212,10 +212,10 @@ function MenuLocales() {
           </div>
         ) : (
           <div className="ml-locales-lista">
-            {locales.map((local, i) => (
-              <div
+            {localesVisibles.map((local, i) => (
+              <Link
                 key={local._id}
-                onClick={() => navigate(`/local/${local._id}`)}
+                to={`/local/${local._id}`}
                 className={`ml-local-card${local.promocionActiva ? " ml-local-card--promo" : ""}`}
                 style={{ animationDelay: `${i * 0.07}s` }}
               >
@@ -261,8 +261,8 @@ function MenuLocales() {
                       <div className="ml-stars-mini">
                         {[1,2,3,4,5].map(n => (
                           <svg key={n} width="11" height="11" viewBox="0 0 24 24"
-                            fill={n <= Math.round(local.calificacionPromedio || 0) ? "#FF5C0A" : "none"}
-                            stroke={n <= Math.round(local.calificacionPromedio || 0) ? "#FF5C0A" : "rgba(255,255,255,0.18)"}
+                            fill={n <= Math.round(local.calificacionPromedio || 0) ? "var(--orange)" : "none"}
+                            stroke={n <= Math.round(local.calificacionPromedio || 0) ? "var(--orange)" : "rgba(255,255,255,0.18)"}
                             strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                           </svg>
@@ -292,7 +292,7 @@ function MenuLocales() {
                     </svg>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}

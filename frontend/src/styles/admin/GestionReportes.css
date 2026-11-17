@@ -488,3 +488,10 @@
   .gr-card-action { width: 100%; }
   .gr-btn-resolver { width: 100%; justify-content: center; }
 }
+
+/* Decisión del administrador sobre cada reporte */
+.gr-decisiones{display:flex;flex-direction:column;gap:8px}
+.gr-btn-rechazar{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:0 16px;border-radius:12px;border:1px solid rgba(148,163,184,.5);background:transparent;color:inherit;font-family:inherit;font-weight:600;font-size:.85rem;cursor:pointer}
+.gr-btn-rechazar:hover{background:rgba(148,163,184,.16)}
+.gr-chip--contexto{background:rgba(216,147,90,.18);color:#d8935a}
+.gr-faltas{opacity:.85;font-size:.85em}

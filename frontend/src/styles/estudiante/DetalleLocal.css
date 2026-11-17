@@ -3,39 +3,17 @@
    Favorcito · Módulo Estudiante
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+
 
 /* ── Variables ─────────────────────────────────────────────── */
-:root {
-  --orange:        #FF5C0A;
-  --orange-bright: #FF7A30;
-  --orange-hover:  #e04e00;
-  --orange-glow:   rgba(255, 92, 10, 0.18);
-  --green:         #22C55E;
-  --green-glow:    rgba(34, 197, 94, 0.15);
-  --bg:            #080808;
-  --bg-card:       #111111;
-  --bg-card-inner: #181818;
-  --bg-input:      #0E0E0E;
-  --text:          #FFFFFF;
-  --text-muted:    #666666;
-  --text-label:    #BBBBBB;
-  --border:        rgba(255, 255, 255, 0.07);
-  --border-input:  rgba(255, 255, 255, 0.08);
-  --radius-card:   24px;
-  --radius-input:  10px;
-  --radius-btn:    10px;
-  --radius-chip:   100px;
-  --shadow-card:   0 40px 100px rgba(0,0,0,0.65);
-  --shadow-btn:    0 6px 24px rgba(255,92,10,0.3);
-}
+/* La paleta se hereda de MarcoEstudiante; no modifica otras áreas. */
 
 /* ── Reset anti-Tailwind ───────────────────────────────────── */
 .dl-wrap input,
 .dl-wrap textarea,
 .dl-wrap button,
 .dl-wrap select {
-  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  font-family: 'DM Sans', sans-serif !important;
   -webkit-appearance: none !important;
   appearance: none !important;
   box-sizing: border-box !important;
@@ -46,7 +24,7 @@
   position: relative;
   min-height: 100vh;
   background-color: var(--bg) !important;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -58,7 +36,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(circle, rgba(255,255,255,0.055) 1px, transparent 1px);
+  background-image: radial-gradient(circle, color-mix(in srgb, var(--text) 5.5%, transparent) 1px, transparent 1px);
   background-size: 32px 32px;
   pointer-events: none;
   z-index: 0;
@@ -82,7 +60,7 @@
   width: 600px; height: 600px;
   top: -220px; left: 50%;
   transform: translateX(-50%);
-  background: radial-gradient(circle, rgba(255,92,10,0.2) 0%, transparent 65%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--orange) 20%, transparent) 0%, transparent 65%);
   filter: blur(72px);
   animation: dl-o1 7s ease-in-out infinite;
 }
@@ -95,7 +73,7 @@
 .dl-orb-2 {
   width: 300px; height: 300px;
   bottom: -80px; right: -60px;
-  background: radial-gradient(circle, rgba(255,92,10,0.08) 0%, transparent 65%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--orange) 8%, transparent) 0%, transparent 65%);
   filter: blur(60px);
 }
 
@@ -108,7 +86,7 @@
 .dl-p {
   position: absolute;
   border-radius: 50%;
-  background: #FF5C0A;
+  background: var(--orange);
   opacity: 0;
   animation: dl-fp var(--dur, 7s) var(--delay, 0s) ease-in-out infinite;
 }
@@ -152,7 +130,7 @@
 .dl-card::before {
   content: '';
   position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, transparent 0%, #FF5C0A 30%, #FF7A30 50%, #FF5C0A 70%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, var(--orange) 30%, var(--orange-bright) 50%, var(--orange) 70%, transparent 100%);
   background-size: 200%;
   animation: dl-bf 3s linear infinite;
 }
@@ -238,8 +216,8 @@
 }
 
 .dl-btn-reporte:hover {
-  border-color: rgba(239,68,68,0.4) !important;
-  color: #f87171 !important;
+  border-color: color-mix(in srgb, var(--st-red) 40%, transparent) !important;
+  color: var(--st-red) !important;
 }
 
 /* ── Badges ────────────────────────────────────────────────── */
@@ -259,15 +237,15 @@
 }
 
 .dl-badge--promo {
-  background: rgba(34,197,94,0.08) !important;
-  border: 1px solid rgba(34,197,94,0.2);
+  background: color-mix(in srgb, var(--green) 8%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--green) 20%, transparent);
   color: var(--green) !important;
 }
 
 .dl-badge--anuncio {
-  background: rgba(234,179,8,0.07) !important;
-  border: 1px solid rgba(234,179,8,0.18);
-  color: #eab308 !important;
+  background: color-mix(in srgb, var(--st-amber) 7%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--st-amber) 18%, transparent);
+  color: var(--st-amber) !important;
 }
 
 /* ── Imágenes anuncios ─────────────────────────────────────── */
@@ -278,7 +256,7 @@
   overflow-x: auto;
   padding-bottom: 4px;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255,92,10,0.3) transparent;
+  scrollbar-color: color-mix(in srgb, var(--orange) 30%, transparent) transparent;
 }
 
 .dl-imagen-anuncio {
@@ -299,8 +277,8 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background: rgba(34, 197, 94, 0.08) !important;
-  border: 1px solid rgba(34,197,94,0.2);
+  background: color-mix(in srgb, var(--green) 8%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--green) 20%, transparent);
   border-radius: 12px !important;
   border-top-left-radius: 12px !important;
   border-top-right-radius: 12px !important;
@@ -377,8 +355,8 @@
 }
 
 .dl-tab-btn--active .dl-tab-count {
-  background: rgba(255,92,10,0.15) !important;
-  border-color: rgba(255,92,10,0.25) !important;
+  background: color-mix(in srgb, var(--orange) 15%, transparent) !important;
+  border-color: color-mix(in srgb, var(--orange) 25%, transparent) !important;
   color: var(--orange) !important;
 }
 
@@ -407,7 +385,7 @@
 }
 
 .dl-producto-card:hover {
-  border-color: rgba(255,255,255,0.12);
+  border-color: color-mix(in srgb, var(--text) 12%, transparent);
   transform: translateY(-2px);
 }
 
@@ -507,14 +485,14 @@
 }
 
 .dl-qty-btn--minus:hover {
-  background: rgba(255,255,255,0.08) !important;
+  background: color-mix(in srgb, var(--text) 8%, transparent) !important;
   transform: scale(1.1);
 }
 
 .dl-qty-btn--plus {
   background: var(--orange) !important;
   border: none !important;
-  color: #fff !important;
+  color: var(--text) !important;
 }
 
 .dl-qty-btn--plus:hover {
@@ -532,7 +510,7 @@
 
 .dl-btn-agregar {
   background: var(--orange-glow) !important;
-  border: 1px solid rgba(255,92,10,0.3) !important;
+  border: 1px solid color-mix(in srgb, var(--orange) 30%, transparent) !important;
   border-radius: 10px !important;
   border-top-left-radius: 10px !important;
   border-top-right-radius: 10px !important;
@@ -549,7 +527,7 @@
 
 .dl-btn-agregar:hover {
   background: var(--orange) !important;
-  color: #fff !important;
+  color: var(--text) !important;
   transform: scale(1.04);
 }
 
@@ -599,7 +577,7 @@
 .dl-star-pick--active {
   opacity: 1 !important;
   transform: scale(1.08);
-  filter: drop-shadow(0 0 6px rgba(255,92,10,0.5));
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--orange) 50%, transparent));
 }
 
 /* ── Input / Textarea ──────────────────────────────────────── */
@@ -623,13 +601,13 @@
 .dl-input::placeholder { color: var(--text-muted) !important; }
 
 .dl-input:hover:not(:focus) {
-  border-color: rgba(255,255,255,0.13) !important;
+  border-color: color-mix(in srgb, var(--text) 13%, transparent) !important;
   transform: translateY(-1px);
 }
 
 .dl-input:focus {
   border-color: var(--orange) !important;
-  box-shadow: 0 0 0 3px rgba(255,92,10,0.15), 0 4px 16px rgba(255,92,10,0.1) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--orange) 15%, transparent), 0 4px 16px color-mix(in srgb, var(--orange) 10%, transparent) !important;
   transform: translateY(-1px);
 }
 
@@ -641,7 +619,7 @@
 
 .dl-select {
   cursor: pointer;
-  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 7L11 1' stroke='rgba(255,255,255,0.3)' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 7L11 1' stroke='color-mix(in srgb, var(--text) 30%, transparent)' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
   background-repeat: no-repeat !important;
   background-position: right 14px center !important;
   padding-right: 38px !important;
@@ -659,7 +637,7 @@
   justify-content: center;
   gap: 7px;
   background: var(--orange) !important;
-  color: #fff !important;
+  color: var(--text) !important;
   border: none !important;
   border-radius: var(--radius-btn) !important;
   border-top-left-radius: var(--radius-btn) !important;
@@ -679,7 +657,7 @@
 .dl-btn::before {
   content: '';
   position: absolute; top: 0; left: -100%; width: 55%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--text) 18%, transparent), transparent);
   transform: skewX(-20deg);
   animation: dl-sh 2.5s ease-in-out infinite;
 }
@@ -693,7 +671,7 @@
 .dl-btn:hover:not(.dl-btn--disabled) {
   background: var(--orange-hover) !important;
   transform: translateY(-2px) !important;
-  box-shadow: 0 10px 28px rgba(255,92,10,0.4) !important;
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--orange) 40%, transparent) !important;
 }
 
 .dl-btn--sm {
@@ -703,13 +681,13 @@
 }
 
 .dl-btn--danger {
-  background: #ef4444 !important;
-  box-shadow: 0 6px 20px rgba(239,68,68,0.3) !important;
+  background: var(--st-red) !important;
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--st-red) 30%, transparent) !important;
 }
 
 .dl-btn--danger:hover:not(.dl-btn--disabled) {
-  background: #dc2626 !important;
-  box-shadow: 0 10px 28px rgba(239,68,68,0.4) !important;
+  background: var(--st-red) !important;
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--st-red) 40%, transparent) !important;
 }
 
 .dl-btn--ghost {
@@ -720,14 +698,14 @@
 }
 
 .dl-btn--ghost:hover {
-  background: rgba(255,255,255,0.06) !important;
-  border-color: rgba(255,255,255,0.12) !important;
+  background: color-mix(in srgb, var(--text) 6%, transparent) !important;
+  border-color: color-mix(in srgb, var(--text) 12%, transparent) !important;
 }
 
 .dl-btn--ghost::before { display: none; }
 
 .dl-btn--disabled {
-  background: #1e1e1e !important;
+  background: var(--bg-card-inner) !important;
   color: var(--text-muted) !important;
   box-shadow: none !important;
   cursor: not-allowed !important;
@@ -767,7 +745,7 @@
   height: 34px;
   border-radius: 50%;
   background: var(--orange-glow) !important;
-  border: 1px solid rgba(255,92,10,0.25);
+  border: 1px solid color-mix(in srgb, var(--orange) 25%, transparent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -914,7 +892,7 @@
 .dl-modal::before {
   content: '';
   position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, transparent 0%, #ef4444 30%, #f97316 50%, #ef4444 70%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, var(--st-red) 30%, var(--orange) 50%, var(--st-red) 70%, transparent 100%);
   background-size: 200%;
   animation: dl-bf 3s linear infinite;
 }
@@ -954,7 +932,7 @@
 
 .dl-loading-spinner {
   width: 36px; height: 36px;
-  border: 3px solid rgba(255,92,10,0.15);
+  border: 3px solid color-mix(in srgb, var(--orange) 15%, transparent);
   border-top-color: var(--orange);
   border-radius: 50%;
   animation: dl-spin 0.8s linear infinite;

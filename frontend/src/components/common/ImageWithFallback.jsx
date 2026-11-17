@@ -1,11 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-function ImageWithFallback({ src, alt = "", className = "", ...props }) {
+function ImageWithFallbackSource({ src, alt = "", className = "", ...props }) {
   const [failed, setFailed] = useState(false);
-
-  useEffect(() => {
-    setFailed(false);
-  }, [src]);
 
   if (!src || failed) {
     return (
@@ -27,4 +23,6 @@ function ImageWithFallback({ src, alt = "", className = "", ...props }) {
   return <img src={src} alt={alt} className={className} onError={() => setFailed(true)} {...props} />;
 }
 
-export default ImageWithFallback;
+export default function ImageWithFallback(props) {
+  return <ImageWithFallbackSource key={props.src} {...props} />;
+}

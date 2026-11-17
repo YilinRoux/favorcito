@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import { NotificationContext } from "../../context/NotificationContext";
 import { AuthContext } from "../../context/AuthContext";
+import AliasPedido from "../../components/common/AliasPedido";
 import "../../styles/estudiante/MisPedidos.css";
 
 const estadoLabel = {
@@ -59,6 +60,7 @@ const EstadoIcon = ({ estado }) => {
 
 function MisPedidos() {
   const [pedidos, setPedidos] = useState([]);
+  const [mostrarHistorial, setMostrarHistorial] = useState(false);
   const [cargando, setCargando] = useState(true);
   const { notificaciones } = useContext(NotificationContext);
   const { actualizarUsuario } = useContext(AuthContext);
@@ -101,6 +103,10 @@ function MisPedidos() {
     }
   };
 
+  const enCurso = pedidos.filter((p) => !["entregado", "cancelado"].includes(p.estado));
+  const historial = pedidos.filter((p) => ["entregado", "cancelado"].includes(p.estado));
+  const visibles = mostrarHistorial ? historial : enCurso;
+
   if (cargando) return (
     <div className="mp-wrap">
       <div className="mp-orb-1" /><div className="mp-orb-2" />
@@ -138,6 +144,11 @@ function MisPedidos() {
           </div>
         </div>
 
+        <div className="st-order-filters" aria-label="Filtrar pedidos">
+          <button type="button" aria-pressed={!mostrarHistorial} onClick={() => setMostrarHistorial(false)}>En curso · {enCurso.length}</button>
+          <button type="button" aria-pressed={mostrarHistorial} onClick={() => setMostrarHistorial(true)}>Historial · {historial.length}</button>
+        </div>
+        {pedidos.length > 0 && visibles.length === 0 && <p className="st-no-results">{mostrarHistorial ? "Todavía no hay pedidos finalizados." : "No tienes pedidos en curso. Tus pedidos anteriores están en Historial."}</p>}
         {/* ── Empty state ── */}
         {pedidos.length === 0 ? (
           <div className="mp-empty-card">
@@ -156,13 +167,13 @@ function MisPedidos() {
           </div>
         ) : (
           <div className="mp-lista">
-            {pedidos.map((pedido, i) => (
+            {visibles.map((pedido, i) => (
               <div key={pedido._id} className={`mp-card mp-card--${pedido.estado}`} style={{ animationDelay: `${i * 0.07}s` }}>
 
                 {/* ── Cabecera del pedido ── */}
                 <div className="mp-card-top">
                   <div className="mp-card-info">
-                    <p className="mp-local-nombre">{pedido.local?.nombre}</p>
+                    <p className="mp-local-nombre">{pedido.local?.nombre} <AliasPedido alias={pedido.alias} /></p>
                     <div className="mp-entrega-tipo">
                       {pedido.tipoEntrega === "favorcito" ? (
                         <>

@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../../context/AuthContext";
 import api from "../../services/api";
+import MarcoVendedor from "../../components/vendedor/MarcoVendedor";
 import "../../styles/vendedor/SolicitarAlta.css";
 import ImageWithFallback from "../../components/common/ImageWithFallback";
 import { prepareImageFiles } from "../../utils/filePreviews";
@@ -9,11 +11,13 @@ function SolicitarAlta() {
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [direccion, setDireccion] = useState("");
+  const [tipoUbicacion, setTipoUbicacion] = useState("fijo");
   const [fotos, setFotos] = useState([]);
   const [previews, setPreviews] = useState([]);
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
   const navigate = useNavigate();
+  const { logout } = useContext(AuthContext);
 
   const handleFotos = async (e) => {
     const { files, previews } = await prepareImageFiles(e.target.files, 3);
@@ -37,7 +41,7 @@ function SolicitarAlta() {
       const formData = new FormData();
       formData.append("nombre", nombre);
       formData.append("descripcion", descripcion);
-      formData.append("direccion", direccion);
+      formData.append("direccion", `${tipoUbicacion === "ambulante" ? "Vendedor ambulante" : "Local fijo"} — ${direccion}`);
       fotos.forEach((f) => formData.append("fotos", f));
 
       await api.post("/locales", formData, {
@@ -53,111 +57,114 @@ function SolicitarAlta() {
   };
 
   return (
-    <div className="sa-wrap">
-      <div className="sa-orbe sa-orbe-1" />
-      <div className="sa-orbe sa-orbe-2" />
+    <MarcoVendedor independiente titulo="Registra tu local" descripcion="Cuéntanos sobre tu negocio. Revisaremos la información antes de publicarlo.">
+      <div className="vs-onboarding-card">
+        <span className="sa-chip">Alta de local</span>
+        <h2 className="rg-title">Datos del negocio</h2>
+        <p className="sa-subtitle">Completa los datos básicos y agrega hasta 3 fotografías.</p>
 
-      <div className="sa-card">
-        <div className="sa-card-top-border" />
-
-        <div className="sa-logo-wrap">
-          <div className="sa-logo-icon">
-            <svg viewBox="0 0 24 24" fill="none" className="sa-logo-svg">
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#FF5C0A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
-          <span className="sa-logo-text">Favorcito</span>
-        </div>
-
-        <div className="sa-badge">
-          <svg viewBox="0 0 16 16" fill="none" width="13" height="13">
-            <path d="M8 1.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13zM0 8a8 8 0 1116 0A8 8 0 010 8z" fill="#22C55E"/>
-          </svg>
-          Alta de Local
-        </div>
-
-        <h2 className="sa-title">Registra tu local</h2>
-        <p className="sa-subtitle">Un administrador revisará tu solicitud antes de publicarla</p>
-
-        {error && (
-          <div className="sa-error">
-            <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
-            </svg>
-            {error}
-          </div>
-        )}
+        {error && <div className="sa-error">{error}</div>}
 
         <form onSubmit={handleSubmit} className="sa-form">
           <div className="sa-field">
-            <label className="sa-label">NOMBRE DEL LOCAL</label>
-            <input
-              type="text"
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              className="sa-input"
-              placeholder="Ej: Tacos El Güero"
-            />
+            <label className="sa-label" htmlFor="sa-nombre">Nombre del local</label>
+            <input type="text" id="sa-nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} className="rg-input" placeholder="Ej. Tacos El Güero" />
           </div>
 
           <div className="sa-field">
-            <label className="sa-label">DESCRIPCIÓN</label>
-            <textarea
-              value={descripcion}
-              onChange={(e) => setDescripcion(e.target.value)}
-              className="sa-input sa-textarea"
-              rows={3}
-              placeholder="¿Qué vendes?"
-            />
+            <label className="sa-label" htmlFor="sa-descripcion">Descripción</label>
+            <textarea id="sa-descripcion" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} className="rg-textarea" rows={3} placeholder="¿Qué vendes y qué hace especial a tu local?" />
           </div>
 
           <div className="sa-field">
-            <label className="sa-label">DIRECCIÓN</label>
-            <input
-              type="text"
-              value={direccion}
-              onChange={(e) => setDireccion(e.target.value)}
-              className="sa-input"
-              placeholder="Ej: Edificio A, planta baja"
-            />
+            <label className="sa-label">Tipo de venta</label>
+            <div className="sa-location-type" role="group" aria-label="Tipo de ubicación del vendedor">
+              <button
+                type="button"
+                className={`sa-type-btn ${tipoUbicacion === "fijo" ? "is-active" : ""}`}
+                onClick={() => setTipoUbicacion("fijo")}
+              >
+                Local fijo
+              </button>
+              <button
+                type="button"
+                className={`sa-type-btn ${tipoUbicacion === "ambulante" ? "is-active" : ""}`}
+                onClick={() => setTipoUbicacion("ambulante")}
+              >
+                Vendedor ambulante
+              </button>
+            </div>
+            <p className="sa-help">
+              {tipoUbicacion === "fijo"
+                ? "Elige esta opción si atiendes siempre desde un puesto, cafetería, local o espacio fijo dentro del campus o fuera de este mismo  ."
+                : "Elige esta opción si te mueves dentro del campus o vendes desde carrito, mesa móvil, mochila, hielera u otro punto variable."}
+            </p>
           </div>
 
           <div className="sa-field">
-            <label className="sa-label">FOTOS DEL LOCAL (MÁX. 3)</label>
-            <label className="sa-file-label">
-              <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
-                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="#FF5C0A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              Seleccionar imágenes
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleFotos}
-                className="sa-file-input"
-              />
+            <label className="sa-label" htmlFor="sa-direccion">
+              {tipoUbicacion === "fijo" ? "Dirección o ubicación fija" : "Zona donde vendes normalmente"}
             </label>
+            <input
+              type="text"
+              id="sa-direccion" value={direccion}
+              onChange={(e) => setDireccion(e.target.value)}
+              className="rg-input"
+              placeholder={
+                tipoUbicacion === "fijo"
+                  ? "Ej. Edificio A, planta baja, junto a biblioteca"
+                  : "Ej. Recorro edificios A y B; normalmente estoy frente a biblioteca"
+              }
+            />
+            <p className="sa-help">
+              {tipoUbicacion === "fijo"
+                ? "Describe cómo encontrar el local con referencias fáciles de reconocer."
+                : "Indica las zonas, edificios u horarios donde suelen encontrarte. Así sabremos que tu ubicación puede cambiar."}
+            </p>
+          </div>
+
+          <div className="sa-field">
+            <label className="sa-label">Fotos de tu negocio o productos <span>máx. 3</span></label>
+            <p className="sa-help">
+              {tipoUbicacion === "fijo"
+                ? "Sube fotos claras del local, puesto o fachada y, si puedes, una foto de los productos que vendes."
+                : "Si eres vendedor ambulante, sube fotos de tu carrito, mesa o forma de venta y fotos claras de los productos que ofreces."}
+            </p>
+            <label className="sa-file">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+              <span>{fotos.length ? `${fotos.length} imagen(es) seleccionada(s)` : "Seleccionar imágenes"}</span>
+              <input type="file" accept="image/*" multiple onChange={handleFotos} />
+            </label>
+
             {previews.length > 0 && (
               <div className="sa-previews">
                 {previews.map((preview, i) => (
-                  <ImageWithFallback
-                    key={`${preview.name}-${i}`}
-                    src={preview.src}
-                    className="sa-preview-img"
-                    alt={preview.name || `preview-${i}`}
-                  />
+                  <ImageWithFallback key={`${preview.name}-${i}`} src={preview.src} className="sa-preview-img" alt={preview.name || `preview-${i}`} />
                 ))}
               </div>
             )}
           </div>
 
-          <button type="submit" disabled={cargando} className="sa-btn">
-            <span className="sa-btn-shimmer" />
-            {cargando ? "Enviando..." : "Enviar Solicitud"}
+          <button type="submit" disabled={cargando} className="rg-btn">
+            {cargando ? "Enviando..." : "Enviar solicitud"}
           </button>
+
+          <button
+            type="button"
+            className="sa-later"
+            onClick={() => {
+              logout();
+              navigate("/login");
+            }}
+          >
+            Cerrar sesión y hacerlo después
+          </button>
+          <p className="sa-later-note">
+            No se enviará nada de este formulario. Podrás volver a iniciar sesión y completar el registro cuando estés seguro.
+          </p>
         </form>
       </div>
-    </div>
+    </MarcoVendedor>
   );
 }
 

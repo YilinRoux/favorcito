@@ -1,7 +1,9 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { NotificationContext } from "../../context/NotificationContext";
 import { AuthContext } from "../../context/AuthContext";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import logoClaro from "../../assets/login/login-light-bg.png";
+import logoOscuro from "../../assets/login/login-dark-bg.png";
 import "../../styles/layout/Navbar.css";
 
 function Navbar() {
@@ -10,17 +12,34 @@ function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [temaActual, setTemaActual] = useState(() => localStorage.getItem("favorcito-tema") || "claro");
 
   const handleLogout = () => {
     logout();
     navigate("/login");
   };
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = (to) => {
+    const [ruta, ancla] = to.split("#");
+    return location.pathname === ruta && location.hash === (ancla ? `#${ancla}` : "");
+  };
   const toggleMenu = () => setMenuOpen(p => !p);
   const closeMenu = () => setMenuOpen(false);
 
-  if (usuario?.rol === "admin") return null;
+  useEffect(() => {
+    const sincronizarTema = () => {
+      setTemaActual(localStorage.getItem("favorcito-tema") || "claro");
+    };
+
+    window.addEventListener("storage", sincronizarTema);
+    window.addEventListener("favorcito-theme-change", sincronizarTema);
+    return () => {
+      window.removeEventListener("storage", sincronizarTema);
+      window.removeEventListener("favorcito-theme-change", sincronizarTema);
+    };
+  }, []);
+
+  if (usuario?.rol === "admin" || ["/", "/login", "/registro", "/verificar-codigo", "/recuperar-contrasena", "/vendedor/solicitar", "/vendedor/estado"].includes(location.pathname)) return null;
 
   const estudianteLinks = [
     { to: "/menu",         label: "Locales",   icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> },
@@ -30,28 +49,43 @@ function Navbar() {
     { to: "/perfil",       label: "Perfil",    icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> },
   ];
 
+  const svg = (children) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width="14" height="14">{children}</svg>
+  );
   const vendedorLinks = [
-    { to: "/vendedor/dashboard", label: "Dashboard", icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> },
-    { to: "/vendedor/menu",      label: "Menú",      icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><path d="M7 2v20M21 15V2l-3 5-3-5v13"/><path d="M21 22H3"/></svg> },
-    { to: "/vendedor/promocion", label: "Promoción", icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> },
+    { to: "/vendedor/dashboard", label: "Dashboard", icon: svg(<><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></>) },
+    { to: "/vendedor/menu",      label: "Menú",      icon: svg(<><path d="M3 2v7a3 3 0 0 0 6 0V2"/><path d="M6 2v20"/><path d="M19 22V2c-2.5 1.5-4 4.5-4 8v4h4"/></>) },
+    { to: "/vendedor/promocion", label: "Promoción", icon: svg(<><path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8z"/><path d="M7 7h.01"/></>) },
+    { to: "/vendedor/dashboard#pedidos", label: "Pedidos", icon: svg(<><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></>) },
   ];
 
   const activeLinks = usuario?.rol === "estudiante" ? estudianteLinks
     : usuario?.rol === "vendedor" ? vendedorLinks : [];
 
+  const vendedorDashboard = usuario?.rol === "vendedor" && location.pathname.startsWith("/vendedor/");
+
   return (
-    <nav className="nb-bar">
+    <nav className={`nb-bar ${vendedorDashboard ? `nb-bar--vendor-dashboard nb-bar--${temaActual}` : usuario?.rol === "estudiante" ? `nb-bar--student nb-bar--${temaActual}` : ""}`}>
       <div className="nb-inner">
 
         {/* Logo */}
         <Link to="/" className="nb-logo" onClick={closeMenu}>
           <div className="nb-logo-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18" style={{position:"relative",zIndex:1}}>
-              <circle cx="5.5" cy="17.5" r="2.5"/>
-              <circle cx="18.5" cy="17.5" r="2.5"/>
-              <path d="M3 5h11l2 7H5L3 5z"/>
-              <path d="M15 12h4l2 5"/>
-            </svg>
+            {vendedorDashboard || usuario?.rol === "estudiante" ? (
+              <img
+                src={temaActual === "claro" ? logoClaro : logoOscuro}
+                alt=""
+                aria-hidden="true"
+                className="nb-logo-image"
+              />
+            ) : (
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18" style={{position:"relative",zIndex:1}}>
+                <circle cx="5.5" cy="17.5" r="2.5"/>
+                <circle cx="18.5" cy="17.5" r="2.5"/>
+                <path d="M3 5h11l2 7H5L3 5z"/>
+                <path d="M15 12h4l2 5"/>
+              </svg>
+            )}
           </div>
           <span className="nb-logo-text">Favorcito</span>
         </Link>
@@ -75,7 +109,7 @@ function Navbar() {
             >
               <span className="nb-link-icon">{link.icon}</span>
               {link.label}
-              {total > 0 && ((usuario?.rol === "vendedor" && link.to === "/vendedor/dashboard") || (usuario?.rol === "estudiante" && link.to === "/mis-pedidos")) && (
+              {total > 0 && ((usuario?.rol === "vendedor" && link.to === "/vendedor/dashboard#pedidos") || (usuario?.rol === "estudiante" && link.to === "/mis-pedidos")) && (
                 <span className="nb-unread-count" aria-label={`${total} mensajes sin leer`}>{total > 99 ? "99+" : total}</span>
               )}
             </Link>
@@ -89,7 +123,7 @@ function Navbar() {
                 <polyline points="16 17 21 12 16 7"/>
                 <line x1="21" y1="12" x2="9" y2="12"/>
               </svg>
-              Salir
+              {vendedorDashboard ? "Cerrar sesión" : "Salir"}
             </button>
           )}
         </div>
@@ -122,7 +156,7 @@ function Navbar() {
             >
               <span className="nb-mobile-link-icon">{link.icon}</span>
               {link.label}
-              {total > 0 && ((usuario?.rol === "vendedor" && link.to === "/vendedor/dashboard") || (usuario?.rol === "estudiante" && link.to === "/mis-pedidos")) && (
+              {total > 0 && ((usuario?.rol === "vendedor" && link.to === "/vendedor/dashboard#pedidos") || (usuario?.rol === "estudiante" && link.to === "/mis-pedidos")) && (
                 <span className="nb-unread-count" aria-label={`${total} mensajes sin leer`}>{total > 99 ? "99+" : total}</span>
               )}
             </Link>

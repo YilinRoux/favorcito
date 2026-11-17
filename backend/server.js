@@ -106,6 +106,8 @@ io.on("connection", (socket) => {
     if (usuario.rol === "estudiante") pedidos = await Pedido.find({ estudiante: usuarioId }).select("_id");
     if (usuario.rol === "vendedor") {
       const locales = await Local.find({ vendedor: usuarioId }).select("_id");
+      // Sala del local: aquí llegan los avisos de pedidos nuevos (solo el servidor decide quién entra).
+      for (const local of locales) socket.join(`local:${local._id}`);
       pedidos = await Pedido.find({ local: { $in: locales.map(l => l._id) } }).select("_id");
     }
     if (usuario.rol === "estudiante") {

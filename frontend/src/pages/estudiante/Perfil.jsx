@@ -139,7 +139,7 @@ function Perfil() {
             <div className="pf-avatar-glow" />
           </div>
           <div className="pf-user-info">
-            <p className="pf-user-nombre">{usuario.nombre}</p>
+            <p className="pf-user-nombre">{usuario.nombre_completo || usuario.nombre}</p>
             <p className="pf-user-email">{usuario.email}</p>
             <span className={`pf-rol-chip pf-rol-chip--${usuario.rol}`}>
               {usuario.rol === "estudiante" && (

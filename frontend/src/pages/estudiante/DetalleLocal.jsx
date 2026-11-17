@@ -1,5 +1,6 @@
+import ImagenPromocion from "../../components/estudiante/ImagenPromocion";
 import { useEffect, useState, useContext } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import { AuthContext } from "../../context/AuthContext";
 import "../../styles/estudiante/DetalleLocal.css";
@@ -22,22 +23,24 @@ function DetalleLocal() {
   const [motivo, setMotivo] = useState("");
   const [mensaje, setMensaje] = useState("");
 
-  const cargarLocal = async () => {
-    try {
-      const localRes = await api.get(`/locales/${id}`);
-      setLocal(localRes.data);
-      const productosRes = await api.get(`/productos/local/${id}`);
-      setProductos(productosRes.data);
-    } catch {
-      navigate("/menu");
-    } finally {
-      setCargando(false);
-    }
-  };
-
   useEffect(() => {
+    let vigente = true;
+    const cargarLocal = async () => {
+      try {
+        const localRes = await api.get(`/locales/${id}`);
+        if (!vigente) return;
+        setLocal(localRes.data);
+        const productosRes = await api.get(`/productos/local/${id}`);
+        if (vigente) setProductos(productosRes.data);
+      } catch {
+        if (vigente) navigate("/menu");
+      } finally {
+        if (vigente) setCargando(false);
+      }
+    };
     cargarLocal();
-  }, [id]);
+    return () => { vigente = false; };
+  }, [id, navigate]);
 
   const agregarAlCarrito = (producto) => {
     setCarrito((prev) => {
@@ -54,6 +57,9 @@ function DetalleLocal() {
       return prev.filter((p) => p.producto !== productoId);
     });
   };
+
+  const categoriasMenu = [...new Set(productos.map((p) => p.categoria?.trim() || "Otro"))]
+    .sort((a, b) => a === b ? 0 : a === "Otro" ? 1 : b === "Otro" ? -1 : a.localeCompare(b, "es"));
 
   const totalCarrito = carrito.reduce((acc, p) => acc + p.precio * p.cantidad, 0);
 
@@ -120,6 +126,7 @@ function DetalleLocal() {
 
       <div className="dl-inner">
 
+        <Link to="/menu" className="dl-back-locales">← Todos los locales</Link>
         {/* ── Info del local ── */}
         <div className="dl-card dl-card--local">
           <div className="dl-local-header">
@@ -136,8 +143,8 @@ function DetalleLocal() {
                 <div className="dl-stars-row">
                   {[1,2,3,4,5].map(n => (
                     <svg key={n} width="14" height="14" viewBox="0 0 24 24"
-                      fill={n <= Math.round(local.calificacionPromedio || 0) ? "#FF5C0A" : "none"}
-                      stroke={n <= Math.round(local.calificacionPromedio || 0) ? "#FF5C0A" : "rgba(255,255,255,0.2)"}
+                      fill={n <= Math.round(local.calificacionPromedio || 0) ? "var(--orange)" : "none"}
+                      stroke={n <= Math.round(local.calificacionPromedio || 0) ? "var(--orange)" : "rgba(255,255,255,0.2)"}
                       strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                       <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                     </svg>
@@ -179,11 +186,11 @@ function DetalleLocal() {
           {local.imagenesAnuncios?.length > 0 && (
             <div className="dl-imagenes-scroll">
               {local.imagenesAnuncios.map((img, i) => (
-                <ImageWithFallback
+                <ImagenPromocion
                   key={i}
                   src={getImageUrl(img)}
                   className="dl-imagen-anuncio"
-                  alt={`Anuncio ${i + 1}`}
+                  alt={`Anuncio ${i + 1} de ${local.nombre}`}
                 />
               ))}
             </div>
@@ -219,7 +226,8 @@ function DetalleLocal() {
 
         {/* ── TAB MENÚ ── */}
         {tab === "menu" && (
-          <div className="dl-productos-lista">
+          <div className="dl-menu-categorias">
+            {categoriasMenu.length > 1 && <nav className="dl-categorias-nav" aria-label="Categorías del menú">{categoriasMenu.map((categoria, i) => <a key={categoria} href={`#categoria-menu-${i}`}>{categoria}</a>)}</nav>}
             {productos.length === 0 ? (
               <div className="dl-empty">
                 <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -229,7 +237,10 @@ function DetalleLocal() {
                 <p>Este local no tiene productos aún.</p>
               </div>
             ) : (
-              productos.map((producto, i) => {
+              categoriasMenu.map((categoria, categoriaIndex) => <section key={categoria} id={`categoria-menu-${categoriaIndex}`} className="dl-categoria-seccion" aria-label={categoria}>
+                <h3>{categoria} <span>{productos.filter((p) => (p.categoria?.trim() || "Otro") === categoria).length}</span></h3>
+                <div className="dl-productos-lista">
+              {productos.filter((p) => (p.categoria?.trim() || "Otro") === categoria).map((producto, i) => {
                 const enCarrito = carrito.find((p) => p.producto === producto._id);
                 return (
                   <div key={producto._id} className="dl-producto-card" style={{ animationDelay: `${i * 0.06}s` }}>
@@ -251,16 +262,16 @@ function DetalleLocal() {
                       <p className="dl-producto-nombre">{producto.nombre}</p>
                       {producto.descripcion && <p className="dl-producto-desc">{producto.descripcion}</p>}
                       <p className="dl-producto-precio">${producto.precio}</p>
-                      <p className="dl-producto-stock">Stock: {producto.stock}</p>
+                      <p className="dl-producto-stock">Disponibles: {producto.stock}</p>
                     </div>
                     <div className="dl-carrito-ctrl">
                       {enCarrito ? (
                         <>
-                          <button onClick={() => quitarDelCarrito(producto._id)} className="dl-qty-btn dl-qty-btn--minus">
+                          <button onClick={() => quitarDelCarrito(producto._id)} className="dl-qty-btn dl-qty-btn--minus" aria-label={`Quitar una unidad de ${producto.nombre}`}>
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
                           </button>
                           <span className="dl-qty-num">{enCarrito.cantidad}</span>
-                          <button onClick={() => agregarAlCarrito(producto)} className="dl-qty-btn dl-qty-btn--plus">
+                          <button onClick={() => agregarAlCarrito(producto)} className="dl-qty-btn dl-qty-btn--plus" aria-label={`Agregar una unidad de ${producto.nombre}`}>
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                           </button>
                         </>
@@ -272,7 +283,9 @@ function DetalleLocal() {
                     </div>
                   </div>
                 );
-              })
+              })}
+                </div>
+              </section>)
             )}
           </div>
         )}
@@ -291,8 +304,8 @@ function DetalleLocal() {
                 {[1, 2, 3, 4, 5].map((e) => (
                   <button key={e} onClick={() => handleCalificar(e)} className={`dl-star-pick${e <= estrellas ? " dl-star-pick--active" : ""}`} aria-label={`${e} estrellas`}>
                     <svg width="30" height="30" viewBox="0 0 24 24"
-                      fill={e <= estrellas ? "#FF5C0A" : "none"}
-                      stroke={e <= estrellas ? "#FF5C0A" : "rgba(255,255,255,0.2)"}
+                      fill={e <= estrellas ? "var(--orange)" : "none"}
+                      stroke={e <= estrellas ? "var(--orange)" : "rgba(255,255,255,0.2)"}
                       strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                       <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                     </svg>

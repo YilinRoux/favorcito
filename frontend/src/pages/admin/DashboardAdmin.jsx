@@ -1,3 +1,4 @@
+import { AdminError } from "../../components/admin/AdminTools";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../services/api";
@@ -6,13 +7,16 @@ import "../../styles/admin/DashboardAdmin.css";
 function DashboardAdmin() {
   const [resumen, setResumen] = useState(null);
   const [cargando, setCargando] = useState(true);
+  const [errorCarga, setErrorCarga] = useState("");
 
   useEffect(() => {
     const cargar = async () => {
       try {
+        setErrorCarga("");
         const res = await api.get("/admin/resumen");
         setResumen(res.data);
       } catch {
+        setErrorCarga("Revisa tu conexión y vuelve a intentar.");
         console.error("Error al cargar resumen");
       } finally {
         setCargando(false);
@@ -20,6 +24,8 @@ function DashboardAdmin() {
     };
     cargar();
   }, []);
+
+  if (errorCarga) return <AdminError mensaje={errorCarga} />;
 
   if (cargando) return (
     <div className="da-wrap">
@@ -98,8 +104,9 @@ function DashboardAdmin() {
         </div>
 
         {/* Accesos rápidos */}
-        <h2 className="da-section-title">Accesos rápidos</h2>
+        <h2 className="da-section-title">Revisión y seguimiento</h2>
         <div className="da-links-grid">
+          <Link to="/admin/apelaciones" className="da-link-card"><p className="da-link-label">Apelaciones</p><p className="da-link-desc">Revisar solicitudes de reactivación de cuentas</p></Link>
           <Link to="/admin/validar" className="da-link-card">
             <div className="da-card-top-border" />
             <svg viewBox="0 0 24 24" fill="none" width="24" height="24">
@@ -121,8 +128,8 @@ function DashboardAdmin() {
             <svg viewBox="0 0 24 24" fill="none" width="24" height="24">
               <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4M12 17h.01" stroke="#FF5C0A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            <p className="da-link-label">Usuarios Sospechosos</p>
-            <p className="da-link-desc">Gestionar usuarios con alertas</p>
+            <p className="da-link-label">Usuarios</p>
+            <p className="da-link-desc">Consultar cuentas, alertas y suspensiones</p>
           </Link>
           <Link to="/admin/estadisticas" className="da-link-card">
             <div className="da-card-top-border" />

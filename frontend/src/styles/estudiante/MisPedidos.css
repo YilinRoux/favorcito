@@ -3,39 +3,17 @@
    Favorcito · Módulo Estudiante
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+
 
 /* ── Variables ─────────────────────────────────────────────── */
-:root {
-  --orange:        #FF5C0A;
-  --orange-bright: #FF7A30;
-  --orange-hover:  #e04e00;
-  --orange-glow:   rgba(255, 92, 10, 0.18);
-  --green:         #22C55E;
-  --green-glow:    rgba(34, 197, 94, 0.15);
-  --bg:            #080808;
-  --bg-card:       #111111;
-  --bg-card-inner: #181818;
-  --bg-input:      #0E0E0E;
-  --text:          #FFFFFF;
-  --text-muted:    #666666;
-  --text-label:    #BBBBBB;
-  --border:        rgba(255, 255, 255, 0.07);
-  --border-input:  rgba(255, 255, 255, 0.08);
-  --radius-card:   24px;
-  --radius-input:  10px;
-  --radius-btn:    10px;
-  --radius-chip:   100px;
-  --shadow-card:   0 40px 100px rgba(0,0,0,0.65);
-  --shadow-btn:    0 6px 24px rgba(255,92,10,0.3);
-}
+/* La paleta se hereda de MarcoEstudiante; no modifica otras áreas. */
 
 /* ── Reset anti-Tailwind ───────────────────────────────────── */
 .mp-wrap input,
 .mp-wrap textarea,
 .mp-wrap button,
 .mp-wrap select {
-  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  font-family: 'DM Sans', sans-serif !important;
   -webkit-appearance: none !important;
   appearance: none !important;
   box-sizing: border-box !important;
@@ -46,7 +24,7 @@
   position: relative;
   min-height: 100vh;
   background-color: var(--bg) !important;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -57,7 +35,7 @@
 .mp-wrap::before {
   content: '';
   position: absolute; inset: 0;
-  background-image: radial-gradient(circle, rgba(255,255,255,0.055) 1px, transparent 1px);
+  background-image: radial-gradient(circle, color-mix(in srgb, var(--text) 5.5%, transparent) 1px, transparent 1px);
   background-size: 32px 32px;
   pointer-events: none; z-index: 0;
   animation: mp-gf 6s ease-in-out infinite;
@@ -78,7 +56,7 @@
   width: 600px; height: 600px;
   top: -220px; left: 50%;
   transform: translateX(-50%);
-  background: radial-gradient(circle, rgba(255,92,10,0.2) 0%, transparent 65%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--orange) 20%, transparent) 0%, transparent 65%);
   filter: blur(72px);
   animation: mp-o1 7s ease-in-out infinite;
 }
@@ -91,7 +69,7 @@
 .mp-orb-2 {
   width: 300px; height: 300px;
   bottom: -80px; right: -60px;
-  background: radial-gradient(circle, rgba(255,92,10,0.08) 0%, transparent 65%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--orange) 8%, transparent) 0%, transparent 65%);
   filter: blur(60px);
 }
 
@@ -103,7 +81,7 @@
 
 .mp-p {
   position: absolute; border-radius: 50%;
-  background: #FF5C0A; opacity: 0;
+  background: var(--orange); opacity: 0;
   animation: mp-fp var(--dur, 7s) var(--delay, 0s) ease-in-out infinite;
 }
 
@@ -149,7 +127,7 @@
 .mp-logo-icon::before {
   content: '';
   position: absolute; inset: -2px; border-radius: 16px;
-  background: conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0.3) 25%, transparent 50%);
+  background: conic-gradient(from 0deg, transparent 0%, color-mix(in srgb, var(--text) 30%, transparent) 25%, transparent 50%);
   animation: mp-halo 2.5s linear infinite;
 }
 
@@ -188,7 +166,7 @@
 .mp-empty-card::before {
   content: '';
   position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, transparent 0%, #FF5C0A 30%, #FF7A30 50%, #FF5C0A 70%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, var(--orange) 30%, var(--orange-bright) 50%, var(--orange) 70%, transparent 100%);
   background-size: 200%;
   animation: mp-bf 3s linear infinite;
 }
@@ -237,7 +215,7 @@
 
 .mp-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(255,255,255,0.1) !important;
+  border-color: color-mix(in srgb, var(--text) 10%, transparent) !important;
 }
 
 @keyframes mp-card-in {
@@ -249,19 +227,19 @@
 .mp-card::before {
   content: '';
   position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, transparent 0%, #FF5C0A 30%, #FF7A30 50%, #FF5C0A 70%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, var(--orange) 30%, var(--orange-bright) 50%, var(--orange) 70%, transparent 100%);
   background-size: 200%;
   animation: mp-bf 3s linear infinite;
 }
 
 /* Acento de color por estado en el borde izquierdo */
-.mp-card--enviado        { border-left: 3px solid rgba(234,179,8,0.5) !important; }
-.mp-card--aceptado       { border-left: 3px solid rgba(59,130,246,0.5) !important; }
-.mp-card--en_preparacion { border-left: 3px solid rgba(255,92,10,0.6) !important; }
-.mp-card--listo          { border-left: 3px solid rgba(34,197,94,0.5) !important; }
-.mp-card--en_camino      { border-left: 3px solid rgba(168,85,247,0.5) !important; }
-.mp-card--entregado      { border-left: 3px solid rgba(100,116,139,0.4) !important; }
-.mp-card--cancelado      { border-left: 3px solid rgba(239,68,68,0.4) !important; }
+.mp-card--enviado        { border-left: 3px solid color-mix(in srgb, var(--st-amber) 50%, transparent) !important; }
+.mp-card--aceptado       { border-left: 3px solid color-mix(in srgb, var(--st-blue) 50%, transparent) !important; }
+.mp-card--en_preparacion { border-left: 3px solid color-mix(in srgb, var(--orange) 60%, transparent) !important; }
+.mp-card--listo          { border-left: 3px solid color-mix(in srgb, var(--green) 50%, transparent) !important; }
+.mp-card--en_camino      { border-left: 3px solid color-mix(in srgb, var(--orange) 50%, transparent) !important; }
+.mp-card--entregado      { border-left: 3px solid color-mix(in srgb, var(--text-muted) 40%, transparent) !important; }
+.mp-card--cancelado      { border-left: 3px solid color-mix(in srgb, var(--st-red) 40%, transparent) !important; }
 
 /* ── Top de la card ────────────────────────────────────────── */
 .mp-card-top {
@@ -301,7 +279,7 @@
   align-items: center;
   gap: 4px;
   background: var(--green-glow) !important;
-  border: 1px solid rgba(34,197,94,0.2);
+  border: 1px solid color-mix(in srgb, var(--green) 20%, transparent);
   border-radius: var(--radius-chip) !important;
   border-top-left-radius: var(--radius-chip) !important;
   border-top-right-radius: var(--radius-chip) !important;
@@ -329,45 +307,45 @@
 }
 
 .mp-estado-chip--enviado {
-  background: rgba(234,179,8,0.12) !important;
-  border: 1px solid rgba(234,179,8,0.25);
-  color: #eab308 !important;
+  background: color-mix(in srgb, var(--st-amber) 12%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--st-amber) 25%, transparent);
+  color: var(--st-amber) !important;
 }
 
 .mp-estado-chip--aceptado {
-  background: rgba(59,130,246,0.1) !important;
-  border: 1px solid rgba(59,130,246,0.22);
-  color: #60a5fa !important;
+  background: color-mix(in srgb, var(--st-blue) 10%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--st-blue) 22%, transparent);
+  color: var(--st-blue) !important;
 }
 
 .mp-estado-chip--en_preparacion {
   background: var(--orange-glow) !important;
-  border: 1px solid rgba(255,92,10,0.25);
+  border: 1px solid color-mix(in srgb, var(--orange) 25%, transparent);
   color: var(--orange) !important;
 }
 
 .mp-estado-chip--listo {
   background: var(--green-glow) !important;
-  border: 1px solid rgba(34,197,94,0.25);
+  border: 1px solid color-mix(in srgb, var(--green) 25%, transparent);
   color: var(--green) !important;
 }
 
 .mp-estado-chip--en_camino {
-  background: rgba(168,85,247,0.1) !important;
-  border: 1px solid rgba(168,85,247,0.22);
-  color: #c084fc !important;
+  background: color-mix(in srgb, var(--orange) 10%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--orange) 22%, transparent);
+  color: var(--orange) !important;
 }
 
 .mp-estado-chip--entregado {
-  background: rgba(100,116,139,0.1) !important;
-  border: 1px solid rgba(100,116,139,0.2);
-  color: #94a3b8 !important;
+  background: color-mix(in srgb, var(--text-muted) 10%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--text-muted) 20%, transparent);
+  color: var(--text-muted) !important;
 }
 
 .mp-estado-chip--cancelado {
-  background: rgba(239,68,68,0.08) !important;
-  border: 1px solid rgba(239,68,68,0.18);
-  color: #f87171 !important;
+  background: color-mix(in srgb, var(--st-red) 8%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--st-red) 18%, transparent);
+  color: var(--st-red) !important;
 }
 
 /* ── Lista de productos ────────────────────────────────────── */
@@ -439,7 +417,7 @@
 /* Botón principal naranja (empty state y genérico) */
 .mp-btn:not(.mp-btn--rastrear):not(.mp-btn--chat):not(.mp-btn--cancelar):not(.mp-btn--calificar) {
   background: var(--orange) !important;
-  color: #fff !important;
+  color: var(--text) !important;
   box-shadow: var(--shadow-btn);
   overflow: hidden;
 }
@@ -447,7 +425,7 @@
 .mp-btn:not(.mp-btn--rastrear):not(.mp-btn--chat):not(.mp-btn--cancelar):not(.mp-btn--calificar)::before {
   content: '';
   position: absolute; top: 0; left: -100%; width: 55%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--text) 18%, transparent), transparent);
   transform: skewX(-20deg);
   animation: mp-sh 2.5s ease-in-out infinite;
 }
@@ -461,13 +439,13 @@
 .mp-btn:not(.mp-btn--rastrear):not(.mp-btn--chat):not(.mp-btn--cancelar):not(.mp-btn--calificar):hover {
   background: var(--orange-hover) !important;
   transform: translateY(-2px) !important;
-  box-shadow: 0 10px 28px rgba(255,92,10,0.4) !important;
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--orange) 40%, transparent) !important;
 }
 
 /* Rastrear */
 .mp-btn--rastrear {
   background: var(--orange) !important;
-  color: #fff !important;
+  color: var(--text) !important;
   box-shadow: var(--shadow-btn);
   overflow: hidden;
 }
@@ -475,7 +453,7 @@
 .mp-btn--rastrear::before {
   content: '';
   position: absolute; top: 0; left: -100%; width: 55%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--text) 18%, transparent), transparent);
   transform: skewX(-20deg);
   animation: mp-sh 2.5s ease-in-out infinite;
 }
@@ -483,7 +461,7 @@
 .mp-btn--rastrear:hover {
   background: var(--orange-hover) !important;
   transform: translateY(-2px) !important;
-  box-shadow: 0 10px 28px rgba(255,92,10,0.4) !important;
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--orange) 40%, transparent) !important;
 }
 
 /* Chat */
@@ -494,8 +472,8 @@
 }
 
 .mp-btn--chat:hover {
-  background: rgba(255,255,255,0.07) !important;
-  border-color: rgba(255,255,255,0.12) !important;
+  background: color-mix(in srgb, var(--text) 7%, transparent) !important;
+  border-color: color-mix(in srgb, var(--text) 12%, transparent) !important;
   transform: translateY(-2px);
 }
 
@@ -503,8 +481,8 @@
 .mp-notif-badge {
   position: absolute;
   top: -6px; right: -6px;
-  background: #ef4444 !important;
-  color: #fff !important;
+  background: var(--st-red) !important;
+  color: var(--text) !important;
   border-radius: 50%;
   width: 18px; height: 18px;
   display: flex; align-items: center; justify-content: center;
@@ -514,33 +492,33 @@
 }
 
 @keyframes mp-pulse {
-  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239,68,68,0.5); }
-  50%       { transform: scale(1.08); box-shadow: 0 0 0 5px rgba(239,68,68,0); }
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 color-mix(in srgb, var(--st-red) 50%, transparent); }
+  50%       { transform: scale(1.08); box-shadow: 0 0 0 5px color-mix(in srgb, var(--st-red) 0%, transparent); }
 }
 
 /* Cancelar */
 .mp-btn--cancelar {
-  background: rgba(239,68,68,0.08) !important;
-  border: 1px solid rgba(239,68,68,0.18) !important;
-  color: #f87171 !important;
+  background: color-mix(in srgb, var(--st-red) 8%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--st-red) 18%, transparent) !important;
+  color: var(--st-red) !important;
 }
 
 .mp-btn--cancelar:hover {
-  background: rgba(239,68,68,0.14) !important;
-  border-color: rgba(239,68,68,0.3) !important;
+  background: color-mix(in srgb, var(--st-red) 14%, transparent) !important;
+  border-color: color-mix(in srgb, var(--st-red) 30%, transparent) !important;
   transform: translateY(-2px);
 }
 
 /* Calificar */
 .mp-btn--calificar {
-  background: rgba(234,179,8,0.08) !important;
-  border: 1px solid rgba(234,179,8,0.2) !important;
-  color: #eab308 !important;
+  background: color-mix(in srgb, var(--st-amber) 8%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--st-amber) 20%, transparent) !important;
+  color: var(--st-amber) !important;
 }
 
 .mp-btn--calificar:hover {
-  background: rgba(234,179,8,0.14) !important;
-  border-color: rgba(234,179,8,0.32) !important;
+  background: color-mix(in srgb, var(--st-amber) 14%, transparent) !important;
+  border-color: color-mix(in srgb, var(--st-amber) 32%, transparent) !important;
   transform: translateY(-2px);
 }
 
@@ -565,7 +543,7 @@
 
 .mp-loading-spinner {
   width: 36px; height: 36px;
-  border: 3px solid rgba(255,92,10,0.15);
+  border: 3px solid color-mix(in srgb, var(--orange) 15%, transparent);
   border-top-color: var(--orange);
   border-radius: 50%;
   animation: mp-spin 0.8s linear infinite;

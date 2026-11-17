@@ -53,6 +53,16 @@ const usuarioSchema = new mongoose.Schema(
       default: false,
     },
 
+    // Faltas confirmadas por la administración (reportes procedentes).
+    faltas: { type: Number, default: 0, min: 0 },
+    // Reportes enviados por este usuario que la administración rechazó.
+    reportesImprocedentes: { type: Number, default: 0, min: 0 },
+    avisoFalta: { type: Boolean, default: false },
+    suspendidoHasta: { type: Date, default: null },
+    bajaDefinitiva: { type: Boolean, default: false },
+    // "No pagó" confirmado: no puede pedir hasta que la administración lo salde.
+    bloqueoPorPago: { type: Boolean, default: false },
+
     preferencias: {
       type: [String],
       default: [],

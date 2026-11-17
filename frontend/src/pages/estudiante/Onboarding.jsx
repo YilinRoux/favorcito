@@ -18,7 +18,7 @@ export default function Onboarding() {
       try {
         const res = await api.get("/productos/categorias");
         setCategorias(res.data.categorias);
-      } catch (err) {
+      } catch {
         setError("No se pudieron cargar las categorías");
       }
     };

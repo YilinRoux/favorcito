@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { AdminError, useAdminList } from "../../components/admin/AdminTools";
+import { useCallback, useEffect, useState } from "react";
 import api from "../../services/api";
 import "../../styles/admin/GestionReportes.css";
 
@@ -8,41 +9,94 @@ const motivoLabels = {
   cancelacion_injustificada:  "Cancelación injustificada",
   comportamiento_inapropiado: "Comportamiento inapropiado",
   otro:                       "Otro",
+  no_pago:                    "No pagó",
+  no_recibio_pedido:          "No recibió el pedido",
+  cliente_ausente:            "Cliente ausente",
+  pedido_incompleto:          "Pedido incompleto",
+  pedido_sucio_danado:        "Pedido sucio o dañado",
+  pedido_equivocado:          "Pedido equivocado",
+  mal_trato:                  "Mal trato",
+  no_entrego:                 "No entregó",
 };
+
+const contextoLabels = {
+  repartidor_a_cliente: "Repartidor → Cliente",
+  cliente_a_repartidor: "Cliente → Repartidor",
+};
+
+const describirSancion = (sancion) => {
+  if (!sancion) return "";
+  const base = `Falta registrada (${sancion.faltas} en total). `;
+  if (sancion.accion === "suspension") return `${base}Cuenta suspendida ${sancion.dias} días.`;
+  if (sancion.accion === "baja") return `${base}Baja definitiva de la cuenta.`;
+  if (sancion.accion === "sospechoso") return `${base}Cuenta marcada como sospechosa.`;
+  return `${base}Se le avisará al iniciar sesión.`;
+};
+
 
 function GestionReportes() {
   const [reportes, setReportes] = useState([]);
   const [cargando, setCargando] = useState(true);
+  const [procesando, setProcesando] = useState(false);
+  const [errorCarga, setErrorCarga] = useState("");
   const [filtro, setFiltro] = useState("pendiente");
 
-  useEffect(() => {
-    const cargar = async () => {
-      try {
-        const res = await api.get("/admin/reportes");
-        setReportes(res.data);
-      } catch {
-        setReportes([]);
-      } finally {
-        setCargando(false);
-      }
-    };
-    cargar();
+  const cargar = useCallback(async () => {
+    try {
+      setErrorCarga("");
+      const res = await api.get("/admin/reportes");
+      setReportes(res.data);
+    } catch {
+        setErrorCarga("Revisa tu conexión y vuelve a intentar.");
+      setReportes([]);
+    } finally {
+      setCargando(false);
+    }
   }, []);
 
-  const resolver = async (id) => {
+  useEffect(() => {
+    cargar();
+  }, [cargar]);
+
+  const resolver = async (id, decision) => {
+    if (procesando) return;
+    const pregunta = decision === "procedente"
+      ? "¿Confirmar el reporte? Se registrará una falta al usuario reportado."
+      : "¿Marcar como improcedente? No habrá sanción y quedará en el historial de quien reportó.";
+    if (!confirm(pregunta)) return;
+    setProcesando(true);
     try {
-      await api.put(`/admin/reportes/${id}/resolver`);
-      setReportes((prev) =>
-        prev.map((r) => (r._id === id ? { ...r, estado: "resuelto" } : r))
-      );
-    } catch {
-      alert("Error al resolver reporte");
+      const res = await api.put(`/admin/reportes/${id}/resolver`, { decision });
+      if (res.data.sancion) alert(describirSancion(res.data.sancion));
+      await cargar();
+    } catch (err) {
+      alert(err.response?.data?.mensaje || "Error al resolver reporte");
+    } finally {
+      setProcesando(false);
     }
   };
 
-  const reportesFiltrados = reportes.filter((r) => r.estado === filtro);
+  const saldar = async (id) => {
+    if (procesando) return;
+    if (!confirm("¿El cliente ya cubrió el adeudo? Se le permitirá pedir de nuevo.")) return;
+    setProcesando(true);
+    try {
+      await api.put(`/admin/reportes/${id}/saldar`);
+      await cargar();
+    } catch (err) {
+      alert(err.response?.data?.mensaje || "Error al saldar adeudo");
+    } finally {
+      setProcesando(false);
+    }
+  };
+
+  const reportesFiltrados = reportes.filter((r) => (filtro === "pendiente" ? r.estado === "pendiente" : r.estado !== "pendiente"));
   const countPendiente = reportes.filter((r) => r.estado === "pendiente").length;
-  const countResuelto  = reportes.filter((r) => r.estado === "resuelto").length;
+  const countResuelto  = reportes.filter((r) => r.estado !== "pendiente").length;
+
+  const lista = useAdminList(reportesFiltrados, (reporte) => [reporte.reportante?.nombre_completo, reporte.estudianteReportado?.nombre_completo, reporte.localReportado?.nombre, motivoLabels[reporte.motivo], reporte.descripcion, reporte.pedido?.alias].join(" "), filtro);
+
+  if (errorCarga) return <AdminError mensaje={errorCarga} />;
 
   if (cargando) return (
     <div className="gr-wrap">
@@ -82,6 +136,7 @@ function GestionReportes() {
           </div>
         </div>
 
+        <p className="ad-help">Revisa el contexto antes de decidir. Resolver un reporte no confirma una entrega ni una devolución de comida. La lista incluye hasta los 500 reportes más recientes.</p>
         {/* ── Filtros ── */}
         <div className="gr-filtros">
           <button
@@ -107,7 +162,8 @@ function GestionReportes() {
         </div>
 
         {/* ── Empty state ── */}
-        {reportesFiltrados.length === 0 ? (
+        {lista.controles}
+        {lista.visibles.length === 0 ? (
           <div className="gr-empty">
             <div className="gr-empty-icon">
               <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -115,12 +171,12 @@ function GestionReportes() {
                 <line x1="4" y1="22" x2="4" y2="15"/>
               </svg>
             </div>
-            <p>No hay reportes {filtro === "pendiente" ? "pendientes" : "resueltos"}.</p>
+            <p>{reportesFiltrados.length ? "No hay reportes que coincidan con tu búsqueda." : `No hay reportes ${filtro === "pendiente" ? "pendientes" : "resueltos"}.`}</p>
           </div>
         ) : (
           <div className="gr-lista">
-            {reportesFiltrados.map((reporte, i) => (
-              <div key={reporte._id} className={`gr-card gr-card--${reporte.estado}`} style={{ animationDelay: `${i * 0.07}s` }}>
+            {lista.visibles.map((reporte, i) => (
+              <div key={reporte._id} className={`gr-card gr-card--${reporte.estado === "pendiente" ? "pendiente" : "resuelto"}`} style={{ animationDelay: `${i * 0.07}s` }}>
 
                 <div className="gr-card-body">
                   {/* ── Chips de tipo y motivo ── */}
@@ -142,6 +198,9 @@ function GestionReportes() {
                     <span className="gr-chip gr-chip--motivo">
                       {motivoLabels[reporte.motivo] || reporte.motivo}
                     </span>
+                    {contextoLabels[reporte.contexto] && (
+                      <span className="gr-chip gr-chip--contexto">{contextoLabels[reporte.contexto]}</span>
+                    )}
                   </div>
 
                   {/* ── Detalle ── */}
@@ -169,9 +228,19 @@ function GestionReportes() {
                           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
                         </svg>
                         Estudiante: <strong>{reporte.estudianteReportado?.nombre_completo}</strong>
+                        <span className="gr-faltas">
+                          {" "}· {reporte.estudianteReportado?.faltas ?? 0} falta(s)
+                          {reporte.estudianteReportado?.bloqueoPorPago ? " · bloqueado por pago" : ""}
+                          {reporte.estudianteReportado?.activo === false ? " · cuenta suspendida" : ""}
+                        </span>
                       </p>
                     )}
 
+                    {reporte.pedido && <details className="ad-order-context"><summary>Ver pedido relacionado{reporte.pedido.alias ? ` · ${reporte.pedido.alias}` : ""}</summary>
+                      <p>Estado: <strong>{{ enviado: "Enviado", aceptado: "Aceptado", en_preparacion: "En preparación", listo: "Listo", en_camino: "En camino", entregado: "Entregado", cancelado: "Cancelado" }[reporte.pedido.estado] || "No disponible"}</strong> · Total: ${reporte.pedido.total}</p>
+                      {reporte.pedido.devolucion && <p>{reporte.pedido.devolucion.estado === "pendiente" ? "Devolución solicitada: falta que el local confirme la recepción." : "El local confirmó la recepción de la devolución."}</p>}
+                      <ul>{reporte.pedido.productos?.map((producto, index) => <li key={index}>{producto.cantidad} × {producto.nombre}</li>)}</ul>
+                    </details>}
                     {reporte.descripcion && (
                       <blockquote className="gr-descripcion">
                         "{reporte.descripcion}"
@@ -192,20 +261,24 @@ function GestionReportes() {
                 {/* ── Acción ── */}
                 <div className="gr-card-action">
                   {reporte.estado === "pendiente" && (
-                    <button onClick={() => resolver(reporte._id)} className="gr-btn-resolver">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="20 6 9 17 4 12"/>
-                      </svg>
-                      Resolver
-                    </button>
-                  )}
-                  {reporte.estado === "resuelto" && (
-                    <div className="gr-resuelto-badge">
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="20 6 9 17 4 12"/>
-                      </svg>
-                      Resuelto
+                    <div className="gr-decisiones">
+                      <button disabled={procesando} aria-busy={procesando} onClick={() => resolver(reporte._id, "procedente")} className="gr-btn-resolver">
+                        Procedente
+                      </button>
+                      <button disabled={procesando} aria-busy={procesando} onClick={() => resolver(reporte._id, "improcedente")} className="gr-btn-rechazar">
+                        Improcedente
+                      </button>
                     </div>
+                  )}
+                  {reporte.estado !== "pendiente" && (
+                    <div className="gr-resuelto-badge">
+                      {reporte.estado === "procedente" ? "Procedente" : reporte.estado === "improcedente" ? "Improcedente" : "Resuelto"}
+                    </div>
+                  )}
+                  {reporte.estado === "procedente" && reporte.motivo === "no_pago" && (
+                    reporte.saldado
+                      ? <div className="gr-resuelto-badge">Adeudo saldado</div>
+                      : <button disabled={procesando} aria-busy={procesando} onClick={() => saldar(reporte._id)} className="gr-btn-resolver">Marcar como pagado</button>
                   )}
                 </div>
 
@@ -214,6 +287,7 @@ function GestionReportes() {
           </div>
         )}
 
+        {lista.paginacion}
       </div>
     </div>
   );

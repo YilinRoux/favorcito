@@ -1,0 +1,67 @@
+/* Carta del local: identidad arriba, categorías al lado, productos sin cajas anidadas. */
+.st-shell .dl-inner{max-width:1160px;gap:24px}
+.dl-back-locales{align-self:flex-start;display:inline-flex;align-items:center;min-height:40px;color:var(--text-muted);font-size:.85rem;text-decoration:none}
+.dl-back-locales:hover{color:var(--orange)}
+.st-shell .dl-card--local{padding:6px 0 24px;background:transparent!important;border:0;border-radius:0!important;box-shadow:none!important;border-bottom:1px solid var(--border)}
+.st-shell .dl-card--local::before{display:none}
+.st-shell .dl-local-header{align-items:flex-start;gap:16px}
+.st-shell .dl-local-nombre{font-family:'Manrope',sans-serif;font-size:clamp(1.8rem,3.2vw,2.8rem);line-height:1.15;letter-spacing:-.045em;overflow-wrap:anywhere}
+.st-shell .dl-local-desc{font-size:1rem;line-height:1.5;margin:10px 0 8px}
+.st-shell .dl-local-dir{font-size:.84rem;line-height:1.5}
+.st-shell .dl-rating{margin-top:12px}
+.st-shell .dl-btn-reporte{background:transparent!important;border:0!important;color:var(--text-muted)!important;min-height:40px;flex:none}
+.st-shell .dl-badge{font-size:.82rem;line-height:1.5;margin-top:16px}
+.st-shell .dl-tabs{background:transparent!important;border:0!important;border-bottom:1px solid var(--border)!important;border-radius:0!important;padding:0 0 10px;gap:12px}
+.st-shell .dl-tab-btn{flex:none;border-radius:0!important;min-height:44px;padding:10px 20px;background:transparent!important;color:var(--text-muted)!important;border:0!important;border-bottom:2px solid transparent!important}
+.st-shell .dl-tab-btn--active{color:var(--text)!important;border-bottom-color:var(--orange)!important}
+.st-shell .dl-menu-categorias{gap:22px}
+.st-shell .dl-categoria-seccion{padding:22px 24px 4px;border:1px solid var(--border);border-radius:20px;background:var(--bg-card)}
+.st-shell .dl-categoria-seccion h3{font-family:'Manrope',sans-serif;font-size:1.35rem;letter-spacing:-.025em;margin:0;padding:0 0 18px;border-bottom:1px solid var(--border)}
+.st-shell .dl-categoria-seccion h3 span{margin-left:auto;font-size:.78rem;font-weight:400}
+.st-shell .dl-productos-lista{display:flex;flex-direction:column;gap:0}
+.st-shell .dl-producto-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:center;min-width:0;padding:22px 0;margin:0;background:transparent!important;box-shadow:none!important;border:0;border-bottom:1px solid var(--border);border-radius:0!important;transform:none!important}
+.st-shell .dl-producto-card:last-child{border-bottom:0}
+.st-shell .dl-producto-card:has(.dl-producto-img){grid-template-columns:88px minmax(0,1fr) auto}
+.st-shell .dl-producto-img{width:88px;height:88px;border-radius:14px!important;object-fit:cover}
+.st-shell .dl-producto-img-placeholder{display:none}
+.st-shell .dl-producto-nombre{font-size:1rem;font-weight:700;line-height:1.45;overflow-wrap:anywhere}
+.st-shell .dl-producto-desc{font-size:.85rem;line-height:1.5;margin-top:5px;max-width:480px}
+.st-shell .dl-producto-precio{font-size:1rem;font-weight:700;margin-top:9px;color:var(--text)!important}
+.st-shell .dl-producto-stock{font-size:.75rem;margin-top:5px;color:var(--text-muted)}
+.st-shell .dl-carrito-ctrl{margin:0;gap:8px;flex-wrap:nowrap;justify-content:flex-end}
+.st-shell .dl-btn-agregar{min-height:42px;padding:10px 18px;border-radius:12px!important;font-size:.85rem;box-shadow:none!important}
+.st-shell .dl-qty-btn{width:36px;height:36px;border-radius:10px!important}
+.st-shell .dl-categorias-nav a{border-radius:10px;background:transparent;border-color:transparent;line-height:1.4;min-height:44px}
+.st-shell .dl-carrito-float{background:var(--st-panel)!important;border-top:1px solid var(--border-input);box-shadow:0 -8px 25px rgba(0,0,0,.08);padding:14px 20px;animation:none}
+.st-shell .dl-carrito-float-inner{max-width:1160px;gap:16px}
+.st-shell .dl-carrito-float-total{color:var(--text)!important;font-size:1.35rem}
+.st-shell .dl-btn--carrito{border-radius:12px!important;min-height:46px;white-space:nowrap;box-shadow:none!important}
+@media(min-width:900px){
+ .st-shell .dl-menu-categorias{display:grid;grid-template-columns:180px minmax(0,1fr);gap:24px;align-items:start}
+ .st-shell .dl-menu-categorias:not(:has(.dl-categorias-nav)){grid-template-columns:minmax(0,1fr)}
+ .st-shell .dl-categorias-nav{position:sticky;top:88px;display:flex;flex-direction:column;grid-column:1;grid-row:1/span 30;align-items:stretch;gap:5px;padding:8px 14px 8px 0;border-right:1px solid var(--border)}
+ .st-shell .dl-categorias-nav a:hover,.st-shell .dl-categorias-nav a:focus-visible{background:var(--orange-glow);color:var(--orange)}
+ .st-shell .dl-menu-categorias:has(.dl-categorias-nav)>.dl-categoria-seccion{grid-column:2}
+}
+@media(max-width:899px){
+ .st-shell .dl-categorias-nav{position:sticky;top:68px;z-index:5;display:flex;flex-wrap:nowrap;gap:6px;overflow-x:auto;max-width:100%;padding:10px 0;background:var(--st-panel);border-radius:12px;scrollbar-width:thin}
+ .st-shell .dl-categorias-nav a{flex:none;white-space:nowrap;padding:10px 16px}
+}
+@media(max-width:520px){
+ .st-shell .dl-inner{gap:18px}
+ .st-shell .dl-local-header{flex-wrap:wrap;gap:8px}
+ .st-shell .dl-local-info{flex-basis:100%}
+ .st-shell .dl-btn-reporte{padding:0;min-height:32px;align-self:flex-start}
+ .st-shell .dl-categoria-seccion{padding:18px 16px 0;border-radius:18px}
+ .st-shell .dl-categoria-seccion h3{font-size:1.2rem;padding-bottom:15px}
+ .st-shell .dl-producto-card{gap:12px;padding:18px 0;grid-template-columns:minmax(0,1fr) auto}
+ .st-shell .dl-producto-card:has(.dl-producto-img){grid-template-columns:64px minmax(0,1fr)}
+ .st-shell .dl-producto-img{width:64px;height:76px}
+ .st-shell .dl-producto-card:has(.dl-producto-img) .dl-carrito-ctrl{grid-column:2;justify-content:flex-start}
+ .st-shell .dl-producto-nombre{font-size:.94rem}
+ .st-shell .dl-btn-agregar{padding:10px 12px}
+ .st-shell .dl-carrito-float{padding:12px 16px}
+ .st-shell .dl-carrito-float-promo{font-size:.7rem;line-height:1.4}
+ .st-shell .dl-carrito-float-count{font-size:.75rem}
+ .st-shell .dl-btn--carrito{padding:12px 18px}
+}

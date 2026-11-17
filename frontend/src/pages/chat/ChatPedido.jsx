@@ -1,5 +1,6 @@
-import { useEffect, useState, useContext, useRef } from "react";
+import { useEffect, useState, useContext, useRef, Fragment } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import MarcoEstudiante from "../../components/estudiante/MarcoEstudiante";
 import socket from "../../services/socket";
 import api from "../../services/api";
 import { NotificationContext } from "../../context/NotificationContext";
@@ -100,7 +101,9 @@ export default function ChatPedido() {
     socket.emit("escribiendo", { pedidoId, usuario: usuario?.nombre || "Alguien" });
   };
 
+  const Contenedor = usuario?.rol === "estudiante" ? MarcoEstudiante : Fragment;
   return (
+    <Contenedor>
     <div className="chat-wrap">
 
       {/* ── Header ── */}
@@ -191,5 +194,6 @@ export default function ChatPedido() {
       </div>
 
     </div>
+    </Contenedor>
   );
 }

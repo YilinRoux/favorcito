@@ -11,7 +11,12 @@ export function AuthProvider({ children }) {
     const token = localStorage.getItem("token");
     const user = localStorage.getItem("usuario");
     if (token && user) {
-      setUsuario(JSON.parse(user));
+      try {
+        setUsuario(JSON.parse(user));
+      } catch {
+        localStorage.removeItem("token");
+        localStorage.removeItem("usuario");
+      }
     }
   }, []);
 
@@ -22,7 +27,8 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
-    localStorage.clear();
+    localStorage.removeItem("token");
+    localStorage.removeItem("usuario");
     setUsuario(null);
   };
 

@@ -1,4 +1,6 @@
 import express from "express";
+import { solicitarDevolucion, obtenerDevoluciones, recibirDevolucion } from "../controllers/devolucionController.js";
+import { obtenerReposicionesPendientes, resolverReposicion } from "../controllers/reposicionController.js";
 import {
   crearPedido,
   obtenerPedidosVendedor,
@@ -26,11 +28,16 @@ router.put("/favorcito/:pedidoId/aceptar", protegerRuta, soloEstudiante, aceptar
 router.put("/favorcito/:pedidoId/entregar", protegerRuta, soloEstudiante, confirmarEntrega);
 
 // ESTUDIANTE
+router.put("/:pedidoId/devolucion", protegerRuta, soloEstudiante, solicitarDevolucion);
 router.post("/", protegerRuta, soloEstudiante, crearPedido);
 router.get("/mis-pedidos", protegerRuta, soloEstudiante, obtenerMisPedidos);
 router.put("/:pedidoId/cancelar", protegerRuta, soloEstudiante, cancelarPedido);
 
 // VENDEDOR
+router.get("/devoluciones-pendientes", protegerRuta, soloVendedor, obtenerDevoluciones);
+router.put("/:pedidoId/devolucion/recibir", protegerRuta, soloVendedor, recibirDevolucion);
+router.get("/reposiciones-pendientes", protegerRuta, soloVendedor, obtenerReposicionesPendientes);
+router.put("/:pedidoId/reposicion", protegerRuta, soloVendedor, resolverReposicion);
 router.get("/vendedor", protegerRuta, soloVendedor, obtenerPedidosVendedor);
 router.put("/:pedidoId/aceptar", protegerRuta, soloVendedor, aceptarPedido);
 router.put("/:pedidoId/estado", protegerRuta, soloVendedor, cambiarEstadoPedido);
