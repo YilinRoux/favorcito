@@ -65,4 +65,33 @@ test("HTTP: un estudiante no puede hacerse un auto Favorcito", { skip: !process.
     assert.equal((await llamar(`/favorcito/${p._id}/entregar`, cliente, "PUT")).status, 409);
     assert.equal((await Pedido.findById(p._id)).estado, "en_camino");
   });
+  await t.test("dos repartidores simultáneos: uno gana y el otro recibe 409", async () => {
+    const tercero = new mongoose.Types.ObjectId();
+    await Usuario.collection.insertOne({ _id: tercero, email: "tercero@example.test", rol: "estudiante", activo: true, verificado: true });
+    const p = await crear(cliente);
+    const respuestas = await Promise.all([llamar(`/favorcito/${p._id}/aceptar`, otro, "PUT"), llamar(`/favorcito/${p._id}/aceptar`, tercero, "PUT")]);
+    assert.deepEqual(respuestas.map((r) => r.status).sort(), [200, 409]);
+    const ganador = respuestas[0].status === 200 ? otro : tercero;
+    const perdedor = respuestas[0].status === 200 ? tercero : otro;
+    const guardado = await Pedido.findById(p._id);
+    assert.equal(String(guardado.repartidor), String(ganador));
+    assert.equal(guardado.estado, "en_camino");
+    assert.equal(guardado.historialEstados.filter((h) => h.estado === "en_camino").length, 1);
+    const disponibles = await (await llamar("/favorcito/disponibles", perdedor)).json();
+    assert.equal(disponibles.some((pedido) => pedido._id === String(p._id)), false);
+    assert.equal((await llamar(`/favorcito/${p._id}/entregar`, perdedor, "PUT")).status, 409);
+    assert.equal((await llamar(`/favorcito/${p._id}/aceptar`, ganador, "PUT")).status, 409);
+    assert.equal(String((await Pedido.findById(p._id)).repartidor), String(ganador));
+    assert.equal(await Pedido.countDocuments({ _id: p._id }), 1);
+  });
+  await t.test("peticiones duplicadas de la misma cuenta no duplican asignación ni historial", async () => {
+    const p = await crear(cliente);
+    const respuestas = await Promise.all(Array.from({ length: 8 }, () => llamar(`/favorcito/${p._id}/aceptar`, otro, "PUT")));
+    assert.equal(respuestas.filter((r) => r.status === 200).length, 1);
+    assert.equal(respuestas.filter((r) => r.status === 409).length, 7);
+    const guardado = await Pedido.findById(p._id);
+    assert.equal(String(guardado.repartidor), String(otro));
+    assert.equal(guardado.historialEstados.filter((h) => h.estado === "en_camino").length, 1);
+  });
+
 });

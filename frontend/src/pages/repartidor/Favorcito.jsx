@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import socket from "../../services/socket";
@@ -10,6 +10,9 @@ function Favorcito() {
   const [cargando, setCargando] = useState(true);
   const [actualizando, setActualizando] = useState(false);
   const navigate = useNavigate();
+  const [aceptando, setAceptando] = useState(null);
+  const [aviso, setAviso] = useState("");
+  const bloqueoAceptacion = useRef(false);
 
   const cargar = async () => {
     try {
@@ -30,23 +33,30 @@ function Favorcito() {
 
   useEffect(() => {
     cargar();
-    socket.on("estadoActualizado", ({ estado }) => {
-      if (estado === "listo") cargar();
-    });
+    const actualizarDisponibles = () => cargar();
+    socket.on("estadoActualizado", actualizarDisponibles);
     const interval = setInterval(cargar, 10000);
     return () => {
-      socket.off("estadoActualizado");
+      socket.off("estadoActualizado", actualizarDisponibles);
       clearInterval(interval);
     };
   }, []);
 
   const aceptar = async (pedidoId) => {
-    if (!confirm("¿Aceptar este favorcito?")) return;
+    if (bloqueoAceptacion.current || !confirm("¿Aceptar este favorcito?")) return;
+    bloqueoAceptacion.current = true;
+    setAceptando(pedidoId); setAviso("");
     try {
       await api.put(`/pedidos/favorcito/${pedidoId}/aceptar`);
       navigate(`/pedido/${pedidoId}`);
-    } catch {
-      alert("Error al aceptar pedido");
+    } catch (error) {
+      if (error.response?.status === 409) {
+        setPedidos((prev) => prev.filter((p) => p._id !== pedidoId));
+        setAviso("Este Favorcito ya no está disponible. Otro estudiante pudo haberlo aceptado o el pedido cambió. Actualizamos la lista.");
+        await cargar();
+      } else { alert("No se pudo aceptar el pedido. Intenta nuevamente."); }
+    } finally {
+      bloqueoAceptacion.current = false; setAceptando(null);
     }
   };
 
@@ -71,6 +81,7 @@ function Favorcito() {
       </div>
 
       <div className="fav-inner">
+        {aviso && <p className="st-delivery-notice" role="status">{aviso}</p>}
 
         {/* ── Header ── */}
         <div className="fav-header">
@@ -177,13 +188,13 @@ function Favorcito() {
                 )}
 
                 {/* ── Botón aceptar ── */}
-                <button onClick={() => aceptar(pedido._id)} className="fav-btn-aceptar">
+                <button onClick={() => aceptar(pedido._id)} className="fav-btn-aceptar" disabled={aceptando !== null} aria-busy={aceptando === pedido._id}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="1" y="3" width="15" height="13"/>
                     <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
                     <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
                   </svg>
-                  Aceptar favorcito
+                  {aceptando === pedido._id ? "Aceptando…" : "Aceptar favorcito"}
                 </button>
 
               </div>
